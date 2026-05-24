@@ -29,3 +29,4 @@ Load ONLY the skills that match the current file or task — do not load everyth
 | incident, outage, postmortem, SEV | `skills/incident-response/SKILL.md` |
 | spec, PRD, requirements, feature design | `skills/spec-writing/SKILL.md` |
 | competitor, market, analysis, benchmark | `skills/competitive-analysis/SKILL.md` |
+| book, knowledge, extraction, convert, OCR, Pandoc | `skills/book-knowledge-extraction/SKILL.md` |

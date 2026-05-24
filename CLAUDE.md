@@ -29,6 +29,6 @@ Skills are connected to Claude Code via symlinks:
 
 - Each SKILL.md starts with YAML frontmatter (name, description)
 - Body is free-form Markdown instructions
-- Keep SKILL.md under 500 lines; move details to `references/` subfolder
+- SKILL.md should contain everything the agent needs to execute the skill. If it grows past 800-1000 lines, consider whether some content is truly optional (templates, examples) and can move to `references/`. But if the skill is a sequential workflow where all parts depend on each other, keep it whole.
 - _INDEX.md files contain trigger tables (file match patterns + keywords)
 - Scripts go in `scripts/` subfolder within the skill directory

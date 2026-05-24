@@ -11,3 +11,4 @@ Load the relevant SKILL.md when the task matches.
 | incident, outage, SEV, postmortem, page, alert | `incident-response/SKILL.md` |
 | spec, PRD, requirements, feature design, RFC | `spec-writing/SKILL.md` |
 | competitor, market, analysis, benchmark, landscape | `competitive-analysis/SKILL.md` |
+| book, knowledge, extraction, convert, OCR, Pandoc | `book-knowledge-extraction/SKILL.md` |

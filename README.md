@@ -23,7 +23,8 @@ agent-knowledge/
 │   ├── deploy-checklist/
 │   ├── incident-response/
 │   ├── spec-writing/
-│   └── competitive-analysis/
+│   ├── competitive-analysis/
+│   └── book-knowledge-extraction/
 └── templates/             # Reusable templates
 ```
 
@@ -40,7 +41,7 @@ Knowledge is organized in three layers:
 ### Progressive Disclosure
 
 - **Tier 1** — `_INDEX.md` catalogs (~50-100 tokens per entry). Agents scan these to decide what to load.
-- **Tier 2** — `SKILL.md` instructions (up to 500 lines). The actual guidance.
+- **Tier 2** — `SKILL.md` instructions. The actual guidance. Keep whole for workflow skills; split only reference-type content.
 - **Tier 3** — `references/` and `scripts/` subfolders. Loaded only when the skill references them.
 
 ## Setup
@@ -73,7 +74,7 @@ chmod +x link.sh
 
 ### Conventions
 - Each `SKILL.md` starts with YAML frontmatter (`name`, `description`)
-- Keep `SKILL.md` under 500 lines; move details to `references/`
+- Keep `SKILL.md` self-contained. Move only truly optional content (templates, examples) to `references/`
 - `_INDEX.md` files contain trigger tables (file patterns + keywords)
 - Scripts go in `scripts/` subfolder within the skill directory
 - All edits and commits happen in THIS repo — never in project repos

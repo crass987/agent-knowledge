@@ -30,3 +30,4 @@ Load ONLY the skills that match the current file or task — do not load everyth
 | spec, PRD, requirements, feature design | `skills/spec-writing/SKILL.md` |
 | competitor, market, analysis, benchmark | `skills/competitive-analysis/SKILL.md` |
 | book, knowledge, extraction, convert, OCR, Pandoc | `skills/book-knowledge-extraction/SKILL.md` |
+| video, YouTube, transcript, whisper, lecture, podcast, knowledge extraction | `skills/video-knowledge-extraction/SKILL.md` |

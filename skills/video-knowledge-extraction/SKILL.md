@@ -263,8 +263,10 @@ Talking head кадры игнорируются — они не несут ви
 
 ### 3.2 Организация файлов
 
+База знаний расположена в `~/Documents/knowledge-base/`.
+
 ```
-knowledge-base/
+~/Documents/knowledge-base/
 └── videos/
     └── {video-title}/
         ├── source/

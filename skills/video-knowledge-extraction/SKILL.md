@@ -36,17 +36,21 @@ version: 1
 
 | Источник | Аудио-канал | Визуальный канал | Инструменты |
 |----------|-------------|-------------------|-------------|
-| **YouTube URL** | yt-dlp субтитры → Whisper fallback | yt-dlp thumbnails + извлечение ключевых кадров | yt-dlp, ffmpeg |
-| **Локальное видео** (.mp4, .mkv, .mov) | Whisper транскрипция | Ключевые кадры через ffmpeg | Whisper, ffmpeg |
+| **YouTube URL** | yt-dlp субтитры → WhisperNotes/Whisper fallback | yt-dlp thumbnails + извлечение ключевых кадров | yt-dlp, ffmpeg |
+| **Локальное видео** (.mp4, .mkv, .mov) | WhisperNotes → Whisper CLI fallback | Ключевые кадры через ffmpeg | WhisperNotes, ffmpeg |
 | **Транскрипт** (.srt, .vtt, .txt) | Прямое чтение | Недоступно (если видео не предоставлено) | Read tool, MCP vision |
-| **Только аудио** (.mp3, .m4a) | Whisper транскрипция | Недоступно | Whisper |
+| **Только аудио** (.mp3, .m4a) | WhisperNotes → Whisper CLI fallback | Недоступно | WhisperNotes |
 
 ### Аудио-канал
 
-1. Проверить наличие субтитров (yt-dlp `--list-subs`)
-2. Если есть: скачать `.vtt`/`.srt`, очистить HTML-артефакты временных меток
-3. Если нет: извлечь аудио → Whisper (`base` для скорости, `large` для технического/многоязычного контента)
-4. Результат: чистый транскрипт с временными метками на уровне предложений
+**Приоритет получения транскрипта:**
+
+1. **yt-dlp субтитры** (YouTube) — скачать `.vtt`/`.srt`, очистить HTML + дубликаты
+2. **WhisperNotes** (ручной) — открыть аудио/видео в приложении, экспортировать транскрипт как SRT/TXT
+3. **Whisper CLI** (автоматический) — `whisper audio.mp3 --model base --output_format srt`. Работает на CPU, медленно (~5-10x реального времени)
+4. **Веб-сервис транскрипции** (fallback) — you-tldr.com/transcript/{video_id} для YouTube
+
+**Результат:** чистый транскрипт с временными метками на уровне предложений
 
 ```bash
 # YouTube: проверить и скачать субтитры

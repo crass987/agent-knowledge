@@ -36,10 +36,10 @@ version: 1
 
 | Источник | Аудио-канал | Визуальный канал | Инструменты |
 |----------|-------------|-------------------|-------------|
-| **YouTube URL** | yt-dlp субтитры → WhisperNotes/Whisper fallback | yt-dlp thumbnails + извлечение ключевых кадров | yt-dlp, ffmpeg |
-| **Локальное видео** (.mp4, .mkv, .mov) | WhisperNotes → Whisper CLI fallback | Ключевые кадры через ffmpeg | WhisperNotes, ffmpeg |
+| **YouTube URL** | yt-dlp субтитры → you-tldr fallback → parakeet-mlx fallback | yt-dlp thumbnails + извлечение ключевых кадров | yt-dlp, ffmpeg, parakeet-mlx |
+| **Локальное видео** (.mp4, .mkv, .mov) | parakeet-mlx → WhisperNotes fallback | Ключевые кадры через ffmpeg | parakeet-mlx, ffmpeg |
 | **Транскрипт** (.srt, .vtt, .txt) | Прямое чтение | Недоступно (если видео не предоставлено) | Read tool, MCP vision |
-| **Только аудио** (.mp3, .m4a) | WhisperNotes → Whisper CLI fallback | Недоступно | WhisperNotes |
+| **Только аудио** (.mp3, .m4a) | parakeet-mlx → WhisperNotes fallback | Недоступно | parakeet-mlx |
 
 ### Аудио-канал
 
@@ -47,8 +47,8 @@ version: 1
 
 1. **yt-dlp субтитры** (YouTube) — скачать `.vtt`/`.srt`, очистить HTML + дубликаты
 2. **Веб-сервис транскрипции** (YouTube) — you-tldr.com/transcript/{video_id}. Быстро, чистый результат, но нужен интернет и доступ к сервису
-3. **WhisperNotes** (ручной) — открыть аудио/видео в приложении, экспортировать транскрипт как SRT/TXT
-4. **Whisper CLI** (автоматический) — `whisper audio.mp3 --model base --output_format srt`. Работает на CPU, медленно (~5-10x реального времени)
+3. **parakeet-mlx** (автоматический, Apple Silicon) — `parakeet-mlx audio.mp3`. NVIDIA Parakeet TDT 0.6B v3, 25 языков, точность на уровне Whisper Large V3, скорость ~30x реального времени на Apple Silicon. Выводит SRT/VTT/TXT/JSON. Установка: `uv tool install parakeet-mlx -U`
+4. **WhisperNotes** (ручной) — открыть аудио/видео в приложении, экспортировать транскрипт как SRT/TXT
 
 **Результат:** чистый транскрипт с временными метками на уровне предложений
 
@@ -62,9 +62,10 @@ yt-dlp --write-auto-sub --sub-lang en,ru --convert-subs srt URL  # автоге�
 yt-dlp -x --audio-format mp3 URL
 ffmpeg -i video.mp4 -vn -acodec mp3 audio.mp3  # из локального файла
 
-# Whisper транскрипция
-whisper audio.mp3 --model base --language en --output_format srt
-whisper audio.mp3 --model large --language en --output_format srt  # для точности
+# Parakeet-mlx транскрипция (Apple Silicon)
+parakeet-mlx audio.mp3                        # по умолчанию → SRT
+parakeet-mlx audio.mp3 --output-format txt    # чистый текст
+parakeet-mlx audio.mp3 --output-format json   # с word-level timestamps
 
 # Очистка VTT/SRT
 sed 's/<[^>]*>//g' subtitles.vtt > clean.txt
@@ -72,32 +73,33 @@ sed 's/<[^>]*>//g' subtitles.vtt > clean.txt
 
 ### Очистка дубликатов в автосубтитрах YouTube
 
-Автогенерированные субтитры YouTube дублируют каждую фразу 2-3 раза в соседних SRT-записях. Стандартная очистка HTML (`sed`) не удаляет эти дубликаты.
+YouTube auto-captions используют **rolling captions** — формат progressive reveal. Каждый SRT-блок содержит предыдущий текст + новую фразу (накопительный). Между реальными блоками стоят «переходные кадры» длительностью ~10мс.
+
+**Пример структуры:**
+```
+Блок 1:  [00:00 → 00:02.23]  "A few months ago, I wrote a few"        ← реальный (2.2 сек)
+Блок 2:  [00:02.23 → 00:02.24]  "A few months ago, I wrote a few"     ← переходный (10мс, skip)
+Блок 3:  [00:02.24 → 00:04.75]  "A few months ago, I wrote a few\nsentences, about four sentences, that"  ← реальный
+```
+
+Уникальный контент — **последняя строка** каждого реального блока. Переходные блоки (duration < 100мс) — мусор.
 
 **Порядок действий:**
 
-1. После скачивания автосубтитров — проверить на дубликаты (сравнить соседние записи)
-2. Если дубликаты есть — применить дедупликацию:
+1. Скачать автосубтитры через yt-dlp
+2. Применить парсер rolling captions:
 
 ```bash
-# Python-скрипт для дедупликации SRT
-python3 -c "
-import re, sys
-with open(sys.argv[1]) as f: text = f.read()
-blocks = re.split(r'\n\n+', text.strip())
-seen, out = [], []
-for b in blocks:
-    lines = b.split('\n')
-    txt = ' '.join(lines[2:]).strip()
-    if txt and txt not in seen[-3:]:
-        seen.append(txt)
-        out.append(b)
-print('\n\n'.join(out))
-" subtitles.srt > clean.srt
+# Скрипт в skills/video-knowledge-extraction/scripts/srt-clean.py
+python3 ~/.claude/skills/video-knowledge-extraction/scripts/srt-clean.py subtitles.srt transcript.txt
 ```
 
-3. Если скрипт не справляется — использовать веб-сервис для транскрипта (например, you-tldr.com/transcript/{video_id}) как fallback
-4. Финальная проверка: прочитать начало результата — фразы не должны повторяться
+Скрипт автоматически:
+- Пропускает переходные кадры (duration < 100мс)
+- Извлекает последнюю строку каждого реального блока (новый контент)
+- Склеивает orphan-фрагменты (edge case: пустая строка в первом блоке)
+
+3. Проверить: прочитать начало результата — первая фраза не должна быть обрезана, фразы не должны повторяться
 
 ### Визуальный канал
 
@@ -129,25 +131,30 @@ Talking head кадры игнорируются — они не несут ви
 | Тип видео | Визуальный канал | Причина |
 |-----------|-----------------|---------|
 | **Tutorial/Demo** | Обязателен | Демонстрация на экране = основной источник знаний |
-| **Lecture** (со слайдами) | Рекомендован | Слайды содержат модели, диаграммы, цитаты |
-| **Review/Analysis** | Опционален | Может содержать графики, скриншоты |
+| **Lecture** (со слайдами) | **Обязателен** | Слайды содержат диаграммы, модели, визуальные сравнения, которые невозможно восстановить из транскрипта. Даже если транскрипт полный — визуальный канал несёт уникальное знание |
+| **Review/Analysis** | Обязателен | Графики, скриншоты, визуальные сравнения — часть аргументации |
 | **Interview/Podcast** | Пропустить | Talking head, визуальных знаний нет |
 | **Vlog/Narrative** | Пропустить | Визуал не несёт структурированных знаний |
-| **Short/Clip** | Опционален | Если есть схема/демо — извлечь |
+| **Short/Clip** | Обязателен | Короткое видео часто содержит схемы/демо — проверить обязательно |
 
-**Как применять:** Если визуальный канал пропускается — не скачивать видео, не извлекать ключевые кадры. Это экономит время и токены. Секция «Визуальные знания» в документе знаний помечается как «Недоступно (тип видео: ...)».
+**ВАЖНО:** «Обязателен» означает, что агент ДОЛЖЕН скачать видео, извлечь ключевые кадры и классифицировать их. Пропуск визуального канала для обязательных типов = нарушение процесса.
+
+**Как применять:** Если визуальный канал пропускается (Interview/Podcast, Vlog/Narrative) — не скачивать видео, не извлекать ключевые кадры. Это экономит время и токены. Секция «Визуальные знания» в документе знаний помечается как «Недоступно (тип видео: ...)».
+
+**Опциональные типы:** Опциональных типов больше нет. Если видео доступно и тип требует визуального канала — извлечь его. Если видео недоступно (только транскрипт/аудио) — пометить в документе знаний как «Недоступно (источник: только транскрипт/аудио)».
 
 ### Логика принятия решения
 
-1. YouTube URL → скачать субтитры (если есть), иначе Whisper → скачать видео для ключевых кадров
-2. Локальное видео → Whisper + ffmpeg ключевые кадры
+1. YouTube URL → скачать субтитры (если есть), иначе you-tldr fallback → parakeet-mlx fallback → скачать видео для ключевых кадров
+2. Локальное видео → parakeet-mlx + ffmpeg ключевые кадры
 3. Транскрипт (.srt/.vtt/.txt) → прямое чтение, визуальный канал недоступен
-4. Только аудио → Whisper, визуальный канал недоступен
+4. Только аудио → parakeet-mlx, визуальный канал недоступен
 
 ### Шлюз качества (перед Фазой 1)
 
 - [ ] Транскрипт чистый (без HTML-артефактов субтитров, без повторов Whisper)
-- [ ] Визуальный индекс классифицирует каждый извлечённый кадр
+- [ ] Визуальный канал выполнен (если тип видео требует — скачать видео, извлечь ключевые кадры, классифицировать каждый кадр)
+- [ ] Если визуальный канал пропущен — тип видео Interview/Podcast или Vlog/Narrative, и это явно указано
 - [ ] Длительность видео определена
 - [ ] Количество говорящих определено (для интервью/подкастов)
 
@@ -342,6 +349,7 @@ Talking head кадры игнорируются — они не несут ви
 
 ### Перед извлечением
 - [ ] Источник получен (транскрипт + визуальный индекс, если видео доступно)
+- [ ] Визуальный канал обработан для обязательных типов (Lecture, Tutorial, Review, Short) — видео скачано, кадры извлечены и классифицированы
 - [ ] Тип видео определён
 - [ ] Виртуальные главы идентифицированы
 - [ ] Информационная плотность оценена
@@ -356,6 +364,7 @@ Talking head кадры игнорируются — они не несут ви
 ### После структурирования
 - [ ] Документ знаний следует шаблону
 - [ ] Все категории заполнены (где применимо к типу видео)
+- [ ] Секция «Визуальные знания» содержит индекс кадров + описания для обязательных типов (или явное объяснение почему недоступно)
 - [ ] Метаданные полные
 - [ ] Практическое применение определено
 - [ ] Документ читаем без просмотра исходного видео
@@ -403,16 +412,19 @@ yt-dlp -x --audio-format mp3 URL
 # Извлечение аудио
 ffmpeg -i video.mp4 -vn -acodec mp3 audio.mp3
 
-# Whisper
-whisper audio.mp3 --model base --language en --output_format srt
-whisper audio.mp3 --model large --language en --output_format srt
+# Parakeet-mlx (Apple Silicon, ~30x realtime)
+parakeet-mlx audio.mp3                        # → SRT (по умолчанию)
+parakeet-mlx audio.mp3 --output-format txt    # → чистый текст
+parakeet-mlx audio.mp3 --output-format json   # → с word-level timestamps
+parakeet-mlx audio.mp3 --output-format vtt    # → WebVTT субтитры
 
 # Ключевые кадры
 ffmpeg -i video.mp4 -vf "fps=1/60" keyframes/periodic_%04d.png
 ffmpeg -i video.mp4 -vf "select=gt(scene\,0.3)" -vsync vfr keyframes/scene_%04d.png
 
 # Очистка субтитров
-sed 's/<[^>]*>//g' subtitles.vtt > clean.txt
+sed 's/<[^>]*>//g' subtitles.vtt > clean.txt               # HTML tags only (manual subs)
+python3 scripts/srt-clean.py auto_subs.srt transcript.txt   # Rolling captions (YouTube auto subs)
 ```
 
 ---

@@ -31,3 +31,7 @@ Load ONLY the skills that match the current file or task — do not load everyth
 | competitor, market, analysis, benchmark | `skills/competitive-analysis/SKILL.md` |
 | book, knowledge, extraction, convert, OCR, Pandoc | `skills/book-knowledge-extraction/SKILL.md` |
 | video, YouTube, transcript, whisper, lecture, podcast, knowledge extraction | `skills/video-knowledge-extraction/SKILL.md` |
+| investigate, research, feature, как работает, изучи | `skills/am-research/SKILL.md` |
+| evaluate, grill, assess, оцени фичу, прожарь, стоит ли делать | `skills/am-grill-feature/SKILL.md` |
+| requirements, specs, аналитика, напиши требования, write specs | `skills/am-write-specs/SKILL.md` |
+| audit, docs, documentation, неточности, проверь доки, прожарь документацию | `skills/am-grill-docs/SKILL.md` |

@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "skill": "fixture-skill",
+  "generated_at": "2026-05-31T00:00:00Z",
+  "test_input": {
+    "type": "prompt",
+    "text": "test prompt"
+  },
+  "assertions": [
+    {
+      "id": "a01",
+      "description": "Output contains a markdown header",
+      "source_rule": "Output must use markdown headers",
+      "type": "regex",
+      "check": "^## ",
+      "flags": ""
+    },
+    {
+      "id": "a02",
+      "description": "Output mentions TDD",
+      "source_rule": "Must reference test-driven development",
+      "type": "contains",
+      "value": "TDD"
+    },
+    {
+      "id": "a03",
+      "description": "Output has no placeholder text",
+      "source_rule": "No placeholder text like [TODO]",
+      "type": "not_regex",
+      "check": "\\[TODO\\]",
+      "flags": ""
+    },
+    {
+      "id": "a04",
+      "description": "Output is under 500 words",
+      "source_rule": "Keep output concise",
+      "type": "max_words",
+      "value": 500
+    },
+    {
+      "id": "a05",
+      "description": "Output has at least 5 words",
+      "source_rule": "Output must not be empty",
+      "type": "min_words",
+      "value": 5
+    },
+    {
+      "id": "a06",
+      "description": "No raw filler words",
+      "source_rule": "Clean up filler words",
+      "type": "not_contains",
+      "value": "um, like, you know"
+    }
+  ]
+}

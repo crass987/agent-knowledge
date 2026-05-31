@@ -658,3 +658,74 @@ class TestCostTracking:
     def test_cumulative_tracking(self, content):
         """SKILL.md specifies cumulative tracking."""
         assert "cumulative" in content.lower()
+
+
+# ── 12. Clean v2 file structure — from Slice 05 ─────────────────────────
+
+
+class TestCleanV2Structure:
+    """Validate that v1 artifacts have been cleaned up and only v2 remains."""
+
+    def test_lib_has_only_v2_modules(self):
+        """lib/ contains only __init__.py, assertion_runner.py, eval_generator.py."""
+        allowed = {"__init__.py", "assertion_runner.py", "eval_generator.py"}
+        actual = {f for f in os.listdir(LIB_DIR) if not f.startswith(".") and f != "__pycache__"}
+        assert actual == allowed, f"lib/ has unexpected files: {actual - allowed}"
+
+    def test_no_v1_lib_modules(self):
+        """v1 Python modules are deleted."""
+        v1_modules = [
+            "improvement_loop.py",
+            "batch_orchestrator.py",
+            "skill_runner.py",
+            "reporter.py",
+        ]
+        for module in v1_modules:
+            path = os.path.join(LIB_DIR, module)
+            assert not os.path.exists(path), f"v1 module still exists: {module}"
+
+    def test_no_v1_test_files(self):
+        """v1 test files are deleted."""
+        v1_tests = [
+            "test_skill_runner.py",
+            "test_improvement_loop.py",
+            "test_batch_orchestrator.py",
+            "test_reporter.py",
+            "integration-report.md",
+        ]
+        for test_file in v1_tests:
+            path = os.path.join(TESTS_DIR, test_file)
+            assert not os.path.exists(path), f"v1 test file still exists: {test_file}"
+
+    def test_tests_dir_has_only_v2_files(self):
+        """tests/ contains only v2 test files + fixtures."""
+        allowed = {
+            "__init__.py",
+            "test_assertion_runner.py",
+            "test_eval_generator.py",
+            "test_skill_md_v2.py",
+            "fixture-evals.json",
+            "fixture-output.txt",
+        }
+        actual = {f for f in os.listdir(TESTS_DIR) if not f.startswith(".") and f != "__pycache__"}
+        assert actual == allowed, f"tests/ has unexpected files: {actual - allowed}"
+
+    def test_prd_v1_archived(self):
+        """PRD.md has been renamed to PRD-v1.md."""
+        prd_path = os.path.join(SKILL_DIR, "PRD.md")
+        prd_v1_path = os.path.join(SKILL_DIR, "PRD-v1.md")
+        assert not os.path.exists(prd_path), "PRD.md should be renamed to PRD-v1.md"
+        assert os.path.exists(prd_v1_path), "PRD-v1.md should exist"
+
+    def test_issues_v1_archived(self):
+        """issues/ directory has been renamed to issues-v1/."""
+        issues_path = os.path.join(SKILL_DIR, "issues")
+        issues_v1_path = os.path.join(SKILL_DIR, "issues-v1")
+        assert not os.path.exists(issues_path), "issues/ should be renamed to issues-v1/"
+        assert os.path.exists(issues_v1_path), "issues-v1/ should exist"
+
+    def test_v2_artifacts_present(self):
+        """v2 artifacts exist: PRD-v2.md, adr/, issues-v2/."""
+        assert os.path.exists(os.path.join(SKILL_DIR, "PRD-v2.md"))
+        assert os.path.isdir(os.path.join(SKILL_DIR, "adr"))
+        assert os.path.isdir(os.path.join(SKILL_DIR, "issues-v2"))

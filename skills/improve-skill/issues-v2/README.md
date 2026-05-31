@@ -23,7 +23,7 @@ Architecture decision: `../adr/0001-skill-md-orchestration.md`
 | 02 | [Single-Skill Improvement MVP](02-single-skill-mvp.md) | AFK | 01 | ✅ done |
 | 03 | [Quality Audit + Reporting](03-quality-audit-reporting.md) | AFK | 02 | ✅ done |
 | 04 | [Batch Mode, Flags & Recovery](04-batch-mode-flags.md) | AFK | 02 | ✅ done |
-| 05 | [Cleanup v1 & Archive](05-cleanup-v1.md) | AFK | 03, 04 | pending |
+| 05 | [Cleanup v1 & Archive](05-cleanup-v1.md) | AFK | 03, 04 | ✅ done |
 | 06 | [Battle Test on Real Skills](06-battle-test.md) | HITL | 05 | pending |
 
 ## Progress
@@ -104,8 +104,30 @@ See `02-single-skill-mvp.md` for full spec.
 
 ### Remaining issues
 
-- **05**: Delete v1 Python modules, archive old issues/PRD
-- **06**: Human validation on 3 real skills
+- **06**: Human validation on 3 real skills (HITL)
+
+### ✅ Issue 05: Cleanup v1 & Archive — DONE
+
+Commit: `7da1476` on `main`
+
+**What was done (TDD, 1 RED-GREEN cycle):**
+
+1. **Deleted 4 v1 Python modules**: `improvement_loop.py`, `batch_orchestrator.py`, `skill_runner.py`, `reporter.py`
+2. **Deleted 4 v1 test files + integration report**: `test_skill_runner.py`, `test_improvement_loop.py`, `test_batch_orchestrator.py`, `test_reporter.py`, `integration-report.md`
+3. **Archived**: `PRD.md` → `PRD-v1.md`, `issues/` → `issues-v1/`
+4. **7 new structural tests** (TestCleanV2Structure): validate lib/ has only v2 modules, tests/ has only v2 files, v1 artifacts are gone, v2 artifacts present
+
+**Net change**: -2065 lines deleted
+
+**Acceptance criteria: 8/8 done:**
+- ✅ v1 Python modules deleted
+- ✅ v1 test files deleted
+- ✅ issues/ renamed to issues-v1/
+- ✅ PRD.md renamed to PRD-v1.md
+- ✅ lib/ contains only __init__.py, assertion_runner.py, eval_generator.py
+- ✅ tests/ contains only v2 files + fixtures
+- ✅ All remaining tests pass (158 total)
+- ✅ AGENTS.md not needed (skill description unchanged)
 
 ### ✅ Issue 03: Quality Audit + Reporting — DONE (parallel with 04)
 
@@ -145,14 +167,14 @@ Commit: merged into `2253372` on `main`
 
 6. **18 new tests** (TestBatchMode: 5, TestCLIFlags: 5, TestCrashRecovery: 5, TestCostTracking: 3)
 
-### Combined test counts after integration
+### Combined test counts after cleanup
 
 | Test file | Tests |
 |-----------|-------|
 | test_assertion_runner.py | 27 |
 | test_eval_generator.py | 49 |
-| test_skill_md_v2.py | 75 (11 classes) |
-| **Total** | **151** |
+| test_skill_md_v2.py | 82 (12 classes) |
+| **Total** | **158** |
 
 ## Conventions
 

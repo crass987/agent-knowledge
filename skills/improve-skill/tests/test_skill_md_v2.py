@@ -6,6 +6,8 @@ The SKILL.md is an LLM program, not Python. These tests validate:
 2. Tool interface correctness: referenced Python tools work as documented
 3. Safety constraints: the SKILL.md encodes correct file targeting rules
 4. Integration: eval_generator + assertion_runner pipeline works end-to-end
+5. Quality Audit (Phase 4) and Enhanced Report (Phase 5)
+6. Batch mode, CLI flags, crash recovery, cost tracking
 """
 
 import json
@@ -72,9 +74,9 @@ class TestSkillMdStructure:
         """Contains PHASE 3: IMPROVEMENT LOOP section."""
         assert "PHASE 3: IMPROVEMENT LOOP" in content
 
-    def test_has_phase_4_report(self, content):
-        """Contains PHASE 4: REPORT section."""
-        assert "PHASE 4: REPORT" in content
+    def test_has_report_phase(self, content):
+        """Contains a REPORT phase (renumbered to Phase 5)."""
+        assert "REPORT" in content
 
     def test_has_step_3a_diagnose(self, content):
         """Contains Step 3a: DIAGNOSE."""
@@ -109,7 +111,6 @@ class TestSkillMdStructure:
     def test_has_safety_constraints(self, content):
         """Has safety constraints section."""
         assert "Safety" in content or "SAFETY" in content.upper()
-        # Must mention *.md and evals.json as only editable targets
         assert "*.md" in content
         assert "evals.json" in content
 
@@ -178,7 +179,6 @@ class TestEvalGeneratorCLI:
 
     def test_cli_generates_valid_v2_json(self):
         """Running with a real skill dir produces valid v2 evals JSON."""
-        # Use the tdd skill as a lightweight test target
         tdd_dir = os.path.join(REPO_ROOT, "skills", "tdd")
         if not os.path.isdir(tdd_dir):
             pytest.skip("tdd skill not found")
@@ -222,7 +222,6 @@ class TestAssertionRunnerCLI:
              "--evals", fixture_evals, "--output", fixture_output],
             capture_output=True, text=True,
         )
-        # Should produce JSON output (exit code depends on pass/fail)
         score = json.loads(result.stdout)
         assert "total" in score
         assert "passed" in score
@@ -260,7 +259,6 @@ class TestEndToEndPipeline:
         if not os.path.isdir(tdd_dir):
             pytest.skip("tdd skill not found")
 
-        # Step 1: Generate evals
         result = subprocess.run(
             [sys.executable, os.path.join(LIB_DIR, "eval_generator.py"), tdd_dir],
             capture_output=True, text=True,
@@ -268,7 +266,6 @@ class TestEndToEndPipeline:
         assert result.returncode == 0
         evals = json.loads(result.stdout)
 
-        # Step 2: Create a sample output (simulating Agent output)
         sample_output = """
 # TDD Workflow
 
@@ -291,18 +288,15 @@ def test_user_creation():
 
 Run all tests after each change.
 """
-        # Write sample output to temp file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
             f.write(sample_output)
             output_path = f.name
 
         try:
-            # Write evals to temp file
             with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
                 json.dump(evals, f)
                 evals_path = f.name
 
-            # Step 3: Score
             result = subprocess.run(
                 [sys.executable, os.path.join(LIB_DIR, "assertion_runner.py"),
                  "--evals", evals_path, "--output", output_path],
@@ -367,7 +361,7 @@ class TestSafetyConstraints:
 
     def test_limits_iterations(self, content):
         """SKILL.md enforces a hard iteration cap."""
-        assert "10" in content  # max iterations
+        assert "10" in content
 
     def test_requires_git_revert(self, content):
         """SKILL.md requires git checkout for reverts."""
@@ -375,5 +369,292 @@ class TestSafetyConstraints:
 
     def test_requires_atomic_commits(self, content):
         """SKILL.md requires atomic (single-file) changes."""
-        # The word "atomic" should appear in context of edits
         assert "atomic" in content.lower() or "one file" in content.lower() or "single" in content.lower()
+
+
+# ── 5. Quality Audit (Phase 4) — from Slice 03 ─────────────────────────
+
+
+class TestQualityAudit:
+    """Validate the SKILL.md has Phase 4: Quality Audit with LLM-as-judge."""
+
+    @pytest.fixture
+    def content(self):
+        return read_skill_md()
+
+    def test_has_phase_4_quality_audit(self, content):
+        """Contains PHASE 4: QUALITY AUDIT section."""
+        assert "PHASE 4: QUALITY AUDIT" in content
+
+    def test_phase_4_comes_after_phase_3(self, content):
+        """Phase 4 appears after Phase 3 in the document."""
+        phase3_pos = content.find("PHASE 3:")
+        phase4_pos = content.find("PHASE 4:")
+        assert phase3_pos > 0
+        assert phase4_pos > phase3_pos
+
+    def test_has_llm_as_judge_instructions(self, content):
+        """Phase 4 describes using Agent tool for holistic evaluation."""
+        phase4_pos = content.find("PHASE 4:")
+        phase5_pos = content.find("PHASE 5:")
+        if phase5_pos == -1:
+            phase5_pos = len(content)
+        phase4_section = content[phase4_pos:phase5_pos]
+        assert "Agent" in phase4_section, "Phase 4 must mention Agent tool for LLM-as-judge"
+
+    def test_has_quality_dimensions(self, content):
+        """Phase 4 lists quality dimensions: completeness, specificity, accuracy, style, non-banality."""
+        phase4_pos = content.find("PHASE 4:")
+        phase5_pos = content.find("PHASE 5:")
+        if phase5_pos == -1:
+            phase5_pos = len(content)
+        phase4_section = content[phase4_pos:phase5_pos].lower()
+        for dimension in ["completeness", "specificity", "accuracy", "style", "non-banality"]:
+            assert dimension in phase4_section, f"Phase 4 must mention quality dimension: {dimension}"
+
+    def test_has_structured_findings(self, content):
+        """Phase 4 produces structured findings with issues and suggestions."""
+        phase4_pos = content.find("PHASE 4:")
+        phase5_pos = content.find("PHASE 5:")
+        if phase5_pos == -1:
+            phase5_pos = len(content)
+        phase4_section = content[phase4_pos:phase5_pos]
+        assert "findings" in phase4_section.lower(), "Phase 4 must produce structured findings"
+
+    def test_has_proposed_assertions_mechanism(self, content):
+        """Phase 4 converts recurring problems to proposed assertions."""
+        phase4_pos = content.find("PHASE 4:")
+        phase5_pos = content.find("PHASE 5:")
+        if phase5_pos == -1:
+            phase5_pos = len(content)
+        phase4_section = content[phase4_pos:phase5_pos]
+        assert "proposed" in phase4_section.lower(), "Phase 4 must mention proposed assertions"
+        assert "proposed_assertions" in phase4_section, "Phase 4 must use proposed_assertions key"
+
+    def test_proposed_assertions_stored_separately(self, content):
+        """Proposed assertions go into proposed_assertions array, not the scored assertions array."""
+        phase4_pos = content.find("PHASE 4:")
+        phase5_pos = content.find("PHASE 5:")
+        if phase5_pos == -1:
+            phase5_pos = len(content)
+        phase4_section = content[phase4_pos:phase5_pos]
+        assert "proposed_assertions" in phase4_section
+
+    def test_has_rubric_from_skill_criteria(self, content):
+        """Phase 4 uses the skill's own quality criteria as evaluation rubric."""
+        phase4_pos = content.find("PHASE 4:")
+        phase5_pos = content.find("PHASE 5:")
+        if phase5_pos == -1:
+            phase5_pos = len(content)
+        phase4_section = content[phase4_pos:phase5_pos].lower()
+        assert "rubric" in phase4_section, "Phase 4 must reference rubric from skill's quality criteria"
+
+
+# ── 6. Enhanced Report (Phase 5) — from Slice 03 ────────────────────────
+
+
+class TestEnhancedReport:
+    """Validate the SKILL.md has Phase 5: REPORT with enhanced features."""
+
+    @pytest.fixture
+    def content(self):
+        return read_skill_md()
+
+    def test_has_phase_5_report(self, content):
+        """Contains PHASE 5: REPORT section."""
+        assert "PHASE 5: REPORT" in content
+
+    def test_phase_5_comes_after_phase_4(self, content):
+        """Phase 5 appears after Phase 4 in the document."""
+        phase4_pos = content.find("PHASE 4:")
+        phase5_pos = content.find("PHASE 5:")
+        assert phase4_pos > 0
+        assert phase5_pos > phase4_pos
+
+    def test_has_audit_recommendations_section(self, content):
+        """Phase 5 includes audit recommendations from Phase 4."""
+        phase5_pos = content.find("PHASE 5:")
+        phase5_section = content[phase5_pos:]
+        assert "audit" in phase5_section.lower() and "recommend" in phase5_section.lower(), \
+            "Phase 5 must include audit recommendations"
+
+    def test_has_proposed_assertions_display(self, content):
+        """Phase 5 displays proposed assertions for next run."""
+        phase5_pos = content.find("PHASE 5:")
+        phase5_section = content[phase5_pos:]
+        assert "proposed" in phase5_section.lower(), \
+            "Phase 5 must display proposed assertions for next run"
+
+    def test_has_per_assertion_comparison(self, content):
+        """Phase 5 shows per-assertion comparison with icons."""
+        phase5_pos = content.find("PHASE 5:")
+        phase5_section = content[phase5_pos:]
+        has_icons = ("✅" in phase5_section or "PASS" in phase5_section)
+        assert has_icons, "Phase 5 must show per-assertion pass/fail comparison"
+
+    def test_has_complete_cost_tracking(self, content):
+        """Phase 5 displays agent calls, LLM calls, and test inputs evaluated."""
+        phase5_pos = content.find("PHASE 5:")
+        phase5_section = content[phase5_pos:].lower()
+        assert "agent call" in phase5_section, "Phase 5 must display agent calls"
+        assert "llm call" in phase5_section, "Phase 5 must display LLM calls"
+
+    def test_has_stopping_reason_display(self, content):
+        """Phase 5 displays the stopping reason."""
+        phase5_pos = content.find("PHASE 5:")
+        phase5_section = content[phase5_pos:].lower()
+        assert "stopping reason" in phase5_section or "stop reason" in phase5_section, \
+            "Phase 5 must display stopping reason"
+
+    def test_has_git_commit_history(self, content):
+        """Phase 5 shows git commit history."""
+        phase5_pos = content.find("PHASE 5:")
+        phase5_section = content[phase5_pos:]
+        assert "git log" in phase5_section, "Phase 5 must show git log for commit history"
+
+
+# ── 7. Phase numbering consistency — from Slice 03 ──────────────────────
+
+
+class TestPhaseNumbering:
+    """Ensure phases are numbered correctly: 1→2→3→4→5."""
+
+    @pytest.fixture
+    def content(self):
+        return read_skill_md()
+
+    def test_has_exactly_5_phases(self, content):
+        """SKILL.md has exactly 5 phases (1 through 5)."""
+        phases = re.findall(r"###\s+PHASE\s+(\d+):", content)
+        assert len(phases) == 5, f"Expected 5 phases, found {len(phases)}: {phases}"
+
+    def test_phases_are_sequential(self, content):
+        """Phases are numbered 1, 2, 3, 4, 5 in order."""
+        phases = re.findall(r"###\s+PHASE\s+(\d+):", content)
+        assert phases == ["1", "2", "3", "4", "5"], f"Phases not sequential: {phases}"
+
+    def test_phase_4_is_quality_audit(self, content):
+        """Phase 4 header says QUALITY AUDIT."""
+        assert re.search(r"PHASE\s+4:\s+QUALITY\s+AUDIT", content) is not None
+
+    def test_phase_5_is_report(self, content):
+        """Phase 5 header says REPORT."""
+        assert re.search(r"PHASE\s+5:\s+REPORT", content) is not None
+
+
+# ── 8. Batch mode — from Slice 04 ───────────────────────────────────────
+
+
+class TestBatchMode:
+    """Validate SKILL.md has batch mode instructions (--all, named lists)."""
+
+    @pytest.fixture
+    def content(self):
+        return read_skill_md()
+
+    def test_has_all_flag(self, content):
+        """SKILL.md documents --all flag for batch processing."""
+        assert "--all" in content
+
+    def test_has_named_list_syntax(self, content):
+        """SKILL.md documents named list syntax (multiple skill names)."""
+        assert "named list" in content.lower() or "multiple skill" in content.lower() or "specific skills" in content.lower()
+
+    def test_has_error_isolation(self, content):
+        """SKILL.md documents error isolation for batch — one failure doesn't stop others."""
+        assert "error isolation" in content.lower() or "continue with" in content.lower() or "continue on" in content.lower()
+
+    def test_has_per_skill_branches(self, content):
+        """SKILL.md documents per-skill git branches in batch mode."""
+        assert "per-skill" in content.lower() or "per skill" in content.lower() or "each skill" in content.lower()
+
+    def test_has_skill_discovery_paths(self, content):
+        """SKILL.md documents discovering all skills from both search paths."""
+        assert "discover" in content.lower()
+
+
+# ── 9. CLI flags — from Slice 04 ─────────────────────────────────────────
+
+
+class TestCLIFlags:
+    """Validate SKILL.md has --regen and --dry-run flag instructions."""
+
+    @pytest.fixture
+    def content(self):
+        return read_skill_md()
+
+    def test_has_regen_flag(self, content):
+        """SKILL.md documents --regen flag."""
+        assert "--regen" in content
+
+    def test_regen_deletes_existing_evals(self, content):
+        """SKILL.md specifies that --regen deletes existing evals.json before regenerating."""
+        assert "delete" in content.lower() and "evals" in content.lower()
+
+    def test_has_dry_run_flag(self, content):
+        """SKILL.md documents --dry-run flag."""
+        assert "--dry-run" in content
+
+    def test_dry_run_skips_edits(self, content):
+        """SKILL.md explicitly states --dry-run skips Edit/Write operations."""
+        dry_run_section = content[content.lower().find("dry-run"):] if "dry-run" in content.lower() else ""
+        assert "do not edit" in dry_run_section.lower() or "skip edit" in dry_run_section.lower() or "no edit" in dry_run_section.lower() or "not modify" in dry_run_section.lower()
+
+    def test_dry_run_skips_git(self, content):
+        """SKILL.md explicitly states --dry-run skips git commits/branch creation."""
+        dry_run_section = content[content.lower().find("dry-run"):] if "dry-run" in content.lower() else ""
+        assert "no commit" in dry_run_section.lower() or "skip commit" in dry_run_section.lower() or "do not commit" in dry_run_section.lower() or "no git" in dry_run_section.lower()
+
+
+# ── 10. Crash recovery — from Slice 04 ───────────────────────────────────
+
+
+class TestCrashRecovery:
+    """Validate SKILL.md has git-based crash recovery instructions."""
+
+    @pytest.fixture
+    def content(self):
+        return read_skill_md()
+
+    def test_has_crash_recovery_section(self, content):
+        """SKILL.md has a crash recovery section."""
+        assert "crash recovery" in content.lower() or "recovery" in content.lower()
+
+    def test_recovery_reads_git_log(self, content):
+        """SKILL.md specifies reading git log to understand prior state."""
+        assert "git log" in content.lower()
+
+    def test_recovery_rescores(self, content):
+        """SKILL.md specifies re-scoring on restart to get fresh baseline."""
+        assert "re-score" in content.lower() or "rescore" in content.lower() or "fresh baseline" in content.lower()
+
+    def test_recovery_continues_from_last(self, content):
+        """SKILL.md specifies continuing from where it left off."""
+        assert "continue" in content.lower() and ("where it left" in content.lower() or "left off" in content.lower())
+
+    def test_recovery_no_checkpoint_files(self, content):
+        """SKILL.md explicitly states no checkpoint files — recovery is git-based."""
+        assert "no checkpoint" in content.lower() or "git-based" in content.lower()
+
+
+# ── 11. Cost tracking — from Slice 04 ────────────────────────────────────
+
+
+class TestCostTracking:
+    """Validate SKILL.md has per-iteration cost display."""
+
+    @pytest.fixture
+    def content(self):
+        return read_skill_md()
+
+    def test_has_per_iteration_cost_display(self, content):
+        """SKILL.md has cost display after each iteration."""
+        assert "iteration" in content.lower() and "agent calls" in content.lower()
+
+    def test_tracks_test_inputs_evaluated(self, content):
+        """SKILL.md tracks test inputs evaluated."""
+        assert "test inputs" in content.lower() or "inputs evaluated" in content.lower()
+
+    def test_cumulative_tracking(self, content):
+        """SKILL.md specifies cumulative tracking."""
+        assert "cumulative" in content.lower()

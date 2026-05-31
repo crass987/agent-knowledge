@@ -23,10 +23,14 @@ Improve a skill's output quality using a Karpathy-style loop: change → test �
 ## Invocation
 
 ```
-/improve-skill <skill-name>
+/improve-skill <skill-name>                    # single skill
+/improve-skill <skill-a> <skill-b> <skill-c>   # named list of specific skills
+/improve-skill --all                            # discover and improve all skills
+/improve-skill <target> --regen                # force regenerate evals.json
+/improve-skill <target> --dry-run              # diagnose only, no file changes
 ```
 
-Batch mode, --dry-run, --regen, and named lists are NOT in this version.
+Flags can be combined: `/improve-skill --all --regen --dry-run`
 
 ## Architecture
 
@@ -78,6 +82,27 @@ These rules are ABSOLUTE. Violating them breaks the improvement loop's trustwort
 5. **Always use `git checkout -- <file>` to revert** bad changes. Never leave a regression.
 6. **Hard cap of 10 iterations** per skill. Stop when reached.
 
+## Crash Recovery
+
+Recovery is git-based — there are no checkpoint files. On restart:
+
+1. Read the last 10 git commits on the current branch:
+   ```bash
+   cd <SKILL_DIR>
+   git log --oneline -10
+   ```
+2. Identify what was already attempted from commit messages (they contain assertion IDs and scores).
+3. Re-score the current state to get a fresh baseline:
+   - Run the target skill on all test inputs via Agent
+   - Score each output with assertion_runner.py
+   - This produces the current `PREV_SCORE`
+4. Continue the improvement loop from where it left off:
+   - If the last commit improved a score, start from the next failing assertion
+   - If the last change was reverted (no commit), re-diagnose the same assertion
+   - Set `ITERATION` to the number of improve-skill commits found + 1
+
+No checkpoint files — recovery is git-based.
+
 ## Workflow
 
 Follow these phases in order. Print phase headers as shown — the user relies on them.
@@ -95,17 +120,36 @@ PHASE 1: SETUP — <skill-name>
 
 #### 1a. Parse arguments
 
-The skill name is the argument after `/improve-skill`.
-- If no argument provided: ask the user which skill to improve, then continue.
-- If argument is `--all`: not supported in this version. Tell the user to use single-skill mode.
+The arguments come after `/improve-skill`. Parse them as follows:
+
+**Flags:**
+- `--all`: batch mode — discover all skills and run improvement on each
+- `--regen`: force regeneration of evals.json (delete existing, then regenerate)
+- `--dry-run`: run all phases but do NOT execute Edit/Write operations, do NOT create git commits, do NOT modify any files
+
+**Named list:** If multiple skill names are given (no `--all`), run improvement on each specific skill sequentially.
+
+**Single skill:** If one skill name is given, run the standard workflow.
+
+**Error isolation:** In batch mode (--all or named list), if one skill fails, continue with the remaining skills. At the end, report which skills failed and which succeeded.
+
+**Per-skill branches:** In batch mode, create a separate git branch for each skill (not one shared branch). Each skill gets its own `improve/<skill-name>-<date>` branch.
 
 #### 1b. Discover skill directory
 
+**For a single skill or named list:**
 Search for `<skill-name>/SKILL.md` in these directories (in order):
 1. `~/.claude/skills/`
 2. `~/Documents/Code_projects/agent-knowledge/skills/`
 
 If not found, ask the user for the correct path. Store the found directory as `SKILL_DIR`.
+
+**For --all:**
+Discover all skills by listing directories containing SKILL.md in both search paths:
+```bash
+find ~/.claude/skills/ ~/Documents/Code_projects/agent-knowledge/skills/ -name "SKILL.md" -maxdepth 2 | sed 's|/SKILL.md||' | sort -u
+```
+Each result is a `SKILL_DIR`. Exclude the improve-skill directory itself (never improve the improver).
 
 Also determine `THIS_DIR` — the directory containing this improve-skill SKILL.md:
 ```
@@ -130,6 +174,8 @@ git checkout -b "$BRANCH"
 
 If the branch already exists, append a numeric suffix: `-2`, `-3`, etc.
 
+In batch mode, create a per-skill branch for each skill (not one shared branch).
+
 Print:
 ```
 Branch:     <branch-name>
@@ -152,7 +198,13 @@ Files:      SKILL.md, references/X.md, references/Y.md, ...
 
 Check if `<SKILL_DIR>/evals.json` already exists.
 
-**If exists:** load it. Validate it's v2 schema (has `test_inputs` array, `version: 2`).
+**If `--regen` flag is set:** Delete the existing evals.json file, then regenerate it. This forces a fresh eval generation even if a valid evals.json exists.
+```bash
+rm <SKILL_DIR>/evals.json
+python3 <THIS_DIR>/lib/eval_generator.py <SKILL_DIR> > <SKILL_DIR>/evals.json
+```
+
+**If exists (and --regen is NOT set):** load it. Validate it's v2 schema (has `test_inputs` array, `version: 2`).
 If schema is v1 or invalid, regenerate.
 
 **If not exists:** generate:
@@ -264,6 +316,7 @@ Track these state variables across iterations:
 - `PLATEAU_COUNT`: consecutive iterations with no improvement, starts at 0
 - `AGENT_CALLS`: cumulative Agent tool invocations
 - `LLM_CALLS`: cumulative LLM diagnosis/rule-generation calls
+- `TEST_INPUTS_EVALUATED`: cumulative test inputs evaluated across all iterations
 
 #### 3a. DIAGNOSE
 
@@ -354,7 +407,15 @@ Print:
 Step 3c: INJECT
 ```
 
-Use the Edit tool to inject the rule into the target file at the specified position.
+**If `--dry-run` flag is set:** Do NOT edit or modify files. Display what would happen instead:
+```
+[DRY-RUN] Would inject rule into <target_file> at <position>
+[DRY-RUN] Rule: <RULE text>
+[DRY-RUN] Do NOT edit files, do NOT use the Edit tool, do NOT use the Write tool.
+```
+Skip to Step 3d.
+
+**Otherwise:** Use the Edit tool to inject the rule into the target file at the specified position.
 
 The rule must be wrapped in marker comments for traceability:
 
@@ -390,6 +451,7 @@ Step 3d: RE-SCORE
 1. Re-run the skill via Agent on ALL test_inputs (same as Phase 2a)
    - Save new outputs, overwriting the previous temp files
    - Increment `AGENT_CALLS` per test_input
+   - Add number of test inputs to `TEST_INPUTS_EVALUATED`
 
 2. Score each new output via assertion_runner.py (same as Phase 2b)
 
@@ -410,6 +472,15 @@ Print:
 ```
 Step 3e: DECIDE
 ```
+
+**If `--dry-run` flag is set:** Do NOT commit, do NOT revert, do NOT create any git operations. Display what would happen:
+```
+[DRY-RUN] Would KEEP/REVERT based on score change
+[DRY-RUN] No git commit, no git operations, no file modifications.
+```
+Skip to Step 3f.
+
+**Otherwise:**
 
 **If score improved** (NEW_SCORE > PREV_SCORE):
 ```bash
@@ -469,16 +540,152 @@ LLM calls: <LLM_CALLS>
 
 ---
 
-### PHASE 4: REPORT
+### PHASE 4: QUALITY AUDIT
+
+After the improvement loop stops, an LLM-as-judge evaluates the final skill output holistically.
 
 Print:
 ```
 ══════════════════════════════════════════════
-PHASE 4: REPORT
+PHASE 4: QUALITY AUDIT
 ══════════════════════════════════════════════
 ```
 
-#### 4a. Score comparison
+#### 4a. LLM-as-judge evaluation
+
+Use the Agent tool to evaluate the final outputs. This is a separate Agent call from the improvement loop — it provides an independent holistic assessment.
+
+The Agent prompt must be:
+
+```
+You are a quality auditor for AI skill outputs. Evaluate the following skill output
+holistically across five quality dimensions. Use the skill's own quality criteria
+as the evaluation rubric.
+
+## Skill being evaluated
+- Name: <skill-name>
+- Quality criteria from SKILL.md: <extract the skill's own rules, constraints, and format requirements>
+
+## Final outputs to evaluate
+<for each test_input, include the latest output from /tmp/improve-skill-output-*>
+
+## Quality dimensions to assess
+
+1. **Completeness**: Does the output cover all required sections, elements, and steps
+   that the skill mandates? Are there missing sections or skipped steps?
+
+2. **Specificity**: Is the output concrete and actionable, or vague and generic?
+   Does it include specific examples, numbers, or concrete guidance rather than
+   platitudes?
+
+3. **Accuracy**: Does the output correctly follow the skill's own rules and constraints?
+   Are there any contradictions with the skill's documented requirements?
+
+4. **Style consistency**: Is the output's tone, format, and language consistent
+   throughout? Does it match the style the skill prescribes?
+
+5. **Non-banality**: Does the output provide genuine value beyond obvious advice?
+   Or does it fall back to generic, surface-level content that anyone could produce?
+
+## Output format
+
+Return your evaluation as structured findings:
+
+```
+QUALITY_SCORE: <A/B/C/D/F>
+
+DIMENSION: completeness
+Score: <1-5>
+Issues: <specific issues found, or "none">
+Suggestions: <specific suggestions for improvement>
+
+DIMENSION: specificity
+Score: <1-5>
+Issues: <specific issues found, or "none">
+Suggestions: <specific suggestions for improvement>
+
+DIMENSION: accuracy
+Score: <1-5>
+Issues: <specific issues found, or "none">
+Suggestions: <specific suggestions for improvement>
+
+DIMENSION: style consistency
+Score: <1-5>
+Issues: <specific issues found, or "none">
+Suggestions: <specific suggestions for improvement>
+
+DIMENSION: non-banality
+Score: <1-5>
+Issues: <specific issues found, or "none">
+Suggestions: <specific suggestions for improvement>
+
+RECURRING_PROBLEMS:
+<list any problems that appear across multiple outputs or dimensions>
+```
+```
+
+Increment `LLM_CALLS` and `AGENT_CALLS`.
+
+Print:
+```
+Audit:      completed (score: <QUALITY_SCORE>)
+```
+
+#### 4b. Process findings
+
+Parse the Agent's response to extract:
+- Overall quality score
+- Per-dimension scores and issues
+- Recurring problems list
+
+Store these as `AUDIT_FINDINGS` for use in Phase 5.
+
+#### 4c. Generate proposed assertions
+
+For each recurring problem identified in the audit, convert it to a proposed assertion.
+
+A proposed assertion has the same structure as a regular assertion but is stored
+in a separate `proposed_assertions` array in evals.json — NOT in the `assertions`
+array. This ensures assertion_runner.py (which only reads `assertions`) will NOT
+score them.
+
+Format each proposed assertion:
+```
+{
+  "id": "p<NN>",
+  "description": "<description of what to check>",
+  "source_rule": "<the recurring problem description from audit>",
+  "type": "<contains|not_contains|regex|not_regex>",
+  "check": "<pattern if regex/not_regex>",
+  "value": "<value if contains/not_contains>",
+  "source_file": "SKILL.md",
+  "generator": "audit",
+  "status": "proposed"
+}
+```
+
+Write the proposed assertions to evals.json by:
+1. Reading the current evals.json
+2. Adding a top-level `proposed_assertions` array (create if missing, append if exists)
+3. Writing the updated evals.json back
+
+Print:
+```
+Proposed:   <N> new assertions written to proposed_assertions in evals.json
+```
+
+---
+
+### PHASE 5: REPORT
+
+Print:
+```
+══════════════════════════════════════════════
+PHASE 5: REPORT
+══════════════════════════════════════════════
+```
+
+#### 5a. Score comparison
 
 Show baseline vs final, per assertion:
 
@@ -486,6 +693,7 @@ Show baseline vs final, per assertion:
 Baseline:   <BASELINE_PASSED>/<TOTAL>
 Final:      <FINAL_PASSED>/<TOTAL>
 Improved:   <+N> assertions fixed
+Test inputs evaluated: <M>
 
 Per-assertion:
   a01: ✅ → ✅  (<description>)
@@ -496,7 +704,7 @@ Per-assertion:
   ...
 ```
 
-#### 4b. Git commits
+#### 5b. Git commits
 
 ```bash
 cd <SKILL_DIR>
@@ -505,13 +713,26 @@ git log --oneline <original-branch>..HEAD
 
 Print the commit list.
 
-#### 4c. Summary
+#### 5c. Cost tracking
+
+```
+Agent calls:    <AGENT_CALLS>
+LLM calls:      <LLM_CALLS>
+```
+
+#### 5d. Stopping reason
+
+```
+Stopping reason: <ALL PASS | PLATEAU (3 iterations) | CAP (10 iterations)>
+```
+
+#### 5e. Summary
 
 ```
 Skill:          <skill-name>
 Iterations:     <N>
-Agent calls:    <N>
-LLM calls:      <N>
+Agent calls:    <AGENT_CALLS>
+LLM calls:      <LLM_CALLS>
 Commits:        <N>
 Baseline:       <B>/<T>
 Final:          <F>/<T>
@@ -530,9 +751,58 @@ These may require:
 - Multiple improvement sessions
 ```
 
+#### 4d. Batch summary
+
+If running in batch mode (--all or named list), after all skills complete print:
+```
+══════════════════════════════════════════════
+BATCH SUMMARY
+══════════════════════════════════════════════
+Succeeded:   <list of skill names>
+Failed:      <list of skill names with error>
+Total:       <N> skills processed
+
+#### 5f. Audit recommendations
+
+Display the quality audit findings from Phase 4:
+
+```
+Audit score:    <QUALITY_SCORE>
+Dimensions:
+  completeness:     <1-5>/5  — <issues or "ok">
+  specificity:      <1-5>/5  — <issues or "ok">
+  accuracy:         <1-5>/5  — <issues or "ok">
+  style consistency: <1-5>/5 — <issues or "ok">
+  non-banality:     <1-5>/5  — <issues or "ok">
+
+Audit recommendations:
+  - <suggestion 1>
+  - <suggestion 2>
+  ...
+```
+
+#### 5g. Proposed assertions for next run
+
+If Phase 4 generated proposed assertions:
+
+```
+Proposed assertions (for next run — not scored this run):
+  p01: <description>
+  p02: <description>
+  ...
+
+These are stored in evals.json under proposed_assertions.
+To activate: move them to the assertions array and remove status field.
+```
+
+If no proposed assertions were generated:
+```
+No proposed assertions from audit.
+```
+
 ## Cost Tracking
 
-After each iteration in Phase 3, display:
+After each iteration in Phase 3, display cumulative cost metrics:
 ```
-[COST] Iteration <N>: <AGENT_CALLS> agent calls, <LLM_CALLS> LLM calls cumulative
+[COST] Iteration <N>: <AGENT_CALLS> agent calls, <LLM_CALLS> LLM calls, <TEST_INPUTS_EVALUATED> test inputs evaluated (cumulative)
 ```

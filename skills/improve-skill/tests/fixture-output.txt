@@ -1,0 +1,13 @@
+## Test-Driven Development
+
+TDD is a software development technique where you write tests before writing
+production code. The cycle is:
+
+1. RED — write a failing test
+2. GREEN — write minimal code to pass
+3. REFACTOR — clean up while keeping tests green
+
+Key principles:
+- Never write production code except to make a failing test pass
+- Write the simplest test that could fail
+- Run all tests after each change

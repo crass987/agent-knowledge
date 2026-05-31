@@ -79,6 +79,20 @@ digraph video_extraction {
 
 ---
 
+## Output Path
+
+Все артефакты → `~/Documents/knowledge-base/videos/{video-title}/`. Подробная структура → `references/knowledge-extraction.md`.
+
+```
+{video-title}/
+├── source/           ← оригинал видео/URL-reference
+├── transcript.txt    ← чистый транскрипт
+├── keyframes/        ← визуальные кадры (если применимо)
+└── {title}_knowledge.md  ← документ знаний
+```
+
+---
+
 ## Core Principles
 
 **1. Компрессия ~1:6.** Видео менее плотные, чем книги. 30-мин видео → 3-5 мин чтения. Не 1:10 как с книгами.

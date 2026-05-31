@@ -1,16 +1,26 @@
 {
-  "version": 1,
+  "version": 2,
   "skill": "fixture-skill",
   "generated_at": "2026-05-31T00:00:00Z",
-  "test_input": {
-    "type": "prompt",
-    "text": "test prompt"
-  },
+  "test_inputs": [
+    {
+      "type": "prompt",
+      "text": "test prompt",
+      "label": "basic test prompt"
+    },
+    {
+      "type": "prompt",
+      "text": "Apply the fixture-skill to a complex scenario.",
+      "label": "detailed test prompt"
+    }
+  ],
   "assertions": [
     {
       "id": "a01",
       "description": "Output contains a markdown header",
       "source_rule": "Output must use markdown headers",
+      "source_file": "SKILL.md",
+      "generator": "heuristic",
       "type": "regex",
       "check": "^## ",
       "flags": ""
@@ -19,6 +29,8 @@
       "id": "a02",
       "description": "Output mentions TDD",
       "source_rule": "Must reference test-driven development",
+      "source_file": "SKILL.md",
+      "generator": "heuristic",
       "type": "contains",
       "value": "TDD"
     },
@@ -26,6 +38,8 @@
       "id": "a03",
       "description": "Output has no placeholder text",
       "source_rule": "No placeholder text like [TODO]",
+      "source_file": "SKILL.md",
+      "generator": "heuristic",
       "type": "not_regex",
       "check": "\\[TODO\\]",
       "flags": ""
@@ -34,6 +48,8 @@
       "id": "a04",
       "description": "Output is under 500 words",
       "source_rule": "Keep output concise",
+      "source_file": "SKILL.md",
+      "generator": "heuristic",
       "type": "max_words",
       "value": 500
     },
@@ -41,6 +57,8 @@
       "id": "a05",
       "description": "Output has at least 5 words",
       "source_rule": "Output must not be empty",
+      "source_file": "SKILL.md",
+      "generator": "heuristic",
       "type": "min_words",
       "value": 5
     },
@@ -48,6 +66,8 @@
       "id": "a06",
       "description": "No raw filler words",
       "source_rule": "Clean up filler words",
+      "source_file": "SKILL.md",
+      "generator": "heuristic",
       "type": "not_contains",
       "value": "um, like, you know"
     }

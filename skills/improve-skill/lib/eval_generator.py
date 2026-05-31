@@ -1,12 +1,24 @@
 """
-eval_generator — auto-generate evals.json from SKILL.md.
+eval_generator — hybrid eval generation for improve-skill v2.
 
 Reads a skill directory, extracts rules from SKILL.md (and reference .md files),
-converts extractable rules into binary code-based assertions, and returns
-a valid evals.json dict.
+converts extractable rules into binary assertions, and returns a valid v2
+evals.json dict.
 
-For v1, rule extraction uses deterministic heuristics (regex-based).
-LLM-powered extraction can be layered on top in v2.
+Hybrid generation:
+  Phase 1 (Heuristic): deterministic regex-based extraction of structural rules.
+    Each assertion carries source_file (which file the rule came from) and
+    generator="heuristic".
+  Phase 2 (LLM): semantic extraction via _run_llm_extraction seam.
+    Returns empty by default; SKILL.md handles the actual LLM call.
+
+v2 schema changes from v1:
+  - test_input (singular) → test_inputs (array, 2-3 per skill)
+  - New field: source_file on each assertion (traces rule to originating file)
+  - New field: generator on each assertion ("heuristic" or "llm")
+  - New field: label on each test_input
+  - version bumped to 2
+  - Assertion deduplication by exact (type, check, value) pattern
 """
 
 import json
@@ -65,31 +77,53 @@ def generate_evals(skill_dir: str) -> dict:
     Generate a complete evals.json dict for the given skill directory.
 
     Steps:
-    1. Read SKILL.md + reference .md files
+    1. Read SKILL.md + reference .md files individually (for source_file tracing)
     2. Detect archetype (file vs prompt)
-    3. Extract rules from skill content
-    4. Convert extractable rules to binary assertions
+    3. Extract rules from each file (tracing source_file)
+    4. Convert extractable rules to binary assertions (with source_file + generator)
     5. Build and return the evals.json structure
     """
     skill_md = _read_skill_md(skill_dir)
     # Prefer the name from SKILL.md frontmatter, fall back to directory name
     skill_name = _extract_frontmatter_field(skill_md or "", "name") or os.path.basename(os.path.normpath(skill_dir))
-    reference_content = _read_reference_files(skill_dir)
-    all_content = skill_md or ""
+
+    # Read files individually for source_file tracing
+    file_sources = _read_files_with_sources(skill_dir)
 
     archetype = detect_archetype(skill_dir)
-    test_input = _build_test_input(archetype, skill_dir, all_content)
+    test_inputs = _build_test_inputs(archetype, skill_dir, skill_md or "")
 
-    # Extract rules and generate assertions
-    rules = _extract_rules(all_content)
-    assertions = _rules_to_assertions(rules, reference_content)
+    # Extract rules from each file, carrying source_file
+    all_rules = []
+    for source_file, content in file_sources:
+        rules = _extract_rules(content)
+        for r in rules:
+            r["source_file"] = source_file
+        all_rules.extend(rules)
+
+    heuristic_assertions = _rules_to_assertions(all_rules)
+
+    # LLM phase: semantic extraction for rules the heuristics missed
+    llm_assertions = _run_llm_extraction(
+        file_sources=file_sources,
+        heuristic_assertions=heuristic_assertions,
+        skill_name=skill_name,
+    )
+    # Ensure LLM assertions have generator="llm"
+    for a in llm_assertions:
+        a["generator"] = "llm"
+        if "source_file" not in a:
+            a["source_file"] = "SKILL.md"
+
+    # Merge and deduplicate across both phases
+    all_assertions = _deduplicate_assertions(heuristic_assertions + llm_assertions)
 
     evals = {
-        "version": 1,
+        "version": 2,
         "skill": skill_name,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "test_input": test_input,
-        "assertions": assertions,
+        "test_inputs": test_inputs,
+        "assertions": all_assertions,
     }
 
     return evals
@@ -109,7 +143,7 @@ def find_skill_dir(skill_name: str, search_dirs: list[str]) -> str | None:
 
 def validate_evals_schema(evals: dict) -> list[str]:
     """
-    Validate an evals.json dict against the expected schema.
+    Validate an evals.json dict against the v2 schema.
     Returns a list of error strings (empty if valid).
     """
     errors = []
@@ -120,19 +154,26 @@ def validate_evals_schema(evals: dict) -> list[str]:
     if "skill" not in evals:
         errors.append("Missing required field: skill")
 
-    # test_input
-    if "test_input" not in evals:
-        errors.append("Missing required field: test_input")
+    # test_inputs (v2: array)
+    if "test_inputs" not in evals:
+        errors.append("Missing required field: test_inputs")
     else:
-        ti = evals["test_input"]
-        if "type" not in ti:
-            errors.append("test_input missing 'type'")
-        elif ti["type"] not in ("file", "prompt"):
-            errors.append(f"test_input.type must be 'file' or 'prompt', got '{ti['type']}'")
-        if ti.get("type") == "file" and "path" not in ti:
-            errors.append("test_input with type='file' must have 'path'")
-        if ti.get("type") == "prompt" and "text" not in ti:
-            errors.append("test_input with type='prompt' must have 'text'")
+        test_inputs = evals["test_inputs"]
+        if not isinstance(test_inputs, list) or len(test_inputs) == 0:
+            errors.append("test_inputs must be a non-empty array")
+        else:
+            for i, ti in enumerate(test_inputs):
+                prefix = f"test_inputs[{i}]"
+                if "type" not in ti:
+                    errors.append(f"{prefix} missing 'type'")
+                elif ti["type"] not in ("file", "prompt"):
+                    errors.append(f"{prefix}.type must be 'file' or 'prompt', got '{ti['type']}'")
+                if ti.get("type") == "file" and "path" not in ti:
+                    errors.append(f"{prefix} with type='file' must have 'path'")
+                if ti.get("type") == "prompt" and "text" not in ti:
+                    errors.append(f"{prefix} with type='prompt' must have 'text'")
+                if "label" not in ti:
+                    errors.append(f"{prefix} missing 'label'")
 
     # assertions
     if "assertions" not in evals:
@@ -143,6 +184,12 @@ def validate_evals_schema(evals: dict) -> list[str]:
             for field in ("id", "description", "source_rule", "type"):
                 if field not in a:
                     errors.append(f"{prefix} missing required field: {field}")
+
+            # v2 required fields on assertions
+            if "source_file" not in a:
+                errors.append(f"{prefix} missing required field: source_file")
+            if "generator" not in a:
+                errors.append(f"{prefix} missing required field: generator")
 
             if "type" in a:
                 if a["type"] not in VALID_CHECK_TYPES:
@@ -178,19 +225,23 @@ def _read_skill_md(skill_dir: str) -> str | None:
     return None
 
 
-def _read_reference_files(skill_dir: str) -> str:
-    """Read all .md files from references/ subdirectory."""
-    refs_dir = os.path.join(skill_dir, "references")
-    if not os.path.isdir(refs_dir):
-        return ""
+def _read_files_with_sources(skill_dir: str) -> list[tuple[str, str]]:
+    """Read SKILL.md + references/*.md individually, returning (source_file_name, content) pairs."""
+    sources = []
 
-    parts = []
-    for fname in sorted(os.listdir(refs_dir)):
-        if fname.endswith(".md"):
-            fpath = os.path.join(refs_dir, fname)
-            with open(fpath, "r", encoding="utf-8") as f:
-                parts.append(f.read())
-    return "\n\n".join(parts)
+    skill_md = _read_skill_md(skill_dir)
+    if skill_md:
+        sources.append(("SKILL.md", skill_md))
+
+    refs_dir = os.path.join(skill_dir, "references")
+    if os.path.isdir(refs_dir):
+        for fname in sorted(os.listdir(refs_dir)):
+            if fname.endswith(".md"):
+                fpath = os.path.join(refs_dir, fname)
+                with open(fpath, "r", encoding="utf-8") as f:
+                    sources.append((f"references/{fname}", f.read()))
+
+    return sources
 
 
 def _extract_frontmatter_field(content: str, field: str) -> str | None:
@@ -205,20 +256,39 @@ def _extract_frontmatter_field(content: str, field: str) -> str | None:
     return None
 
 
-def _build_test_input(archetype: str, skill_dir: str, content: str) -> dict:
-    """Build the test_input section of evals.json."""
+def _build_test_inputs(archetype: str, skill_dir: str, content: str) -> list[dict]:
+    """Build the test_inputs array for v2 evals.json. Generates 2-3 inputs per skill."""
+    skill_name = os.path.basename(os.path.normpath(skill_dir))
+    description = _extract_frontmatter_field(content, "description") or ""
+
     if archetype == "file":
+        inputs = []
+        # Primary: the default/shortest test file
         path = DEFAULT_TEST_FILE
         if not os.path.exists(path):
-            # Fallback: try to find the shortest text file in knowledge-base
             path = _find_shortest_test_file()
-        return {"type": "file", "path": path}
+        inputs.append({"type": "file", "path": path, "label": f"{skill_name} primary file"})
+
+        # Secondary: try to find another file of different size
+        second = _find_second_test_file(path)
+        if second:
+            inputs.append({"type": "file", "path": second, "label": f"{skill_name} secondary file"})
+        return inputs
     else:
-        # Generate a realistic prompt from the skill's name/description
-        description = _extract_frontmatter_field(content, "description") or ""
-        skill_name = os.path.basename(os.path.normpath(skill_dir))
-        prompt = _generate_prompt_text(skill_name, description)
-        return {"type": "prompt", "text": prompt}
+        # Prompt-based: generate 2-3 prompts varying in specificity
+        inputs = [
+            {
+                "type": "prompt",
+                "text": f"Use the {skill_name} skill. {description}" if description else f"Run the {skill_name} skill with a typical input.",
+                "label": f"{skill_name} basic prompt",
+            },
+            {
+                "type": "prompt",
+                "text": f"Apply the {skill_name} skill to a complex, realistic scenario. {description}" if description else f"Apply {skill_name} to a complex scenario.",
+                "label": f"{skill_name} detailed prompt",
+            },
+        ]
+        return inputs
 
 
 def _find_shortest_test_file() -> str:
@@ -241,6 +311,34 @@ def _find_shortest_test_file() -> str:
                 except OSError:
                     continue
     return shortest or DEFAULT_TEST_FILE
+
+
+def _find_second_test_file(exclude_path: str) -> str | None:
+    """Find a second test file of different size for variety."""
+    kb_dir = "/Users/CraSS/Documents/knowledge-base"
+    if not os.path.isdir(kb_dir):
+        return None
+
+    exclude_size = os.path.getsize(exclude_path) if os.path.exists(exclude_path) else 0
+    candidates = []
+    for root, dirs, files in os.walk(kb_dir):
+        for f in files:
+            if f.endswith((".txt", ".md", ".srt", ".vtt")):
+                fpath = os.path.join(root, f)
+                try:
+                    size = os.path.getsize(fpath)
+                    if size > 100 and fpath != exclude_path:
+                        candidates.append((fpath, size))
+                except OSError:
+                    continue
+
+    if not candidates:
+        return None
+
+    # Pick one closest to 2x the primary file's size (different but not extreme)
+    target = exclude_size * 2
+    candidates.sort(key=lambda c: abs(c[1] - target))
+    return candidates[0][0]
 
 
 def _generate_prompt_text(skill_name: str, description: str) -> str:
@@ -345,29 +443,80 @@ def _is_testable_rule(text: str) -> bool:
     return True
 
 
-def _rules_to_assertions(rules: list[dict], reference_content: str) -> list[dict]:
+def _run_llm_extraction(
+    file_sources: list[tuple[str, str]],
+    heuristic_assertions: list[dict],
+    skill_name: str,
+) -> list[dict]:
+    """
+    LLM semantic extraction phase: identify rules the heuristics missed.
+
+    In Python, this is a stub that returns an empty list. The actual LLM call
+    is handled by SKILL.md during eval generation, which writes additional
+    assertions with generator="llm" to evals.json.
+
+    This function exists as a seam for testing: tests can mock it to simulate
+    LLM-generated assertions without making real API calls.
+
+    Args:
+        file_sources: list of (source_file, content) pairs for the skill
+        heuristic_assertions: assertions already generated by the heuristic phase
+        skill_name: name of the skill being evaluated
+
+    Returns:
+        List of assertion dicts with generator="llm". Empty by default.
+    """
+    return []
+
+
+def _rules_to_assertions(rules: list[dict]) -> list[dict]:
     """
     Convert extracted rules into binary assertions.
 
-    Strategy:
-    - Rules about format (headers, sections, structure) → regex/contains checks
-    - Rules about what NOT to include → not_regex/not_contains checks
-    - Rules about length → max_words/min_words checks
-    - Rules about required content → contains checks
-
-    For rules that can't be auto-converted, skip them.
+    Each rule carries source_file; the assertion inherits it.
+    All heuristic-generated assertions get generator="heuristic".
+    Deduplicates by (type, check/value) — keeps the one with the longer description.
     """
-    assertions = []
-    counter = 1
-
+    raw = []
     for rule_info in rules:
         rule = rule_info["rule"]
-        assertion = _rule_to_assertion(rule, counter)
+        source_file = rule_info.get("source_file", "SKILL.md")
+        assertion = _rule_to_assertion(rule, 0)  # id assigned after dedup
         if assertion:
-            assertions.append(assertion)
-            counter += 1
+            assertion["source_file"] = source_file
+            assertion["generator"] = "heuristic"
+            raw.append(assertion)
 
-    return assertions
+    # Deduplicate: group by (type, check/value), keep most specific description
+    return _deduplicate_assertions(raw)
+
+
+def _deduplicate_assertions(assertions: list[dict]) -> list[dict]:
+    """Deduplicate assertions by normalized check pattern. Keeps the one with the longer description."""
+    best: dict[tuple, dict] = {}
+
+    for a in assertions:
+        key = _assertion_key(a)
+        if key not in best:
+            best[key] = a
+        else:
+            # Keep the one with the longer description (more specific)
+            if len(a.get("description", "")) > len(best[key].get("description", "")):
+                best[key] = a
+
+    # Re-number IDs sequentially
+    result = []
+    for i, a in enumerate(best.values(), start=1):
+        a["id"] = f"a{str(i).zfill(2)}"
+        result.append(a)
+    return result
+
+
+def _assertion_key(assertion: dict) -> tuple:
+    """Normalize an assertion to a dedup key: (type, check_or_value)."""
+    check = assertion.get("check", "")
+    value = str(assertion.get("value", ""))
+    return (assertion["type"], check, value)
 
 
 def _rule_to_assertion(rule: str, counter: int) -> dict | None:

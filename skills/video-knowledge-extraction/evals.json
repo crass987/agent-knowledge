@@ -1,0 +1,254 @@
+{
+  "version": 2,
+  "skill": "video-knowledge-extraction",
+  "generated_at": "2026-05-31T16:45:24Z",
+  "test_inputs": [
+    {
+      "type": "file",
+      "path": "/Users/CraSS/Documents/knowledge-base/videos/software-fundamentals-matter-more-than-ever/source/URL-reference.md",
+      "label": "video-knowledge-extraction primary file"
+    },
+    {
+      "type": "file",
+      "path": "/Users/CraSS/Documents/knowledge-base/videos/5-claude-code-skills-matt-pocock/source/URL-reference.md",
+      "label": "video-knowledge-extraction secondary file"
+    }
+  ],
+  "assertions": [
+    {
+      "id": "a01",
+      "description": "Output uses markdown headers",
+      "source_rule": "Дублирование между секциями** — одна мысль в «Проблемах» и «Инсайтах» = дедупликация не пройдена",
+      "type": "regex",
+      "check": "^#{1,3}\\s+\\S+",
+      "flags": "m",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a02",
+      "description": "Output must not contain: visual confirmation.",
+      "source_rule": "3. Visual knowledge ≠ visual confirmation.",
+      "type": "not_contains",
+      "value": "visual confirmation.",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a03",
+      "description": "Output must not contain: 1:10 как с книгами",
+      "source_rule": "Не 1:10 как с книгами.",
+      "type": "not_contains",
+      "value": "1:10 как с книгами",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a04",
+      "description": "Output must not contain: добавляют знания",
+      "source_rule": "не добавляют знания.",
+      "type": "not_contains",
+      "value": "добавляют знания",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a05",
+      "description": "Output must not contain: за темами",
+      "source_rule": "не за темами.",
+      "type": "not_contains",
+      "value": "за темами",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a06",
+      "description": "Output must not contain: визуальное знание",
+      "source_rule": "не визуальное знание.",
+      "type": "not_contains",
+      "value": "визуальное знание",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a07",
+      "description": "Output must not contain: по темам",
+      "source_rule": "не по темам.",
+      "type": "not_contains",
+      "value": "по темам",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a08",
+      "description": "Output must not contain: может достичь цели",
+      "source_rule": "не может достичь цели",
+      "type": "not_contains",
+      "value": "может достичь цели",
+      "source_file": "references/knowledge-extraction.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a09",
+      "description": "Output must not contain: проблема",
+      "source_rule": "не проблема.",
+      "type": "not_contains",
+      "value": "проблема",
+      "source_file": "references/knowledge-extraction.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a10",
+      "description": "Output must not contain: проводился",
+      "source_rule": "не проводился.",
+      "type": "not_contains",
+      "value": "проводился",
+      "source_file": "references/knowledge-extraction.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a11",
+      "description": "Output must not contain: проходят quality gate",
+      "source_rule": "не проходят quality gate.",
+      "type": "not_contains",
+      "value": "проходят quality gate",
+      "source_file": "references/knowledge-extraction.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a12",
+      "description": "Output must not contain: повторять в «Инсайтах»",
+      "source_rule": "не повторять в «Инсайтах».",
+      "type": "not_contains",
+      "value": "повторять в «Инсайтах»",
+      "source_file": "references/knowledge-extraction.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a13",
+      "description": "Output must not contain: проходят: «AI изменит всё», «нужно быть осторожным с AGI»",
+      "source_rule": "Не проходят: «AI изменит всё», «нужно быть осторожным с AGI».",
+      "type": "not_contains",
+      "value": "проходят: «AI изменит всё», «нужно быть осторожным с AGI»",
+      "source_file": "references/knowledge-extraction.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a14",
+      "description": "Output must not contain: подлежат компрессии — навигационная карта",
+      "source_rule": "не подлежат компрессии — навигационная карта.",
+      "type": "not_contains",
+      "value": "подлежат компрессии — навигационная карта",
+      "source_file": "references/knowledge-extraction.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a15",
+      "description": "Output must not contain: AGI banalities",
+      "source_rule": "не проходят: «AI изменит всё», «нужно быть осторожным с AGI»",
+      "type": "not_contains",
+      "value": "осторожным с AGI",
+      "source_file": "references/knowledge-extraction.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a17",
+      "description": "Output must not contain: пересказ сюжета, а суть знаний",
+      "source_rule": "Не пересказ сюжета, а суть знаний.",
+      "type": "not_contains",
+      "value": "пересказ сюжета, а суть знаний",
+      "source_file": "references/templates.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a18",
+      "description": "Output must not contain: по хронологии видео",
+      "source_rule": "не по хронологии видео.",
+      "type": "not_contains",
+      "value": "по хронологии видео",
+      "source_file": "references/templates.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a19",
+      "description": "Output must not contain: нумеровать в порядке выступления",
+      "source_rule": "Не нумеровать в порядке выступления.",
+      "type": "not_contains",
+      "value": "нумеровать в порядке выступления",
+      "source_file": "references/templates.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a20",
+      "description": "Output must not contain: инсайт, а банальность",
+      "source_rule": "не инсайт, а банальность.",
+      "type": "not_contains",
+      "value": "инсайт, а банальность",
+      "source_file": "references/templates.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a21",
+      "description": "Output must not contain: визуальное знание, а визуальное подтверждение",
+      "source_rule": "не визуальное знание, а визуальное подтверждение.",
+      "type": "not_contains",
+      "value": "визуальное знание, а визуальное подтверждение",
+      "source_file": "references/templates.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a22",
+      "description": "Output must not contain: удалось получить транскрипт автоматически",
+      "source_rule": "Не удалось получить транскрипт автоматически.",
+      "type": "not_contains",
+      "value": "удалось получить транскрипт автоматически",
+      "source_file": "references/transcript-acquisition.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a23",
+      "description": "Output must not contain: обрезана, фразы не повторяются",
+      "source_rule": "не обрезана, фразы не повторяются.",
+      "type": "not_contains",
+      "value": "обрезана, фразы не повторяются",
+      "source_file": "references/transcript-acquisition.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a24",
+      "description": "Output must not contain: классифицировать, не включать в документ",
+      "source_rule": "Не классифицировать, не включать в документ.",
+      "type": "not_contains",
+      "value": "классифицировать, не включать в документ",
+      "source_file": "references/visual-channel.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a25",
+      "description": "Output must not contain: иллюстрации к транскрипту",
+      "source_rule": "не иллюстрации к транскрипту.",
+      "type": "not_contains",
+      "value": "иллюстрации к транскрипту",
+      "source_file": "references/visual-channel.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a26",
+      "description": "Output must not contain: добавляет знания",
+      "source_rule": "не добавляет знания.",
+      "type": "not_contains",
+      "value": "добавляет знания",
+      "source_file": "references/visual-channel.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a27",
+      "description": "Output must not contain: скачивать видео, не извлекать кадры",
+      "source_rule": "Не скачивать видео, не извлекать кадры.",
+      "type": "not_contains",
+      "value": "скачивать видео, не извлекать кадры",
+      "source_file": "references/visual-channel.md",
+      "generator": "heuristic"
+    }
+  ]
+}

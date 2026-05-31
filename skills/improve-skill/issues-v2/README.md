@@ -21,8 +21,8 @@ Architecture decision: `../adr/0001-skill-md-orchestration.md`
 |---|-------|------|------------|--------|
 | 01 | [Hybrid Eval Engine v2](01-hybrid-eval-engine.md) | AFK | — | ✅ done |
 | 02 | [Single-Skill Improvement MVP](02-single-skill-mvp.md) | AFK | 01 | ✅ done |
-| 03 | [Quality Audit + Reporting](03-quality-audit-reporting.md) | AFK | 02 | pending |
-| 04 | [Batch Mode, Flags & Recovery](04-batch-mode-flags.md) | AFK | 02 | pending |
+| 03 | [Quality Audit + Reporting](03-quality-audit-reporting.md) | AFK | 02 | ✅ done |
+| 04 | [Batch Mode, Flags & Recovery](04-batch-mode-flags.md) | AFK | 02 | ✅ done |
 | 05 | [Cleanup v1 & Archive](05-cleanup-v1.md) | AFK | 03, 04 | pending |
 | 06 | [Battle Test on Real Skills](06-battle-test.md) | HITL | 05 | pending |
 
@@ -104,10 +104,55 @@ See `02-single-skill-mvp.md` for full spec.
 
 ### Remaining issues
 
-- **03**: Quality audit (LLM-as-judge) + final reporting
-- **04**: Batch mode (`--all`), flags (`--dry-run`, `--regen`), crash recovery
 - **05**: Delete v1 Python modules, archive old issues/PRD
 - **06**: Human validation on 3 real skills
+
+### ✅ Issue 03: Quality Audit + Reporting — DONE (parallel with 04)
+
+Commit: merged into `2253372` on `main`
+
+**What was done (parallel agent in worktree):**
+
+1. **Phase 4: Quality Audit** (new, inserted between Phase 3 and old Phase 4)
+   - Step 4a: Agent call with 5 quality dimensions (completeness, specificity, accuracy, style consistency, non-banality)
+   - Step 4b: Parse structured findings (per-dimension scores + issues + suggestions)
+   - Step 4c: Convert recurring problems to proposed assertions stored in `proposed_assertions` array
+
+2. **Phase 5: Report** (renumbered from Phase 4, enhanced)
+   - 5a: Per-assertion comparison table with ✅/❌ icons
+   - 5b: Git commit history
+   - 5c: Agent + LLM call counts
+   - 5d: Stopping reason
+   - 5e: Summary table
+   - 5f: Audit recommendations from Phase 4
+   - 5g: Proposed assertions for next run
+
+3. **Phase numbering validation** — TestPhaseNumbering class ensures exactly 5 phases in order
+
+4. **20 new tests** (TestQualityAudit: 8, TestEnhancedReport: 8, TestPhaseNumbering: 4)
+
+### ✅ Issue 04: Batch Mode, Flags & Recovery — DONE (parallel with 03)
+
+Commit: merged into `2253372` on `main`
+
+**What was done (parallel agent in worktree):**
+
+1. **Batch mode**: `--all` discovers all skills in both directories, named lists (`/improve-skill tdd debugging`), error isolation, per-skill git branches
+2. **--regen flag**: deletes existing evals.json before regenerating
+3. **--dry-run flag**: runs all phases but skips Edit/Write and git operations; displays what would happen
+4. **Crash recovery**: git-based — reads git log on restart, re-scores for fresh baseline, continues from last state
+5. **Cost tracking**: per-iteration cumulative display of agent calls, LLM calls, test inputs evaluated
+
+6. **18 new tests** (TestBatchMode: 5, TestCLIFlags: 5, TestCrashRecovery: 5, TestCostTracking: 3)
+
+### Combined test counts after integration
+
+| Test file | Tests |
+|-----------|-------|
+| test_assertion_runner.py | 27 |
+| test_eval_generator.py | 49 |
+| test_skill_md_v2.py | 75 (11 classes) |
+| **Total** | **151** |
 
 ## Conventions
 

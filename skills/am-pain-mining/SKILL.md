@@ -1,15 +1,15 @@
 ---
 name: am-pain-mining
-description: Use when analyzing a customer meeting transcript or demo recording — extract pains, Jobs To Be Done, objections, buying signals, and competitive context. Triggers on "проанализируй встречу", "demo analysis", "pains from transcript", "extract pains", "customer meeting".
+description: Use when analyzing a customer meeting transcript, demo recording, or pre-sale call. Triggers on "analyze meeting", "demo analysis", "pains from transcript", "extract pains", "customer meeting", "проанализируй встречу".
 ---
 
 # Pain Pattern Mining
 
 ## Overview
 
-Extract structured customer intelligence from demo/meeting transcripts. Produces a `pain-report` artifact with JTBD, objections, buying triggers, misalignment detection, and actionable next steps.
+Extract structured customer intelligence from demo/meeting transcripts. Produces a `pain-report` artifact using the template in `report-template.md`.
 
-Grounded in Geoffrey Moore's Bowling Alley framework: the goal is to identify patterns that reveal the **headpin niche** — the segment with the strongest compelling reason to buy.
+Grounded in Geoffrey Moore's Bowling Alley framework: identify patterns that reveal the **headpin niche** — the segment with the strongest compelling reason to buy.
 
 ## When to Use
 
@@ -30,104 +30,62 @@ Grounded in Geoffrey Moore's Bowling Alley framework: the goal is to identify pa
 |--------|----------|
 | **TXT** | Plain text. Read as-is. Infer timestamps if not present. |
 | **SRT** | Subtitle format with timestamps. Parse time markers for emotional map and quote references. |
-| **Video/Audio** | User should provide transcript. If video given, suggest manual transcription or use video-knowledge-extraction skill. |
+| **Video/Audio** | User should provide transcript. If video given, suggest manual transcription or use `video-knowledge-extraction` skill. |
 
-**Speaker identification:** If transcript has speaker labels, preserve them. If not, infer roles from context (presenter vs. customer), flag with [INFERRED].
+**Speaker identification:** If transcript has speaker labels, preserve them. If not, infer roles from context (presenter vs. customer), flag with `[INFERRED]`.
 
-## Process
+## Quick Reference
 
-### 1. Parse and segment
+| Step | Action | Key Output |
+|------|--------|------------|
+| 1 | Parse & segment | Speaker roles, sections, timestamps |
+| 2 | Extract raw signals | Pains (явная/вероятная), feature requests, objections, buying triggers, competitive refs, decision signals |
+| 3 | Convert → JTBD | "Когда [ситуация], я хочу [мотивация], чтобы [результат]" — Functional / Emotional / Social |
+| 4 | Detect misalignment | Where our team misunderstood what the customer meant |
+| 5 | Map competitive context | For each competitor: why mentioned, strengths, gaps, who brought it up |
+| 6 | Map decision dynamics | Champion / Blocker / Neutral / User for each participant |
+| 7 | Build emotional timeline | Energy spikes (what sells) and drops (what blocks) |
+| 8 | Score opportunity | X/12 viability (see `report-template.md` §10 for criteria) |
+| 9–10 | Produce report + next steps | Filled template with specific, actionable next steps |
 
-- Read the full transcript
-- Identify speaker roles (our team vs. customer)
-- Mark major sections: intro, demo, Q&A, pricing, closing
-- Note timestamps for key moments
+## Process Details
 
-### 2. Extract raw signals
+### JTBD Prioritization
 
-Go through the transcript and extract:
+Score each job by: **frequency × intensity × connection to buying decision**.
 
-- **Pains:** Complaints, frustrations, problems. Tag as "явная" (explicitly stated) or "вероятная" (implied from tone, context, hesitation)
-- **Feature requests:** Specific asks — separate from the underlying need
-- **Objections:** Pushback, skepticism, comparison with alternatives
-- **Buying triggers:** Moments of genuine interest, excitement, forward-looking questions
-- **Competitive references:** Mentions of other tools, past solutions, competitors
-- **Decision signals:** Who decides, how they buy, budget hints, deadline mentions
+JTBD is the PRIMARY section. Pains are secondary — short list, linked to jobs. Don't duplicate content across sections.
 
-### 3. Convert pains to Jobs To Be Done
+### Misalignment Detection
 
-For each significant pain, formulate a JTBD statement:
+Often the most valuable finding. Common patterns:
 
-> "Когда [ситуация], я хочу [мотивация], чтобы [результат]"
-
-Classify each job:
-- **Functional** — get something done
-- **Emotional** — feel something (confidence, control, safety)
-- **Social** — be perceived a certain way by others (compliance, modern team)
-
-Prioritize jobs by: frequency × intensity × connection to buying decision.
-
-**Important:** JTBD is the PRIMARY section. Pains are secondary — short list, linked to jobs. Don't duplicate the same content in both sections.
-
-### 4. Detect misalignment
-
-Watch for moments where our team misunderstood what the customer meant. Common patterns:
-- Customer uses a term → our team interprets it differently → demo goes off-track
-- Customer describes a need → our team shows an unrelated feature
+- Customer uses a term → our team interprets differently → demo goes off-track
+- Customer describes a need → our team shows unrelated feature
 - Customer's silence or lukewarm reaction → we're showing the wrong thing
 
-This is often the most valuable finding. Flag every instance.
+Flag every instance with consequences (lost time, wrong feature shown).
 
-### 5. Map competitive context
+### Next Steps
 
-For every mention of another tool (Zabbix, Datadog, Icinga, PRTG, homemade):
-- Why did they bring it up? (comparison, nostalgia, justification, alternative)
-- What does that tool do well that we don't?
-- What do we do well that it doesn't?
-- Who brought it up? (champion vs. blocker)
+Each must have: **priority, action, effort estimate, owner, target date**. No generic advice — specific to THIS customer.
 
-### 6. Map decision dynamics
+## Common Mistakes
 
-Identify each customer participant's role and stance:
-- **Champion** — wants our product, will advocate internally
-- **Blocker** — opposes, has alternative preference
-- **Neutral** — watching, not committed either way
-- **User** — will use the product but doesn't decide
-
-### 7. Build emotional timeline
-
-Map energy/engagement across the meeting. Note where it spiked (what sells) and where it dropped (what blocks). This directly feeds sales strategy.
-
-### 8. Оценка перспективности ("Стоит ли вкладываться")
-
-Четыре критерия, каждый 0-3. Сумма = итог X/12.
-
-| Критерий | 0 | 1 | 2 | 3 |
-|---|---|---|---|---|
-| **Внутренний advocate** | Никто не поддерживает | Кто-то проявил интерес | Есть явный сторонник | Сторонник = ЛПР |
-| **Сила боли** | Не озвучена | "Было бы неплохо" | Реальная проблема | "Надо срочно решить" |
-| **Готовность продукта** | Не решает их задачу | Частично, есть gaps | Почти готов, мелкие gaps | Решает main ask |
-| **Угроза конкурентов** | Есть сильная бесплатная замена | Конкурент уже в оценке | "У нас и так работает" | Нет реальной альтернативы |
-
-Интерпретация: 0-4 = не тратить время, 5-7 = доработать и follow-up, 8-9 = активно двигать, 10-12 = закрывать.
-
-Каждый балл сопровождается комментарием "почему."
-
-### 9. Produce the report
-
-Use the template in `report-template.md`. Fill every section. If information is missing, mark explicitly — don't skip.
-
-### 10. Generate next steps
-
-Each next step must have: priority, action, effort estimate, owner, target date. No generic advice.
+| Mistake | Fix |
+|---------|-----|
+| Mixing pains with feature requests | Always separate; feature request = surface, pain = underlying need |
+| Inferring too much | Mark everything inferred as `[INFERRED]` or `[AMBIGUOUS]` |
+| Generic next steps | "Follow up" is useless — specific action with owner and deadline |
+| Duplicating across sections | Pain in §4 links to JTBD in §3, never repeats the same content |
+| Wrong report language | Match the transcript language (Russian → Russian, English → English) |
 
 ## Rules
 
 - **Quote verbatim** — use exact customer words, with speaker and timestamp
-- **Don't guess** — mark ambiguity as [AMBIGUOUS] with your best interpretation
+- **Don't guess** — mark ambiguity as `[AMBIGUOUS]` with your best interpretation
 - **Distinguish observed vs. inferred** — "Client said X" vs. "Client likely feels Y because..."
 - **Prioritize ruthlessly** — score by frequency × intensity × buying connection
 - **No generic advice** — next steps must be specific to THIS customer
 - **Keep JTBD grounded** — jobs come from customer words, not your interpretation
 - **Write in the language of the transcript** — Russian transcript = Russian report, English = English
-- **No mixed scripts** — if writing in Russian, use only Cyrillic/Latin characters. No CJK, no Arabic, etc.

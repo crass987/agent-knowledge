@@ -704,6 +704,7 @@ class TestCleanV2Structure:
             "test_assertion_runner.py",
             "test_eval_generator.py",
             "test_skill_md_v2.py",
+            "test_battle.py",
             "fixture-evals.json",
             "fixture-output.txt",
         }

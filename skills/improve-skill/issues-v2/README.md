@@ -20,7 +20,7 @@ Architecture decision: `../adr/0001-skill-md-orchestration.md`
 | # | Title | Type | Blocked by | Status |
 |---|-------|------|------------|--------|
 | 01 | [Hybrid Eval Engine v2](01-hybrid-eval-engine.md) | AFK | — | ✅ done |
-| 02 | [Single-Skill Improvement MVP](02-single-skill-mvp.md) | AFK | 01 | pending |
+| 02 | [Single-Skill Improvement MVP](02-single-skill-mvp.md) | AFK | 01 | ✅ done |
 | 03 | [Quality Audit + Reporting](03-quality-audit-reporting.md) | AFK | 02 | pending |
 | 04 | [Batch Mode, Flags & Recovery](04-batch-mode-flags.md) | AFK | 02 | pending |
 | 05 | [Cleanup v1 & Archive](05-cleanup-v1.md) | AFK | 03, 04 | pending |
@@ -63,6 +63,44 @@ This is the tracer bullet. Write the new SKILL.md with phases 1-3:
 - Phase 3 (Improvement Loop): diagnose → generate rule → inject → re-score → commit/revert → stop check
 
 See `02-single-skill-mvp.md` for full spec.
+
+### ✅ Issue 02: Single-Skill Improvement MVP — DONE
+
+**What was done:**
+
+1. **SKILL.md v2 rewritten**: Complete self-contained orchestrator with 4 phases
+   - Phase 1 (Setup): arg parsing, skill dir discovery, git branch, eval generation
+   - Phase 2 (Baseline): Agent tool execution per test_input, assertion_runner.py scoring, aggregated display
+   - Phase 3 (Improvement Loop): 6 sub-steps (3a–3f) — diagnose, generate rule via Agent, inject via Edit, re-score, decide (commit/revert), stop check
+   - Phase 4 (Report): baseline→final comparison, per-assertion status, git log, cost tracking
+
+2. **Architecture**: SKILL.md handles all reasoning natively. Python tools called via Bash CLI:
+   - `eval_generator.py <skill_dir>` → evals JSON to stdout
+   - `assertion_runner.py --evals <path> --output <path>` → JSON result + exit code
+
+3. **Safety constraints**: only `*.md` + `evals.json` editable, never `*.py`/`*.sh`/`scripts/`, one file per iteration, git revert on regression, 10-iteration cap, 3-iteration plateau detection
+
+4. **37 integration tests** added (`test_skill_md_v2.py`):
+   - Structural completeness (20 tests): all phases, sub-steps, sections present
+   - V1 deprecation check (4 tests): no references to deleted modules
+   - CLI interface validation (5 tests): eval_generator and assertion_runner CLIs work as documented
+   - End-to-end pipeline (3 tests): generate evals → sample output → score
+   - Safety constraints (5 tests): forbidden edits, iteration caps, atomic commits
+
+5. **Total test count: 113** (27 assertion_runner + 49 eval_generator + 37 SKILL.md v2)
+
+**Acceptance criteria: 10/11 done, 1 needs HITL:**
+- ✅ SKILL.md frontmatter with name, description, trigger phrases
+- ✅ Phase 1: arg parsing, skill directory discovery, git branch creation, eval generation
+- ✅ Phase 2: Agent tool execution on each test_input, assertion_runner.py scoring, baseline display
+- ✅ Phase 3a: Diagnose — identify first failing assertion, resolve target file via source_file
+- ✅ Phase 3b: Generate — LLM returns rule text, target section, insertion position
+- ✅ Phase 3c: Inject — Edit tool with marker format, atomic single-file change
+- ✅ Phase 3d: Re-score — re-run skill via Agent on all test_inputs, score, compare
+- ✅ Phase 3e: Decide — commit if improved, revert if same/lower
+- ✅ Phase 3f: Stop check — all pass / 3 plateau / 10 cap
+- ⏳ End-to-end: `/improve-skill code-review` — needs HITL (real Agent execution, issue 06)
+- ✅ Safety: only `*.md` files and `evals.json` are edited, never `*.py` or `*.sh`
 
 ### Remaining issues
 

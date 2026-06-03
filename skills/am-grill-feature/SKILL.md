@@ -115,6 +115,7 @@ Produce a structured markdown artifact and save it to an appropriate location.
 
 ## Rules
 
+- **Output in Russian.** The final artifact must be written in Russian. Section headers, assessments, verdict, conditions, open questions — everything in the saved markdown file is in Russian. Source URLs and code identifiers stay in their original form.
 - **Be honest.** If a feature is low value or high risk, say so. The goal is truth, not optimism.
 - **Investigate, don't assume.** Technical complexity must be based on actual code investigation.
 - **Flag unknowns.** If you can't assess something, explicitly flag it rather than guessing.

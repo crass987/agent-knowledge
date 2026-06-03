@@ -1,0 +1,172 @@
+{
+  "version": 2,
+  "skill": "am-pain-mining",
+  "generated_at": "2026-05-31T17:00:00Z",
+  "test_inputs": [
+    {
+      "type": "file",
+      "path": "/tmp/am-pain-test-input-tsrt.txt",
+      "label": "ЦРЦТ demo meeting transcript (51 min, Russian)"
+    }
+  ],
+  "assertions": [
+    {
+      "id": "a01",
+      "description": "Report is written in Russian (matches transcript language)",
+      "source_rule": "Write in the language of the transcript — Russian transcript = Russian report, English = English",
+      "type": "regex",
+      "check": "(?:Профиль|Боли|Возражения|Следующие|Клиент|Карта|Триггер|Конкурент|Эмоциональн|Цитат|Шаг|Рекомендаци)",
+      "flags": "i",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a02",
+      "description": "JTBD section uses the required format: 'Когда... я хочу... чтобы...'",
+      "source_rule": "Convert → JTBD: 'Когда [ситуация], я хочу [мотивация], чтобы [результат]' — Functional / Emotional / Social",
+      "type": "regex",
+      "check": "Когда.{5,200}я хочу.{5,200}чтобы",
+      "flags": "is",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a03",
+      "description": "Pains are categorized as явная or вероятная (explicit vs probable)",
+      "source_rule": "Extract raw signals: Pains (явная/вероятная), feature requests, objections, buying triggers...",
+      "type": "regex",
+      "check": "явная|вероятная",
+      "flags": "i",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a04",
+      "description": "Contains verbatim customer quotes with speaker attribution",
+      "source_rule": "Quote verbatim — use exact customer words, with speaker and timestamp",
+      "type": "regex",
+      "check": "(?:\"[^\"]{10,}\"|«[^»]{10,}»).{0,30}(?:—|–|\\bсказал|\\bПавел|\\bПолин|\\bИль[яю]|\\bЭмиль|\\bАнтон|\\bДмитри|\\bАнн|\\bМатузов|\\b\\d{2}:\\d{2})",
+      "flags": "i",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a05",
+      "description": "Decision map includes role types (Champion/Blocker/ЛПР/Пользователь)",
+      "source_rule": "Map decision dynamics: Champion / Blocker / Neutral / User for each participant",
+      "type": "regex",
+      "check": "Champion|Blocker|ЛПР|Пользовател|Neutral|нейтрал|сторонник|противник",
+      "flags": "i",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a06",
+      "description": "Opportunity scoring present with /12 total",
+      "source_rule": "Score opportunity: X/12 viability (see report-template.md §10 for criteria)",
+      "type": "regex",
+      "check": "/12|из 12|12 баллов|итого.*\\d+/12",
+      "flags": "i",
+      "source_file": "report-template.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a07",
+      "description": "Competitive context mentions at least one competitor from the transcript",
+      "source_rule": "Map competitive context: For each competitor: why mentioned, strengths, gaps, who brought it up",
+      "type": "regex",
+      "check": "Zabbix|Grafana|Метрик|Яндекс|DataLens|Prometheus",
+      "flags": "i",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a08",
+      "description": "Next steps are specific (not generic) — have priority marker AND deadline/owner",
+      "source_rule": "Each must have: priority, action, effort estimate, owner, target date. No generic advice — specific to THIS customer",
+      "type": "regex",
+      "check": "(?:P0|P1|P2|приоритет|🔴|🟡|🟢).{0,200}(?:до|к|deadline|срок|дедлайн|к\\s+\\d|до\\s+\\d|недел|дней|месяц)",
+      "flags": "is",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a09",
+      "description": "Report contains the misalignment/разрывы section with actual misalignment entries",
+      "source_rule": "Often the most valuable finding. Common patterns: Customer uses a term → our team interprets differently → demo goes off-track",
+      "type": "regex",
+      "check": "(?:Разрыв|misalign|понимани|неправильн|понял|интерпретир).{0,300}(?:последств|потеря|время|ушл|демо|показ)",
+      "flags": "is",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a10",
+      "description": "Emotional timeline/energy map references specific time sections",
+      "source_rule": "Build emotional timeline: Energy spikes (what sells) and drops (what blocks)",
+      "type": "regex",
+      "check": "энерги|интерес| spiked|рост|падени|🔥|😴|😊|😐|timeline|карт[аи].*эмоци|эмоциональн",
+      "flags": "is",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a11",
+      "description": "Pain mentions are linked to JTBD jobs (not standalone)",
+      "source_rule": "JTBD is the PRIMARY section. Pains are secondary — short list, linked to jobs. Don't duplicate content across sections",
+      "type": "regex",
+      "check": "J\\d|Job\\s*\\d|J_\\d|связан.*Job|привязан.*Job|Job.*\\d",
+      "flags": "i",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a12",
+      "description": "Output does NOT contain the phrase 'generic advice'",
+      "source_rule": "No generic advice — next steps must be specific to THIS customer",
+      "type": "not_contains",
+      "value": "generic advice",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a13",
+      "description": "Ambiguous claims are marked with [AMBIGUOUS] or [INFERRED] markers",
+      "source_rule": "Don't guess — mark ambiguity as [AMBIGUOUS] with your best interpretation. Distinguish observed vs. inferred",
+      "type": "regex",
+      "check": "\\[AMBIGUOUS\\]|\\[INFERRED\\]|\\[НЕОДНОЗНАЧНО\\]|\\[ПРЕДПОЛОЖЕНИЕ\\]|\\[ВЕРОЯТНО\\]",
+      "flags": "i",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a14",
+      "description": "Customer profile section covers organization, stack, and environment",
+      "source_rule": "Report template §1: Профиль клиента — организация, отрасль, масштаб, текущий стек, среда",
+      "type": "regex",
+      "check": "(?:организация|отрасль|масштаб|стек|среда|К8s|Kubernetes|on-prem|контурн|продукт|сервис|кластер)",
+      "flags": "i",
+      "source_file": "report-template.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a15",
+      "description": "Interest triggers section references specific timestamps from the transcript",
+      "source_rule": "Quick Reference Step 6: Map interest triggers with timestamps, what was shown, reaction type",
+      "type": "regex",
+      "check": "\\d{1,2}:\\d{2}",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a16",
+      "description": "Report distinguishes observed facts from inferred conclusions",
+      "source_rule": "Distinguish observed vs. inferred — 'Client said X' vs. 'Client likely feels Y because...'",
+      "type": "regex",
+      "check": "вероятн|скорее всего|предположительн|likely|probably|inferred|observed|сказал.*но|высказал|упомянул|скорее",
+      "flags": "i",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    }
+  ]
+}

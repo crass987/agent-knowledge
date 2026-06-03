@@ -1,0 +1,46 @@
+{
+  "version": 2,
+  "skill": "tdd",
+  "generated_at": "2026-05-31T16:45:31Z",
+  "test_inputs": [
+    {
+      "type": "prompt",
+      "text": "Use the tdd skill. Test-driven development workflow",
+      "label": "tdd basic prompt"
+    },
+    {
+      "type": "prompt",
+      "text": "Apply the tdd skill to a complex, realistic scenario. Test-driven development workflow",
+      "label": "tdd detailed prompt"
+    }
+  ],
+  "assertions": [
+    {
+      "id": "a01",
+      "description": "Output must not contain: write production code except to make a failing test pass",
+      "source_rule": "Never write production code except to make a failing test pass.",
+      "type": "not_contains",
+      "value": "write production code except to make a failing test pass",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a02",
+      "description": "Output references: Write",
+      "source_rule": "Write the simplest test that could fail. Don't test multiple things at once.",
+      "type": "contains",
+      "value": "Write",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    },
+    {
+      "id": "a03",
+      "description": "Output references: Run",
+      "source_rule": "Run all tests after each change. If they're slow, fix the test speed.",
+      "type": "contains",
+      "value": "Run",
+      "source_file": "SKILL.md",
+      "generator": "heuristic"
+    }
+  ]
+}

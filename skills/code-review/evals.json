@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "skill": "code-review",
+  "generated_at": "2026-05-31T16:45:10Z",
+  "test_inputs": [
+    {
+      "type": "prompt",
+      "text": "Use the code-review skill. Code review process and checklist",
+      "label": "code-review basic prompt"
+    },
+    {
+      "type": "prompt",
+      "text": "Apply the code-review skill to a complex, realistic scenario. Code review process and checklist",
+      "label": "code-review detailed prompt"
+    }
+  ],
+  "assertions": []
+}

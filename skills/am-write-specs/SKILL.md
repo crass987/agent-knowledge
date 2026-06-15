@@ -110,3 +110,4 @@ Before presenting, check:
 - If the feature requires schema changes — note migration needs
 - Include the PM in open questions — don't decide product details yourself
 - The output should be ready to commit to analytics-hub after PM review
+- **Output location.** The final spec goes to `analytics-hub` (already the convention). A WIP/draft before PM review goes to `PM/initiatives/<theme>/`. Never write product drafts into `meta/` — `meta/` is meta-repo infrastructure only. Routing test: see `PM/CLAUDE.md`.

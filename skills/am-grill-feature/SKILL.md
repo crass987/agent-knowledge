@@ -77,7 +77,7 @@ Investigate the actual codebase. Don't assume — verify.
 
 ### Phase 3: Verdict
 
-Produce a structured markdown artifact and save it to an appropriate location.
+Produce a structured markdown artifact and save it under `PM/` per the routing test in `PM/CLAUDE.md`: a feature grill → `PM/initiatives/<theme>/`; a competitive grill → `PM/competitive/`. Never into `meta/`.
 
 **Output template:**
 
@@ -120,5 +120,6 @@ Produce a structured markdown artifact and save it to an appropriate location.
 - **Investigate, don't assume.** Technical complexity must be based on actual code investigation.
 - **Flag unknowns.** If you can't assess something, explicitly flag it rather than guessing.
 - **Consider the cost of NOT doing the feature.** What happens if we skip it?
+- **Output location.** Save product output under `PM/` per the routing test in `PM/CLAUDE.md` (theme-specific → `PM/initiatives/<theme>/`; competitive → `PM/competitive/`; untethered one-off → `PM/sessions/`; disposable → `PM/tmp/`). Never write product artifacts into `meta/` — `meta/` is meta-repo infrastructure only.
 - **Use external research.** Include source links for competitive and market claims.
 - **The feature is what's evaluated** — not the document, ticket, or conversation that mentions it.

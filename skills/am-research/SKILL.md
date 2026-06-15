@@ -90,3 +90,4 @@ Produce a structured summary:
 - If Jira lookup fails, note it and continue without
 - Distinguish between "documented" and "actually implemented" when you can
 - Flag anything that seems outdated or contradictory with [REVIEW]
+- **Output location.** Save product output under `PM/` per the routing test in `PM/CLAUDE.md` (theme-specific → `PM/initiatives/<theme>/`; competitive → `PM/competitive/`; untethered one-off → `PM/sessions/`; disposable → `PM/tmp/`). Never write product artifacts into `meta/` — `meta/` is meta-repo infrastructure only.

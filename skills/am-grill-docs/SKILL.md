@@ -108,3 +108,4 @@ For each finding, provide:
 - If you can't verify something (code too complex, would take too long), mark as [UNVERIFIED] rather than guessing.
 - Prioritize findings — a PM doesn't need 50 minor issues, they need the 5 that matter.
 - When proposing fixes, be specific enough that someone could apply them without re-investigating.
+- **Output location.** Save product output under `PM/` per the routing test in `PM/CLAUDE.md` (theme-specific → `PM/initiatives/<theme>/`; competitive → `PM/competitive/`; untethered one-off → `PM/sessions/`; disposable → `PM/tmp/`). Never write product artifacts into `meta/` — `meta/` is meta-repo infrastructure only.

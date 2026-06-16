@@ -91,3 +91,4 @@ Produce a structured summary:
 - Distinguish between "documented" and "actually implemented" when you can
 - Flag anything that seems outdated or contradictory with [REVIEW]
 - **Output location.** Save product output under `PM/` per the routing test in `PM/CLAUDE.md` (theme-specific → `PM/initiatives/<theme>/`; competitive → `PM/competitive/`; untethered one-off → `PM/sessions/`; disposable → `PM/tmp/`). Never write product artifacts into `meta/` — `meta/` is meta-repo infrastructure only.
+- **Register the research.** After producing output under `PM/`, log it to `meta/research-index.md` via the `am-research-index` skill (`log` mode) — one entry keyed by the artifact path. This keeps the "did we already research X?" registry current. (Skip if the investigation produced no durable artifact, e.g. a pure conversational answer.)

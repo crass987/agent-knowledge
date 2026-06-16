@@ -36,3 +36,4 @@ Load ONLY the skills that match the current file or task — do not load everyth
 | evaluate, grill, assess, оцени фичу, прожарь, стоит ли делать | `skills/am-grill-feature/SKILL.md` |
 | requirements, specs, аналитика, напиши требования, write specs | `skills/am-write-specs/SKILL.md` |
 | audit, docs, documentation, неточности, проверь доки, прожарь документацию | `skills/am-grill-docs/SKILL.md` |
+| jbtd, jobs-to-be-done, job story, JTBD, формулировка задачи, напиши jbdt, сформулируй задачу, заголовок, придумай заголовок, переделай заголовок | `skills/jbtd/SKILL.md` |

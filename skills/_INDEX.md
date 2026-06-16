@@ -17,3 +17,4 @@ Load the relevant SKILL.md when the task matches.
 | evaluate, grill, assess, оцени фичу, прожарь, стоит ли делать | `am-grill-feature/SKILL.md` |
 | requirements, specs, аналитика, напиши требования, write specs | `am-write-specs/SKILL.md` |
 | audit, docs, documentation, неточности, проверь доки, прожарь документацию | `am-grill-docs/SKILL.md` |
+| jbtd, jobs-to-be-done, job story, JTBD, формулировка задачи, напиши jbdt, сформулируй задачу, заголовок, придумай заголовок, переделай заголовок | `jbtd/SKILL.md` |

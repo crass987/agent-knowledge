@@ -51,7 +51,7 @@ Research and answer these questions:
 6. **Risks**: What could go wrong? (adoption risk, complexity, scope creep, cannibalization)
 
 **Research instructions:**
-- Use `mcp__searxng__searxng_web_search` for competitor analysis and market context
+- Use the **web-search** capability (see `AGENTS.md` tool-registry) for competitor analysis and market context
 - Compare against: Zabbix, Prometheus+Grafana, Datadog, Icinga, VictoriaMetrics ecosystem — whichever is relevant
 - Include source links in the output
 - Check existing PM docs (`docs/`, Confluence) for prior art

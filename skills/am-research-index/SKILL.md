@@ -56,7 +56,7 @@ For each entry, gather mechanical signals first (batchable), then apply judgment
 | Signal | How | Result |
 |---|---|---|
 | **Source drift** | `git log -1 --format=%ci -- <artifact path>`; commit date newer than the entry's 📅 | `⚠️[REVIEW]` — re-read; finding may have moved |
-| **Shipped refs** | `mcp__jira__get_issue` per 🔗 Jira key (Done/Closed/Released); or version ref shipped in `infra-releases` | `⚠️[REVIEW]` — reframe "future work" → "shipped" |
+| **Shipped refs** | the **jira** capability (`AGENTS.md` tool-registry) per 🔗 Jira key (Done/Closed/Released); or version ref shipped in `infra-releases` | `⚠️[REVIEW]` — reframe "future work" → "shipped" |
 | **Supersession** (judgment) | a newer entry covers the same topic better | `🗄️→<newer title>` |
 | **Age** | 📅 vs today | tiebreaker only — never flags alone |
 

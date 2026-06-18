@@ -2,6 +2,8 @@
 
 A single source of truth for AI agent knowledge — coding standards, workflow skills, product management conventions, and research methodologies.
 
+Короткая инструкция по пользованию: **[USAGE.md](USAGE.md)**.
+
 ## Structure
 
 ```

@@ -37,3 +37,17 @@ Load ONLY the skills that match the current file or task — do not load everyth
 | requirements, specs, аналитика, напиши требования, write specs | `skills/am-write-specs/SKILL.md` |
 | audit, docs, documentation, неточности, проверь доки, прожарь документацию | `skills/am-grill-docs/SKILL.md` |
 | jbtd, jobs-to-be-done, job story, JTBD, формулировка задачи, напиши jbdt, сформулируй задачу, заголовок, придумай заголовок, переделай заголовок | `skills/jbtd/SKILL.md` |
+
+## Tool registry (capability → tool)
+
+Skills reference tools by **capability**, not by vendor tool-name. Concrete tools are resolved here. (Portability principle P3: the neutral instrument layer is MCP; keep skill text tool-agnostic.) The portability linter (`scripts/lint-portability.py`) rejects hardcoded `mcp__*` names inside `SKILL.md` files — this registry is their only legitimate home.
+
+| Capability | Tool | Notes |
+|---|---|---|
+| jira | `mcp__jira__*` | no raw REST, no stored creds |
+| confluence | `mcp__confluence__*` | |
+| web-search | `mcp__searxng__searxng_web_search` | preferred over built-in WebSearch |
+| web-read | `mcp__web-reader__webReader` | url → markdown |
+| repo-read (github) | `mcp__zread__*` | structure / read_file / search_doc |
+| browser automation | `mcp__plugin_playwright_playwright__*` | |
+| lib docs | `mcp__context7__*` | resolve-library-id → query-docs |

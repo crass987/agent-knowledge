@@ -111,3 +111,13 @@ Before presenting, check:
 - Include the PM in open questions — don't decide product details yourself
 - The output should be ready to commit to analytics-hub after PM review
 - **Output location.** The final spec goes to `analytics-hub` (already the convention). A WIP/draft before PM review goes to `PM/initiatives/<theme>/`. Never write product drafts into `meta/` — `meta/` is meta-repo infrastructure only. Routing test: see `PM/CLAUDE.md`.
+
+## Operational learning (run before finishing)
+
+If this run surfaced a durable operational lesson that would save 5+ minutes next time — an unexpected command quirk, a tool gotcha, a project-specific fact — append it to the matching file in `agent-knowledge/learnings/` (`patterns.md` / `pitfalls.md` / `preferences.md` / `operational.md`), using the frontmatter format in `learnings/README.md`.
+
+Gate: do NOT log obvious facts, one-off transient errors, or anything already in this skill.
+
+Then append one row to `agent-knowledge/state/skill-runs.md`: skill name, ISO timestamp, approximate duration in seconds, outcome (success/fail/abort), branch, optional note.
+
+Both stores are local-only; never transmit externally.

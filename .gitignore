@@ -2,3 +2,4 @@ state/skill-runs.md
 __pycache__/
 *.pyc
 .DS_Store
+state/skill-runs.archive-*.md

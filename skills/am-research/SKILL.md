@@ -23,6 +23,16 @@ Structured investigation of a feature in Astra Monitoring. Produces a comprehens
 
 ## Process
 
+### 0. Recall prior learnings
+
+Before reading the PM context, surface what the harness already learned about this feature:
+
+```bash
+python3 scripts/auto-retrieve.py "<feature name>"
+```
+
+Returns at most **3** past operational lessons (patterns / pitfalls). If nothing matches, continue. This never loads the whole `learnings/` — only matched entries, to keep context clean.
+
 ### 1. Read PM context
 
 Read `PM.md` from the Astra meta-repo root. Find the feature in the **Knowledge Map** table. Identify:

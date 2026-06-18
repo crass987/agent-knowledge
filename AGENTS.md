@@ -37,6 +37,7 @@ Load ONLY the skills that match the current file or task — do not load everyth
 | requirements, specs, аналитика, напиши требования, write specs | `skills/am-write-specs/SKILL.md` |
 | audit, docs, documentation, неточности, проверь доки, прожарь документацию | `skills/am-grill-docs/SKILL.md` |
 | jbtd, jobs-to-be-done, job story, JTBD, формулировка задачи, напиши jbdt, сформулируй задачу, заголовок, придумай заголовок, переделай заголовок | `skills/jbtd/SKILL.md` |
+| decision, что решили, напиши решение, supersede решение, почему решили, архитектурное решение | `skills/am-decisions/SKILL.md` |
 
 ## Tool registry (capability → tool)
 

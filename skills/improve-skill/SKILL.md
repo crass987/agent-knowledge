@@ -806,3 +806,29 @@ After each iteration in Phase 3, display cumulative cost metrics:
 ```
 [COST] Iteration <N>: <AGENT_CALLS> agent calls, <LLM_CALLS> LLM calls, <TEST_INPUTS_EVALUATED> test inputs evaluated (cumulative)
 ```
+
+---
+
+## OIAE — how this skill realizes the self-improvement loop
+
+This skill already runs the **O**bserve → **I**nspect → **A**mend → **E**valuate → rollback loop. The table maps the phases and names where a human is in the loop.
+
+| OIAE | Where | What happens |
+|---|---|---|
+| Observe | Phase 1e, 2 | Load `evals.json` (assertions + inputs); score the baseline. |
+| Inspect | Phase 3a | Take the first failing assertion; resolve its source file. |
+| Amend (maker) | Phase 3b–3c | A separate Agent writes one rule and injects it into the `.md`. |
+| Evaluate (checker) | Phase 3d, 4 | Re-score via `assertion_runner.py`; a **different** Agent (Phase 4) judges holistically. Maker ≠ checker. |
+| Rollback | Phase 3e | No improvement → `git checkout -- <file>`. The regression is never left behind. |
+
+**Maker ≠ checker is structural.** The Agent that edits the skill and the Agent that scores and judges are separate calls. The skill never grades its own change.
+
+**Observe from real runs (optional).** The loop above improves against synthetic assertions. To prioritize by real failures, consult the harness telemetry before Phase 2:
+
+```bash
+grep -E 'outcome.*(fail|abort)' state/skill-runs.md | sort | uniq -c | sort -rn
+```
+
+A skill with repeated real failures is a candidate for the next `improve-skill` run. Assertions still decide **what** to change; telemetry decides **what to improve first**.
+
+**Where a human is needed.** The loop is autonomous within a run, but a human seeds `evals.json` quality (the skill's own criteria), triages the remaining failures from Phase 5, and decides which proposed assertions (Phase 4c) to promote. `improve-skill` proposes; the human curates.

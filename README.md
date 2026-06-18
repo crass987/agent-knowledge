@@ -103,7 +103,7 @@ The harness learns across sessions. Three local-only stores + a footer + a linte
 - `AGENTS.md` tool-registry — capability → concrete tool. Skills reference capabilities, never hardcoded tool-names.
 - `scripts/lint-portability.py` — CI gate. Rejects hardcoded `mcp__*` inside `SKILL.md`. Run: `python3 scripts/lint-portability.py skills`.
 
-Rollout: footer is on `am-research` and `am-decisions` (pilot). Roll out to other operational skills incrementally. **P1 shipped:** `decisions/` store + `am-decisions` skill (log/search/supersede) + OIAE mapping in `improve-skill`. P2 (auto-prune, regression evals) follows. See `docs/superpowers/specs/2026-06-18-harness-improvement-prd.md` and `USAGE.md`.
+Rollout: footer is on `am-research`, `am-decisions`, and `am-prune`. Roll out to other operational skills incrementally. **P1 shipped:** `decisions/` store + `am-decisions` skill (log/search/supersede) + OIAE mapping in `improve-skill`. **P2 shipped:** `am-prune` (stale+contradiction cleanup), selective `scripts/auto-retrieve.py` (≤3, never wholesale), `scripts/rotate-skill-runs.sh`; regression evals via `improve-skill`'s per-skill `evals.json`. See `docs/superpowers/specs/2026-06-18-harness-improvement-prd.md` and `USAGE.md`.
 
 ## License
 

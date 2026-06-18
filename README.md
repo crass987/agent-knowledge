@@ -91,6 +91,18 @@ To make `AGENTS.md` available in a project:
 ln -s ~/Documents/Code_projects/agent-knowledge/AGENTS.md <project-root>/AGENTS.md
 ```
 
+## Harness: operational learning loop (P0)
+
+The harness learns across sessions. Three local-only stores + a footer + a linter:
+
+- `learnings/` — operational facts (patterns / pitfalls / preferences / operational), frontmatter entries. Separate from reflexive `memory/`. See `learnings/README.md`.
+- `state/skill-runs.md` — local skill-run telemetry (skill / duration / outcome). Format in `state/README.md`; the data file is gitignored (local-only).
+- `skills/_shared/learning-footer.md` — standard footer appended to operational skills; tells the agent to capture a learning + log the run.
+- `AGENTS.md` tool-registry — capability → concrete tool. Skills reference capabilities, never hardcoded tool-names.
+- `scripts/lint-portability.py` — CI gate. Rejects hardcoded `mcp__*` inside `SKILL.md`. Run: `python3 scripts/lint-portability.py skills`.
+
+Rollout: footer is on `am-research` (pilot). Roll out to other operational skills incrementally. P1 (`decisions.active`, OIAE-upgrade of `improve-skill`) and P2 (auto-prune, regression evals) follow. See `docs/superpowers/specs/2026-06-18-harness-improvement-prd.md`.
+
 ## License
 
 MIT

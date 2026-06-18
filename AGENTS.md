@@ -38,6 +38,7 @@ Load ONLY the skills that match the current file or task — do not load everyth
 | audit, docs, documentation, неточности, проверь доки, прожарь документацию | `skills/am-grill-docs/SKILL.md` |
 | jbtd, jobs-to-be-done, job story, JTBD, формулировка задачи, напиши jbdt, сформулируй задачу, заголовок, придумай заголовок, переделай заголовок | `skills/jbtd/SKILL.md` |
 | decision, что решили, напиши решение, supersede решение, почему решили, архитектурное решение | `skills/am-decisions/SKILL.md` |
+| prune, чистка памяти, почисти learnings, устаревшие записи, conflicting entries, почисти память | `skills/am-prune/SKILL.md` |
 
 ## Tool registry (capability → tool)
 

@@ -34,7 +34,8 @@ Grouped by track: **Discovery** (what to build), **Delivery** (how to build — 
 | requirements, specs, аналитика, напиши требования | `skills/am-write-specs/SKILL.md` |
 | spec, PRD, requirements, feature design | `skills/spec-writing/SKILL.md` |
 | competitor, market, analysis, benchmark | `skills/competitive-analysis/SKILL.md` |
-| jbtd, jobs-to-be-done, JTBD, формулировка задачи, заголовок | `skills/jbtd/SKILL.md` |
+| jbtd, jobs-to-be-done, JTBD, формулировка задачи, заголовок задачи, issue title, PR title | `skills/jbtd/SKILL.md` |
+| напиши текст, перепиши, статья, лендинг, анонс, релиз-нотс, письмо, инфостиль, проза, write copy, rewrite, landing | `skills/infostyle/SKILL.md` |
 | grill plan, прожарь план, прожарь меня, стресс-тест плана | `skills/grill-plan/SKILL.md` |
 | book, knowledge, extraction, OCR, Pandoc | `skills/book-knowledge-extraction/SKILL.md` |
 | video, YouTube, transcript, whisper, lecture, podcast | `skills/video-knowledge-extraction/SKILL.md` |

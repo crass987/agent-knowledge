@@ -23,6 +23,13 @@ Write structured requirements or specifications for a feature, ready for commit 
 
 **REQUIRED:** Read `am-research` output or follow its process first — you must understand the feature before writing specs.
 
+## Стиль
+
+Текст требований и спецификаций читают люди — пишите по инфостилю Ильяхова. Базис
+(стоп-слова, факт-вместо-оценки, чувственная конкретика) — в
+`_shared/infostyle-core.md`; полный референс для прозы — скилл `infostyle`. Заголовок
+REQ/SPEC называет **работу** (как `jbtd` для task title), а не пользу читателю.
+
 ## Process
 
 ### 1. Research the feature

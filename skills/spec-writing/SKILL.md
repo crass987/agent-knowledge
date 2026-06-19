@@ -47,6 +47,7 @@ What are we building? One paragraph summary.
 ## Writing guidelines
 
 - Specific > vague. "Reduce p95 latency from 3s to 500ms" > "Make it faster."
+- Prose in informational style. Problem, Proposal, rationale — follow the `infostyle` skill: fact over opinion, strong-position sentences, one-thought paragraphs. Bedrock (stop-words, fact-over-opinion) in `_shared/infostyle-core.md`.
 - Scope tightly. One spec = one feature. Split if it describes multiple independent changes.
 - Include what's out of scope. Explicit non-goals prevent scope creep.
 - Get feedback early. Share the draft before it's perfect.

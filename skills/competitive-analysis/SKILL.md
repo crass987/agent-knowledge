@@ -64,6 +64,13 @@ description: Competitive analysis and market research
 [Competitive threats and how to mitigate]
 ```
 
+## Style
+
+Prose output — Summary, market landscape, competitor profiles, opportunities — write
+in informational style per the `infostyle` skill: fact over opinion, strong-position
+sentences, one-thought paragraphs. Bedrock (stop-words, fact-over-opinion) in
+`_shared/infostyle-core.md`.
+
 ## References
 
 See `references/` for analysis templates and example reports.

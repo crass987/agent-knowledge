@@ -2,6 +2,16 @@
 
 Харнесс — это набор навыков и стандартов для работы с кодом и продуктом. Навыки лежат в `skills/`, стандарты — в `standards/`. Маршрутизатор `AGENTS.md` подсказывает агенту, что загрузить под задачу.
 
+## Структура (треки)
+
+Навыки разбиты по трекам — как в `AGENTS.md` и `skills/_INDEX.md`:
+
+- **Discovery** (что строить — research/оценка/спеки): `am-research`, `am-research-index`, `am-grill-feature`, `am-grill-docs`, `am-pain-mining`, `am-write-specs`, `spec-writing`, `competitive-analysis`, `jbtd`, `grill-plan`, `book/video-knowledge-extraction`.
+- **Delivery** (как строить — код): `tdd`, `debugging`, `code-review`, `deploy-checklist`, `incident-response`.
+- **Knowledge-Meta** (слой знаний харнесса): `improve-skill`, `decisions`, `prune`.
+
+Репо устроено так: `skills/` (навыки), `standards/` (конвенции по языкам), `learnings/` + `decisions/` + `state/` (сторы знаний), `scripts/` (инструменты харнесса), `docs/` (спеки/планы). Полная карта структуры — в `README.md`.
+
 ## Запустить навык
 
 В Claude Code вызывайте навык слеш-командой — `/am-research`, `/jbtd`, `/am-grill-feature` — или описывайте задачу словами. Маршрутизатор подбирает навык по триггерам в `AGENTS.md`.

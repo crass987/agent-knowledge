@@ -8,27 +8,28 @@ A single source of truth for AI agent knowledge — coding standards, workflow s
 
 ```
 agent-knowledge/
-├── AGENTS.md              # Root router — agents read this first
+├── AGENTS.md              # Root router: Standards + Skills (by track) + Tool registry
+├── USAGE.md               # Как пользоваться харнессом (RU)
 ├── CLAUDE.md              # Instructions for Claude Code
-├── link.sh                # Connect skills to agents via symlinks
-├── standards/             # Detailed conventions, loaded by context match
-│   ├── python/
-│   ├── typescript/
-│   ├── go/
-│   ├── devops/
-│   ├── product/
-│   └── management/
-├── skills/                # Repeatable processes, loaded on demand
-│   ├── tdd/
-│   ├── debugging/
-│   ├── code-review/
-│   ├── deploy-checklist/
-│   ├── incident-response/
-│   ├── spec-writing/
-│   ├── competitive-analysis/
-│   └── book-knowledge-extraction/
+├── link.sh                # Deploy skills into agents via symlinks
+├── skills/                # Skills, grouped by track (see skills/_INDEX.md)
+├── standards/             # Coding conventions by language/domain (python, ts, go, devops, product, management)
+├── learnings/             # Operational-knowledge store (patterns / pitfalls / preferences / operational)
+├── decisions/             # Settled-calls store (decisions.active.md + supersede)
+├── state/                 # Local runtime telemetry (skill-runs.md; data gitignored)
+├── scripts/               # Harness tooling: lint-portability, auto-retrieve, rotate-skill-runs
+├── tests/                 # pytest for the harness scripts
+├── docs/                  # Specs, plans, grills (harness-improvement docs)
 └── templates/             # Reusable templates
 ```
+
+**Skills are grouped by track** (the Discovery–Delivery split):
+
+- **Discovery** — what to build (research / evaluate / spec): `am-research`, `am-research-index`, `am-grill-feature`, `am-grill-docs`, `am-pain-mining`, `am-write-specs`, `spec-writing`, `competitive-analysis`, `jbtd`, `grill-plan`, `book/video-knowledge-extraction`.
+- **Delivery** — how to build (code): `tdd`, `debugging`, `code-review`, `deploy-checklist`, `incident-response`.
+- **Knowledge-Meta** — the harness knowledge layer: `improve-skill`, `decisions`, `prune`.
+
+Full router with triggers: `AGENTS.md` and `skills/_INDEX.md`.
 
 ## Architecture
 
@@ -93,7 +94,7 @@ To make `AGENTS.md` available in a project:
 ln -s ~/Documents/Code_projects/agent-knowledge/AGENTS.md <project-root>/AGENTS.md
 ```
 
-## Harness: operational learning loop (P0)
+## Harness knowledge layer
 
 The harness learns across sessions. Three local-only stores + a footer + a linter:
 

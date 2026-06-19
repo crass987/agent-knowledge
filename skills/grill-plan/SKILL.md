@@ -29,7 +29,7 @@ This is **NOT** a feature go/no-go evaluation (that's `am-grill-feature`). This 
 
 As decisions and terms crystallize during the interview, capture them right away — into the user's **actual stores**, not a parallel system:
 
-- **Resolved decision** (architecture / scope / tool choice; hard-to-reverse + surprising + real trade-off) → record via the `am-decisions` skill (`log` / `supersede`) into `decisions/decisions.active.md`. Offer sparingly — same bar as an ADR; skip trivial or one-way-obvious calls.
+- **Resolved decision** (architecture / scope / tool choice; hard-to-reverse + surprising + real trade-off) → record via the `decisions` skill (`log` / `supersede`) into `decisions/decisions.active.md`. Offer sparingly — same bar as an ADR; skip trivial or one-way-obvious calls.
 - **Resolved term** → the project glossary (Astra: `PM.md`; harness: `docs/glossary.md`). Glossary = terms only, no implementation detail.
 - **Operational lesson** (would save 5+ min next time) → `learnings/` (see `learnings/README.md`).
 

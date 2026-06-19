@@ -1,9 +1,9 @@
 ---
-name: am-prune
+name: prune
 description: Use to clean up growing harness stores — "почисти learnings", "prune memory", "найди устаревшие записи", "conflicting entries", "почисти память". Detects stale references and contradictions across learnings/, decisions/, and optionally memory/. Triggers on governance and cleanup of harness knowledge.
 ---
 
-# am-prune — keep the stores clean
+# prune — keep the stores clean
 
 ## Overview
 

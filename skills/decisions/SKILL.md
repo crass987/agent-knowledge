@@ -1,5 +1,5 @@
 ---
-name: am-decisions
+name: decisions
 description: Use when recording or recalling a settled decision — "what did we decide", "log decision", "supersede decision", "напиши решение", "что решили", "почему решили", "архитектурное решение". Triggers on architecture, scope, tool/vendor decisions and reversals.
 ---
 
@@ -13,10 +13,10 @@ Authoritative settled calls: architecture, scope, tool/vendor choice, reversals.
 
 Parse the user's input:
 
-- `am-decisions` (no args) or `list` → show recent active decisions.
-- `am-decisions search <query>` → filter decisions by keyword or id.
-- `am-decisions log` → record a new active decision.
-- `am-decisions supersede <id>` → reverse an existing decision.
+- `decisions` (no args) or `list` → show recent active decisions.
+- `decisions search <query>` → filter decisions by keyword or id.
+- `decisions log` → record a new active decision.
+- `decisions supersede <id>` → reverse an existing decision.
 
 ## list / search
 

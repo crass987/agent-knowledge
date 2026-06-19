@@ -20,7 +20,7 @@ Load the relevant SKILL.md when the task matches.
 | jbtd, jobs-to-be-done, job story, JTBD, формулировка задачи, напиши jbdt, сформулируй задачу, заголовок, придумай заголовок, переделай заголовок | `jbtd/SKILL.md` |
 | improve skill, skill quality, auto-improve skills, improve the X skill | `improve-skill/SKILL.md` |
 | research index, did we research, зарегистрируй исследование, проверь research index | `am-research-index/SKILL.md` |
-| decision, что решили, напиши решение, supersede решение, архитектурное решение | `am-decisions/SKILL.md` |
-| prune, чистка памяти, устаревшие записи, conflicting entries, почисти память | `am-prune/SKILL.md` |
+| decision, что решили, напиши решение, supersede решение, архитектурное решение | `decisions/SKILL.md` |
+| prune, чистка памяти, устаревшие записи, conflicting entries, почисти память | `prune/SKILL.md` |
 | pain mining, customer meeting, transcript analysis, боли из встречи, demo analysis | `am-pain-mining/SKILL.md` |
 | grill plan, прожарь план, прожарь меня, grill my design, стресс-тест плана, решить с агентом что делать | `grill-plan/SKILL.md` |

@@ -35,4 +35,4 @@ Architecture choices, scope decisions, tool/vendor picks, and reversals. Not tur
 
 ## How to manage
 
-Use the `am-decisions` skill (`log` / `search` / `supersede`), or edit `decisions.active.md` directly by hand following the format above.
+Use the `decisions` skill (`log` / `search` / `supersede`), or edit `decisions.active.md` directly by hand following the format above.

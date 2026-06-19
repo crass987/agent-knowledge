@@ -28,6 +28,7 @@ Load the relevant SKILL.md when the task matches. Grouped by track: **Discovery*
 | code review, PR review, pull request, feedback | `code-review/SKILL.md` |
 | deploy, release, production, rollout, ship | `deploy-checklist/SKILL.md` |
 | incident, outage, SEV, postmortem, page, alert | `incident-response/SKILL.md` |
+| update artifacts, refresh profiles, C2 audit/fix, sync repos and docs, обнови артефакты, am-update | `am-update/SKILL.md` |
 
 ## Knowledge-Meta — the harness knowledge layer
 

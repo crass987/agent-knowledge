@@ -20,26 +20,42 @@ Load ONLY the skills that match the current file or task — do not load everyth
 
 ## Skills
 
-| Task involves... | Read index |
+Grouped by track: **Discovery** (what to build), **Delivery** (how to build — code), **Knowledge-Meta** (harness knowledge layer).
+
+### Discovery — research / product / understanding
+
+| Task involves... | Read |
+|---|---|
+| investigate, research, feature, как работает, изучи | `skills/am-research/SKILL.md` |
+| research index, зарегистрируй исследование, проверь research index, что устарело | `skills/am-research-index/SKILL.md` |
+| evaluate, grill, assess, оцени фичу, прожарь, стоит ли делать | `skills/am-grill-feature/SKILL.md` |
+| audit, docs, неточности, проверь доки, прожарь документацию | `skills/am-grill-docs/SKILL.md` |
+| pain mining, customer meeting, transcript, боли из встречи, demo analysis | `skills/am-pain-mining/SKILL.md` |
+| requirements, specs, аналитика, напиши требования | `skills/am-write-specs/SKILL.md` |
+| spec, PRD, requirements, feature design | `skills/spec-writing/SKILL.md` |
+| competitor, market, analysis, benchmark | `skills/competitive-analysis/SKILL.md` |
+| jbtd, jobs-to-be-done, JTBD, формулировка задачи, заголовок | `skills/jbtd/SKILL.md` |
+| grill plan, прожарь план, прожарь меня, стресс-тест плана | `skills/grill-plan/SKILL.md` |
+| book, knowledge, extraction, OCR, Pandoc | `skills/book-knowledge-extraction/SKILL.md` |
+| video, YouTube, transcript, whisper, lecture, podcast | `skills/video-knowledge-extraction/SKILL.md` |
+
+### Delivery — code / engineering
+
+| Task involves... | Read |
 |---|---|
 | testing, TDD, red-green-refactor | `skills/tdd/SKILL.md` |
 | debugging, investigating bugs, errors | `skills/debugging/SKILL.md` |
 | code review, PR review, pull request | `skills/code-review/SKILL.md` |
 | deploy, release, production, rollout | `skills/deploy-checklist/SKILL.md` |
 | incident, outage, postmortem, SEV | `skills/incident-response/SKILL.md` |
-| spec, PRD, requirements, feature design | `skills/spec-writing/SKILL.md` |
-| competitor, market, analysis, benchmark | `skills/competitive-analysis/SKILL.md` |
-| book, knowledge, extraction, convert, OCR, Pandoc | `skills/book-knowledge-extraction/SKILL.md` |
-| video, YouTube, transcript, whisper, lecture, podcast, knowledge extraction | `skills/video-knowledge-extraction/SKILL.md` |
-| investigate, research, feature, как работает, изучи | `skills/am-research/SKILL.md` |
-| research index, did we research, зарегистрируй исследование, проверь research index, что из исследований устарело | `skills/am-research-index/SKILL.md` |
-| evaluate, grill, assess, оцени фичу, прожарь, стоит ли делать | `skills/am-grill-feature/SKILL.md` |
-| requirements, specs, аналитика, напиши требования, write specs | `skills/am-write-specs/SKILL.md` |
-| audit, docs, documentation, неточности, проверь доки, прожарь документацию | `skills/am-grill-docs/SKILL.md` |
-| jbtd, jobs-to-be-done, job story, JTBD, формулировка задачи, напиши jbdt, сформулируй задачу, заголовок, придумай заголовок, переделай заголовок | `skills/jbtd/SKILL.md` |
-| decision, что решили, напиши решение, supersede решение, почему решили, архитектурное решение | `skills/decisions/SKILL.md` |
-| prune, чистка памяти, почисти learnings, устаревшие записи, conflicting entries, почисти память | `skills/prune/SKILL.md` |
-| grill plan, прожарь план, прожарь меня, grill my design, стресс-тест плана, решить с агентом что делать | `skills/grill-plan/SKILL.md` |
+
+### Knowledge-Meta — harness knowledge layer
+
+| Task involves... | Read |
+|---|---|
+| improve skill, skill quality, auto-improve | `skills/improve-skill/SKILL.md` |
+| decision, что решили, напиши решение, supersede | `skills/decisions/SKILL.md` |
+| prune, чистка памяти, устаревшие, conflicting entries | `skills/prune/SKILL.md` |
 
 ## Tool registry (capability → tool)
 

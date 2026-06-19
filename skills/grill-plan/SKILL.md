@@ -35,9 +35,23 @@ As decisions and terms crystallize during the interview, capture them right away
 
 **Do NOT write terms into `CONTEXT.md`.** In this harness `CONTEXT.md` is the **hot work channel**, not a glossary. (The upstream `grill-with-docs` assumed otherwise — this is the adaptation.)
 
+## Where this sits in the chain
+
+```
+brainstorming / am-grill-feature  →  grill-plan  →  spec/PRD  →  writing-plans  →  executing-plans
+   (decide if worth it)               (understand what)  (write it)    (plan)          (do)
+```
+
+- **Before (entry):** `brainstorming` (explore intent) or `am-grill-feature` (go/no-go on the idea). Don't grill-plan something you haven't decided to pursue.
+- **This skill:** interview → shared understanding.
+- **After (handoff):** write the spec as a **file** via `am-write-specs` (Astra product) or `spec-writing` (general). Then `writing-plans` → `executing-plans`.
+- **`to-prd` is NOT this skill's handoff.** It publishes a *finished* PRD to the issue tracker (Jira). It sits further down — after the spec exists — and only if you want to track it in Jira.
+
+Net: `grill-plan → am-write-specs / spec-writing → (optionally to-prd to publish)`.
+
 ## Endpoint
 
-When the decision tree is resolved: summarize the **shared understanding** (decisions made, terms sharpened, open questions remaining) and propose the next step — usually write the PRD via `am-write-specs` or `spec-writing`.
+When the decision tree is resolved: summarize the **shared understanding** (decisions made, terms sharpened, open questions remaining) and hand off to **write the spec** — `am-write-specs` (Astra) or `spec-writing` (general). Do **not** jump to `to-prd` (it publishes to Jira — a separate, later step).
 
 ## Operational learning (run before finishing)
 

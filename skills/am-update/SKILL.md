@@ -27,7 +27,7 @@ Replaces hand-following `meta/prompts/update-all.md`. The engine is unchanged �
 Read each prompt file at the point it is needed — do not read all upfront.
 
 **Stage 0 — prep.** `./sync-repos.sh --force` then `./meta/scripts/collect-repo-facts.sh` → `meta/reports/facts-YYYY-MM-DD.md` (includes Profile Connections + per-repo drift status).
-*Status → summary:* `Stage 0 — prep: facts at meta/reports/facts-<date>.md`.
+*Status:* `Stage 0 — prep: facts at meta/reports/facts-<date>.md`.
 
 **Stage 1 — refresh profiles.** Follow `meta/prompts/refresh-agents.md` from Step 2 onward. Drift-aware: skip repos with `"none"` drift after a quick check; full review for `"N commits since..."`. Update `meta/repos/*.md`. Commit.
 *Status:* `Stage 1 — profiles refreshed: N updated, M unchanged`.
@@ -35,7 +35,7 @@ Read each prompt file at the point it is needed — do not read all upfront.
 **Stage 2 — C2 audit.** Follow `meta/prompts/c2-audit.md` in full, using fresh profiles as evidence. Per-service subagents (≤5 parallel, clean context). Produces `meta/reports/c2-drift-YYYY-MM-DD.md` (report-only).
 *Status:* `Stage 2 — c2-audit: ✅N ⚠️N ❓N 👻N (HIGH: N)`.
 
-**Stage 3 — C2 fix.** Follow `meta/prompts/c2-fix.md`. Classify each confirmed drift: code-wins → maker proposes C2 edit, separate checker verifies against code, commit on APPROVE; product-decision → append to review queue. Produces `meta/reports/c2-fix-summary-YYYY-MM-DD.md` and edits `analytics-hub/master_docs/Архитектура/C2-контейнеры.md`.
+**Stage 3 — C2 fix.** Follow `meta/prompts/c2-fix.md`. Classify each confirmed drift: code-wins → maker proposes C2 edit, separate checker verifies against code, commit on APPROVE; product-decision → append to review queue. Produces `meta/reports/c2-fix-summary-YYYY-MM-DD.md` and edits `analytics-hub/master_docs/docs/Архитектура/C2-контейнеры.md`.
 *Status:* `Stage 3 — c2-fix: N auto-fixed, M queued, K rejected-by-checker`.
 
 **Stage 4 — review-queue reconcile.** Read `meta/reports/review-queue.md` by grepping `- [open` (never wholesale). Collect new `[REVIEW]` items from Stage 1. New → append `[open]`; items resolved this run → mark `[resolved]`/`[superseded]` with date; remaining `[open]` → re-surface in the summary.
@@ -49,7 +49,7 @@ Read each prompt file at the point it is needed — do not read all upfront.
 
 - **maker≠checker** on Stage 3 (P9): the agent proposing a C2 edit never verifies it.
 - **Selective reads:** review-queue via grep by status; never dump the whole store.
-- **Write scope:** `meta/repos/*.md`, `meta/reports/*`, `meta/reports/review-queue.md`, and the doc `analytics-hub/master_docs/Архитектура/C2-контейнеры.md`. Code repos are read-only.
+- **Write scope:** `meta/repos/*.md`, `meta/reports/*`, `meta/reports/review-queue.md`, and the doc `analytics-hub/master_docs/docs/Архитектура/C2-контейнеры.md`. Code repos are read-only.
 - Each stage emits exactly one status line into the summary — that is the transparency contract.
 
 ## Operational learning (run before finishing)

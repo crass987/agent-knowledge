@@ -28,7 +28,7 @@ Write structured requirements or specifications for a feature, ready for commit 
 Текст требований и спецификаций читают люди — пишите по инфостилю Ильяхова. Базис
 (стоп-слова, факт-вместо-оценки, чувственная конкретика) — в
 `_shared/infostyle-core.md`; полный референс для прозы — скилл `infostyle`. Заголовок
-REQ/SPEC называет **работу** (как `jbtd` для task title), а не пользу читателю.
+REQ/SPEC называет **работу** (как `jtbd` для task title), а не пользу читателю.
 
 ## Process
 

@@ -29,8 +29,8 @@ description: Use when writing, revising, or editing human-facing prose in Russia
 
 ## Когда НЕ использовать
 
-- JBTD-формулировка пользовательской задачи или заголовок **задачи / issue / PR** —
-  там `jbtd`. Это другой жанр: задача называется по работе, а не по пользе читателя.
+- JTBD-формулировка пользовательской задачи или заголовок **задачи / issue / PR** —
+  там `jtbd`. Это другой жанр: задача называется по работе, а не по пользе читателя.
 - Полная спецификация / PRD — `spec-writing` / `am-write-specs`. Но проза *внутри*
   них сверьте с этим скиллом.
 - Сбор болей и jobs из транскрипта встречи — `am-pain-mining`.
@@ -107,7 +107,7 @@ description: Use when writing, revising, or editing human-facing prose in Russia
 ## Ремесло: заголовок статьи / лендинга / анонса
 
 Заголовок продаёт чтение: за две секунды решает, читать ли. Жанр здесь — **польза
-читателю**, а не название работы (заголовок задачи / issue / PR — в `jbtd`, это
+читателю**, а не название работы (заголовок задачи / issue / PR — в `jtbd`, это
 другой жанр).
 
 ### Правила
@@ -285,4 +285,4 @@ description: Use when writing, revising, or editing human-facing prose in Russia
 - [4] Бюро. Стоп-слова и информационный стиль — чёрный список оценок.
 
 Базис (стоп-слова, оценочные суждения, чувственный опыт) — в
-`_shared/infostyle-core.md` и `skills/jbtd/sources.md`.
+`_shared/infostyle-core.md` и `skills/jtbd/sources.md`.

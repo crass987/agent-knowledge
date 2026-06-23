@@ -14,7 +14,7 @@ Load the relevant SKILL.md when the task matches. Grouped by track: **Discovery*
 | requirements, specs, аналитика, напиши требования, write specs | `am-write-specs/SKILL.md` |
 | spec, PRD, requirements, feature design, RFC | `spec-writing/SKILL.md` |
 | competitor, market, analysis, benchmark, landscape | `competitive-analysis/SKILL.md` |
-| jbtd, jobs-to-be-done, job story, JTBD, формулировка задачи, напиши jbdt, заголовок задачи, issue title, PR title, название работы | `jbtd/SKILL.md` |
+| jtbd, jobs-to-be-done, job story, JTBD, формулировка задачи, напиши jtbd, заголовок задачи, issue title, PR title, название работы | `jtbd/SKILL.md` |
 | напиши текст, перепиши, статья, лендинг, анонс, релиз-нотс, письмо, инфостиль, проза, поправь стиль, write copy, rewrite, landing | `infostyle/SKILL.md` |
 | grill plan, прожарь план, прожарь меня, grill my design, стресс-тест плана, решить с агентом что делать | `grill-plan/SKILL.md` |
 | book, knowledge, extraction, convert, OCR, Pandoc | `book-knowledge-extraction/SKILL.md` |

@@ -90,7 +90,7 @@ Each must have: **priority, action, effort estimate, owner, target date**. No ge
 - **Keep JTBD grounded** — jobs come from customer words, not your interpretation
 - **Write in the language of the transcript** — Russian transcript = Russian report, English = English
 - **Output location.** Save product output under `PM/` per the routing test in `PM/CLAUDE.md` (theme-specific → `PM/initiatives/<theme>/`; competitive → `PM/competitive/`; untethered one-off → `PM/sessions/`; disposable → `PM/tmp/`). Client-conversation output usually belongs in `PM/customers/<client>/`. Never write product artifacts into `meta/` — `meta/` is meta-repo infrastructure only.
-- **Стиль отчёта.** Текст `pain-report` читают люди — пишите по инфостилю (`infostyle` + `_shared/infostyle-core.md`): факт вместо оценки, сильная позиция, одна мысль на абзац. JTBD-формулировки внутри отчёта — по `jbtd`.
+- **Стиль отчёта.** Текст `pain-report` читают люди — пишите по инфостилю (`infostyle` + `_shared/infostyle-core.md`): факт вместо оценки, сильная позиция, одна мысль на абзац. JTBD-формулировки внутри отчёта — по `jtbd`.
 
 ## Operational learning (run before finishing)
 

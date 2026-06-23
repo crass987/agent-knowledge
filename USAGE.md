@@ -6,7 +6,7 @@
 
 Навыки разбиты по трекам — как в `AGENTS.md` и `skills/_INDEX.md`:
 
-- **Discovery** (что строить — research/оценка/спеки): `am-research`, `am-research-index`, `am-grill-feature`, `am-grill-docs`, `am-pain-mining`, `am-write-specs`, `spec-writing`, `competitive-analysis`, `jbtd`, `grill-plan`, `book/video-knowledge-extraction`.
+- **Discovery** (что строить — research/оценка/спеки): `am-research`, `am-research-index`, `am-grill-feature`, `am-grill-docs`, `am-pain-mining`, `am-write-specs`, `spec-writing`, `competitive-analysis`, `jtbd`, `grill-plan`, `book/video-knowledge-extraction`.
 - **Delivery** (как строить — код): `tdd`, `debugging`, `code-review`, `deploy-checklist`, `incident-response`.
 - **Knowledge-Meta** (слой знаний харнесса): `improve-skill`, `decisions`, `prune`.
 
@@ -14,12 +14,12 @@
 
 ## Запустить навык
 
-В Claude Code вызывайте навык слеш-командой — `/am-research`, `/jbtd`, `/am-grill-feature` — или описывайте задачу словами. Маршрутизатор подбирает навык по триггерам в `AGENTS.md`.
+В Claude Code вызывайте навык слеш-командой — `/am-research`, `/jtbd`, `/am-grill-feature` — или описывайте задачу словами. Маршрутизатор подбирает навык по триггерам в `AGENTS.md`.
 
 Примеры:
 - «изучи фичу X», «как работает X» → `am-research`
 - «прожарь фичу», «стоит ли делать» → `am-grill-feature`
-- «напиши jbtd», «придумай заголовок» → `jbtd`
+- «напиши jtbd», «придумай заголовок» → `jtbd`
 - «проверь research index», «что устарело» → `am-research-index`
 
 Не грузите всё сразу. Берите только то, что подходит под задачу.
@@ -88,7 +88,7 @@ OIAE: Observe → Inspect → Amend → Evaluate → rollback   [авто вну
 
 Коротко: **захват, хранение и саму петлю харнесс делает сам. Человек решает, что улучшать, задаёт критерии и разбирает результат.**
 
-Футер стоит на **14 операционных навыках** (все am-*, deploy-checklist, debugging, incident-response, book/video-knowledge-extraction, spec-writing). Без футера: code-review, competitive-analysis, tdd, jbtd, improve-skill — нет рекуррентных операционных фактов.
+Футер стоит на **14 операционных навыках** (все am-*, deploy-checklist, debugging, incident-response, book/video-knowledge-extraction, spec-writing). Без футера: code-review, competitive-analysis, tdd, jtbd, improve-skill — нет рекуррентных операционных фактов.
 
 ## Улучшить навык (improve-skill)
 

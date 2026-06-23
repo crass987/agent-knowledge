@@ -40,7 +40,9 @@ antiword book.doc | head -20
 
 | Метод | .doc (OLE2) | .docx | .pdf | .mobi | .rtf | OCR |
 |-------|-------------|-------|------|-------|------|-----|
-| **LibreOffice+Pandoc** | ✅ | ✅ | ✅ | ❌ | ✅ | ⚠️ |
+| **pdftotext (poppler)** | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **ocrmypdf** | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
+| **LibreOffice+Pandoc** | ✅ | ✅ | ⚠️ | ❌ | ✅ | ⚠️ |
 | **antiword** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **mammoth** | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **calibre ebook-convert** | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
@@ -54,8 +56,8 @@ antiword book.doc | head -20
 | .doc | Отсканированный | LibreOffice+Pandoc + OCR | Tesseract OCR |
 | .docx | Текстовый | Pandoc | mammoth |
 | .docx | Отсканированный | Pandoc + OCR | Tesseract OCR |
-| .pdf | Текстовый | Pandoc | — |
-| .pdf | Отсканированный | Tesseract OCR | — |
+| .pdf | Текстовый | `pdftotext` (poppler) | `mutool draw -F txt` |
+| .pdf | Отсканированный | `ocrmypdf` | Tesseract OCR |
 | .rtf | Любой | `textutil -convert txt` (macOS) | Pandoc |
 | .mobi | Любой | calibre `ebook-convert` | — |
 
@@ -63,7 +65,15 @@ antiword book.doc | head -20
 
 ## Этап 3: Conversion
 
-### LibreOffice + Pandoc (для .doc, .docx, .pdf)
+### pdftotext (для текстового .pdf) — первый выбор
+
+```bash
+pdftotext -layout book.pdf book.txt   # -layout сохраняет структуру абзацев и таблиц
+head -50 book.txt
+```
+Если текст «съезжает» или рвётся по колонкам — попробуйте `mutool draw -F txt book.pdf > book.txt`.
+
+### LibreOffice + Pandoc (для .doc, .docx)
 
 ```bash
 # .doc → .docx → .md
@@ -94,21 +104,14 @@ textutil -convert txt book.rtf -output book.txt
 pandoc book.rtf -o book.md
 ```
 
-### Отсканированные документы
+### Отсканированные .pdf — `ocrmypdf` (одна команда)
 
 ```bash
-# Извлечь изображения страниц
-libreoffice --headless --convert-to pdf book.doc
-pdfimages -all book.pdf page
-
-# OCR
-for page in page-*.ppm; do
-    tesseract $page ${page%.ppm} -l rus+eng
-done
-
-# Объединить
-cat page-*.txt > book.md
+# Накладывает текстовый слой на PDF, делая его searchable
+ocrmypdf -l rus+eng book.pdf book_searchable.pdf
+pdftotext -layout book_searchable.pdf book.md
 ```
+Ручной путь через tesseract (если ocrmypdf недоступен): `pdftoppm` → постраничный tesseract → `cat`. Дольше и хуже по качеству сборки — `ocrmypdf` предпочтительнее.
 
 ---
 
@@ -168,6 +171,8 @@ grep -c "filepos" book.md # якоря
 ## Установка инструментов
 
 ```bash
+brew install poppler          # pdftotext, pdftoppm, pdfimages
+brew install ocrmypdf         # OCR-слой на PDF одной командой
 brew install libreoffice pandoc
 brew install antiword
 brew install tesseract tesseract-lang

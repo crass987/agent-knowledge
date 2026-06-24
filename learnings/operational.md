@@ -48,3 +48,14 @@ files: []
 ts: 2026-06-19
 scope: harness
 ---
+
+---
+type: operational
+key: book-rar-extraction
+insight: Книги иногда приходят в `.rar` — `brew install unar`, затем `unar -f -o <dir> file.rar`. Внутри обычно текстовый PDF (сделан через виртуальный принтер типа doPDF), извлекается чисто: `pdftotext -layout book.pdf book.txt`. Bookmarks/outline недоступны (pypdf/PyPDF2/mutool/qpdf отсутствуют на машине) → структуру глав восстанавливать по печатному оглавлению: `grep -nE` заголовков частей/глав → диапазоны строк → границы для извлечения.
+confidence: 8
+source: observed
+files: []
+ts: 2026-06-24
+scope: skill:book-knowledge-extraction
+---

@@ -77,6 +77,7 @@ def inline(s):
     s = re.sub(r'`([^`]+)`', r'<code>\1</code>', s)
     s = re.sub(r'\*\*([^*]+?)\*\*', r'<strong>\1</strong>', s)
     s = re.sub(r'\*([^*]+?)\*', r'<em>\1</em>', s)
+    s = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', s)
     return s
 
 def trim(p):
@@ -188,8 +189,9 @@ def build_html(md, logo, title):
     pages = []; cur = []
     for idx, l in enumerate(lines):
         s = l.strip()
-        if s.startswith('# ') and not h1 and not title:
-            h1 = s[2:].strip(); continue
+        if s.startswith('# '):
+            if not h1: h1 = s[2:].strip()
+            continue
         if boundary[idx] and cur:
             pages.append(cur); cur = []
         cur.append(l)

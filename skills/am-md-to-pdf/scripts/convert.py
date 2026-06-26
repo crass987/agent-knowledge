@@ -237,7 +237,7 @@ def main():
 
     out_dir = os.path.dirname(os.path.abspath(args.output)) or '.'
     if args.keep_html:
-        html_path = os.path.splitext(args.output)[0] + '.html'
+        html_path = os.path.abspath(os.path.splitext(args.output)[0] + '.html')
     else:
         html_path = os.path.join(tempfile.mkdtemp(), 'doc.html')
     open(html_path, 'w', encoding='utf-8').write(html_doc)

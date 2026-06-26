@@ -32,6 +32,7 @@ Grouped by track: **Discovery** (what to build), **Delivery** (how to build — 
 | audit, docs, неточности, проверь доки, прожарь документацию | `skills/am-grill-docs/SKILL.md` |
 | pain mining, customer meeting, transcript, боли из встречи, demo analysis | `skills/am-pain-mining/SKILL.md` |
 | requirements, specs, аналитика, напиши требования | `skills/am-write-specs/SKILL.md` |
+| md to pdf, convert markdown, красивый pdf, сделай pdf, dark theme pdf | `skills/am-md-to-pdf/SKILL.md` |
 | spec, PRD, requirements, feature design | `skills/spec-writing/SKILL.md` |
 | competitor, market, analysis, benchmark | `skills/competitive-analysis/SKILL.md` |
 | jtbd, jobs-to-be-done, JTBD, формулировка задачи, заголовок задачи, issue title, PR title | `skills/jtbd/SKILL.md` |

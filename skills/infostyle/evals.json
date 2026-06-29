@@ -1,0 +1,140 @@
+{
+  "version": 2,
+  "skill": "infostyle",
+  "generator": "human-seeded (A1/foundation fix)",
+  "test_inputs": [
+    {
+      "id": "i1",
+      "type": "prompt",
+      "label": "A1-calque canonical paragraph (root-jobs style)",
+      "text": "AM — продукт уровня основной работы. Чтобы брать работы уровнем выше, требуется детализация на уровне систем, а не на уровне хостов. Жизнь заказчика упрощается: доказательство превращается в ручную сборку по десяти системам. Осуществляется переход на ML-бейзлайны, что является эффективным решением. Мотивация движется личными работами. Цепочка к прибыли обрывается: AM обрывается на хостах."
+    },
+    {
+      "id": "i2",
+      "type": "prompt",
+      "label": "A1 + stop-words + EN-ru hybrids (longer)",
+      "text": "Сегодня основная работа AM — доводить свою Core Job до конца. Но для продуктов уровня основной работы критична видимость: детализация на уровне хостов не показывает разрыв цепи большой работы. Доказательство превращается в ручную сборку, отчёт собирается вручную. Защита решения приходится строить на допущениях — это удобно и надёжно, но право играть на рынке закрывает закупочный гейт по ФСТЭК. Работы уровнем выше требуют coverage-классов и roadmap-слоя, которых нет."
+    }
+  ],
+  "assertions": [
+    {
+      "id": "b01",
+      "type": "not_regex",
+      "flags": "i",
+      "source_file": "references/translationese.md",
+      "source_rule": "A1 of-phrase «X уровня/уровнем/уровне Y»",
+      "generator": "human",
+      "check": "уровн(?:ем|я|е|ю)\\s+(?:выше|основн|хост|систем|работ|главн|корн|больш|продукт)",
+      "description": "No A1 of-phrase calque «X уровня/уровнем/уровне Y» (доминирующий дефект, «работы уровнем выше» ×13)"
+    },
+    {
+      "id": "b02",
+      "type": "not_regex",
+      "flags": "i",
+      "source_file": "references/translationese.md",
+      "source_rule": "A1 of-phrase «на уровне Y»",
+      "generator": "human",
+      "check": "на\\s+уровн(?:е|я|ю)\\s+(?:хост|систем|работ|основн|продукт|приложен|сервис)",
+      "description": "No A1 calque «на уровне Y» (← at the level of Y)"
+    },
+    {
+      "id": "b03",
+      "type": "not_regex",
+      "flags": "i",
+      "source_file": "references/translationese.md",
+      "source_rule": "B калька-оборотчик «жизнь X упрощается»",
+      "generator": "human",
+      "check": "жизнь\\s+(?:заказчика|клиента|пользователя|человека)\\s+упрощается",
+      "description": "No B calque «жизнь заказчика упрощается» → «заказчику проще»"
+    },
+    {
+      "id": "b04",
+      "type": "not_regex",
+      "flags": "i",
+      "source_file": "references/translationese.md",
+      "source_rule": "B калька «цепочка к прибыли»",
+      "generator": "human",
+      "check": "цепочк\\w*\\s+к\\s+прибыли",
+      "description": "No B calque «цепочка к прибыли» → «цепочка, ведущая к прибыли»"
+    },
+    {
+      "id": "b05",
+      "type": "not_regex",
+      "flags": "i",
+      "source_file": "references/translationese.md",
+      "source_rule": "B калька «доказательство превращается в ручную сборку»",
+      "generator": "human",
+      "check": "доказательств\\w*\\s+(?:превращается|становится)\\s+в\\s+ручную",
+      "description": "No B calque «доказательство превращается в ручную сборку» → «приходится собирать вручную»"
+    },
+    {
+      "id": "b06",
+      "type": "not_regex",
+      "flags": "i",
+      "source_file": "references/translationese.md",
+      "source_rule": "C1 отглагольное/канцелярит «осуществляется»",
+      "generator": "human",
+      "check": "осуществля(?:ет|ется|ют)",
+      "description": "No C1 канцелярит «осуществляется/осуществляет» → глагол"
+    },
+    {
+      "id": "b07",
+      "type": "not_regex",
+      "flags": "i",
+      "source_file": "references/translationese.md",
+      "source_rule": "C3 связка «является + предикат»",
+      "generator": "human",
+      "check": "является\\s+(?:эффективн|надёжн|надежн|удобн|оптимальн|решени|инструмент|важн)",
+      "description": "No C3 связка-хомяк «является + оценочный предикат» → глагол"
+    },
+    {
+      "id": "b08",
+      "type": "not_regex",
+      "flags": "i",
+      "source_file": "_shared/infostyle-core.md",
+      "source_rule": "стоп-слово «эффективн»",
+      "generator": "human",
+      "check": "эффективн",
+      "description": "No stop-word «эффективн*» (оценка без меры) → факт"
+    },
+    {
+      "id": "b09",
+      "type": "not_regex",
+      "flags": "i",
+      "source_file": "_shared/infostyle-core.md",
+      "source_rule": "стоп-слова «удобно/надёжно»",
+      "generator": "human",
+      "check": "(?:удобн|надёжн|надежн|оптимальн|современн|инновационн)",
+      "description": "No stop-words «удобно/надёжно/оптимально» → измеримый факт"
+    },
+    {
+      "id": "b10",
+      "type": "not_regex",
+      "flags": "i",
+      "source_file": "references/translationese.md",
+      "source_rule": "D EN-ru дефисный гибрид",
+      "generator": "human",
+      "check": "[A-Za-z]{2,}-(?:бейзлайн|класс|слой|трасс|шин|возвыш)",
+      "description": "No D EN-ru hybrid (ML-бейзлайны, coverage-классов, roadmap-слоя) → перевести"
+    },
+    {
+      "id": "b11",
+      "type": "regex",
+      "flags": "i",
+      "source_file": "SKILL.md",
+      "source_rule": "sanity: содержание сохранено",
+      "generator": "human",
+      "check": "Core Job|AM",
+      "description": "Sanity: rewrite preserves core content (mentions Core Job or AM)"
+    },
+    {
+      "id": "b12",
+      "type": "min_words",
+      "source_file": "SKILL.md",
+      "source_rule": "sanity: не обрезан",
+      "generator": "human",
+      "value": 20,
+      "description": "Sanity: output ≥ 20 words (not truncated/empty)"
+    }
+  ]
+}

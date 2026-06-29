@@ -24,6 +24,27 @@ unlink_all() {
   echo "Done."
 }
 
+# Ensure each skill that references _shared/ carries a relative _shared symlink,
+# so skill-root-relative refs like `_shared/infostyle-core.md` resolve both in-repo
+# and under deploy (where each skill is itself a symlink into this dir). Idempotent.
+ensure_shared_links() {
+  for dir in "$TARGET_SKILLS"/*/; do
+    name=$(basename "$dir")
+    if [ "$name" = "_shared" ]; then continue; fi
+    if ! grep -rq "_shared/" "$dir" --include="*.md" 2>/dev/null; then continue; fi
+    link="$dir/_shared"
+    if [ -L "$link" ]; then
+      if [ "$(readlink "$link")" = "../_shared" ]; then continue; fi
+      rm "$link"
+    elif [ -e "$link" ]; then
+      echo "  WARNING: $link exists and is not a symlink — skipping."
+      continue
+    fi
+    ln -s ../_shared "$link"
+    echo "  _shared link: $name"
+  done
+}
+
 link_all() {
   echo "Linking agent-knowledge to Claude Code..."
 
@@ -43,6 +64,9 @@ link_all() {
     ln -s "$dir" "$link"
     echo "  linked: $name"
   done
+
+  # Self-heal _shared symlinks for skills that reference shared content
+  ensure_shared_links
 
   # Link standards as a whole directory
   link_standards="$LINKS_CLAUDE/standards"

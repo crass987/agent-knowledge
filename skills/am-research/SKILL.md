@@ -28,8 +28,10 @@ Structured investigation of a feature in Astra Monitoring. Produces a comprehens
 Before reading the PM context, surface what the harness already learned about this feature:
 
 ```bash
-python3 scripts/auto-retrieve.py "<feature name>"
+python3 "$HOME/.claude/skills/am-research/scripts/auto-retrieve.py" "<feature name>"
 ```
+
+`scripts/` is a symlink to the repo-root `scripts/` (lives in `agent-knowledge`, deployed with the skill); Python's path resolution follows it back to the repo root, so `learnings/` is found regardless of the current working directory.
 
 Returns at most **3** past operational lessons (patterns / pitfalls). If nothing matches, continue. This never loads the whole `learnings/` — only matched entries, to keep context clean.
 

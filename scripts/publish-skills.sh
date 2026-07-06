@@ -58,6 +58,17 @@ fi
 # 2. Copy the skill router (catalog with triggers)
 cp "$SRC/skills/_INDEX.md" "$AM_SKILLS_DIR/_INDEX.md"
 
+# 2a. Exclude maintainer-only skills (not for end-users): drop the dir + its _INDEX row.
+#      Override the list via env, e.g.  EXCLUDE_SKILLS="prune improve-skill" ./publish-skills.sh
+EXCLUDE_SKILLS="${EXCLUDE_SKILLS:-prune}"
+for ex in $EXCLUDE_SKILLS; do
+  rm -rf "$AM_SKILLS_DIR/skills/$ex"
+  find "$AM_SKILLS_DIR" -maxdepth 2 -name "_INDEX.md" -type f -print0 2>/dev/null \
+    | while IFS= read -r -d '' idx; do
+        sed "\#${ex}/SKILL\.md#d" "$idx" > "$idx.tmp" && mv "$idx.tmp" "$idx"
+      done
+done
+
 # 3. Substitute the clone's remote URL into README/USAGE, then write templates
 REMOTE_URL="$(cd "$AM_SKILLS_DIR" && git remote get-url origin 2>/dev/null || echo '<am-skills-url>')"
 sed "s|%%AM_SKILLS_URL%%|$REMOTE_URL|g" "$PUBLISH_DIR/README.md"  > "$AM_SKILLS_DIR/README.md"

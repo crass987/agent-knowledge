@@ -24,7 +24,7 @@ if [ ! -d "$AM_SKILLS_DIR/.git" ]; then
   echo "ERROR: $AM_SKILLS_DIR is not a git clone of am-skills."
   echo ""
   echo "First-time setup:"
-  echo "  1. Create the repo in GitLab: astra-monitoring-icl/am-skills (private)"
+  echo "  1. Create the repo in GitLab: astra-monitoring-icl/workspace/am-skills (private)"
   echo "  2. Clone it:   git clone <am-skills-url> $AM_SKILLS_DIR"
   echo "  3. Re-run:     ./scripts/publish-skills.sh"
   exit 1
@@ -70,7 +70,9 @@ for ex in $EXCLUDE_SKILLS; do
 done
 
 # 3. Substitute the clone's remote URL into README/USAGE, then write templates
-REMOTE_URL="$(cd "$AM_SKILLS_DIR" && git remote get-url origin 2>/dev/null || echo '<am-skills-url>')"
+# Strip any embedded creds (user:token@) so they don't leak into README/USAGE
+REMOTE_URL="$(cd "$AM_SKILLS_DIR" && git remote get-url origin 2>/dev/null | sed 's|//[^@]*@|//|')"
+REMOTE_URL="${REMOTE_URL:-https://gitlab.astra-monitoring.astralinux.ru/astra-monitoring-icl/workspace/am-skills.git}"
 sed "s|%%AM_SKILLS_URL%%|$REMOTE_URL|g" "$PUBLISH_DIR/README.md"  > "$AM_SKILLS_DIR/README.md"
 sed "s|%%AM_SKILLS_URL%%|$REMOTE_URL|g" "$PUBLISH_DIR/USAGE.md"   > "$AM_SKILLS_DIR/USAGE.md"
 cp "$PUBLISH_DIR/link.sh"     "$AM_SKILLS_DIR/link.sh"

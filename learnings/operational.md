@@ -59,3 +59,25 @@ files: []
 ts: 2026-06-24
 scope: skill:book-knowledge-extraction
 ---
+
+---
+type: operational
+key: am-update-validator-skips-repo-proofs
+insight: capability_registry_check.py валидирует только `docs/…` пути под master_docs; `repo:` доказательства НЕ проверяются. Удалённые/перемещённые файлы в кодовых репо (удалённый `event-processing/seed`, перенесённый `agent/…/autoconfig/discovered.go`) невидимы валидатору → Phase 2 обязана batch-check'ать существование файлов всех `repo:` proof'ов: `grep -oE 'repo:[^|)]+' functional-registry.md | sed 's/^repo://; s/ .*//; s/:[0-9]*$//' | sort -u | while read p; do [ -e "$p" ] || echo "MISS $p"; done`. На запуске 2026-07-01 так нашлись 3 сломанных proof'а (все «переехали», код уцелел).
+confidence: 9
+source: observed
+files: [meta/scripts/capability_registry_check.py, PM/strategy/functional-registry.md]
+ts: 2026-07-01
+scope: skill:am-update
+---
+
+---
+type: operational
+key: am-update-force-sync-protects-dirty
+insight: `sync-repos.sh --force` НЕ делает `git reset --hard` для репо с незафиксированными локальными изменениями — помечает `[DIRTY]` и пропускает (даже под --force). На запуске 2026-07-01 `docs` остался на feature-ветке MON-4440 с правками. Чтобы принудительно синкнуть — закоммитьте/стэшните WIP в саб-репо вручную перед запуском.
+confidence: 8
+source: observed
+files: [sync-repos.sh]
+ts: 2026-07-01
+scope: skill:am-update
+---

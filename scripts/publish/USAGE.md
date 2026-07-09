@@ -48,6 +48,23 @@ git clone --depth 1 https://github.com/zamesin/Next-Move-Theory-Canon-and-Skills
 
 Затем следуйте инструкции внутри клона — он сам линкует канон и скиллы в проект.
 
+## Engineering-скиллы (Matt Pocock) — отдельно
+
+`tdd`, `code-review`, `diagnosing-bugs`, `wayfinder`, `implement`, `research`, `prototype` и другие engineering-процедуры **не входят** в am-skills: это набор Matt Pocock (`github.com/mattpocock/skills`, лицензия MIT). Каждый ставит его сам с upstream — так мы не форкаем чужой контент и всегда synced с обновлениями автора.
+
+```bash
+# Поставить весь набор:
+npx skills add mattpocock/skills
+
+# Почистить личное и устаревшее, не нужное в командной работе:
+npx skills remove edit-article obsidian-vault scaffold-exercises writing-beats \
+  writing-fragments writing-shape loop-me wizard migrate-to-shoehorn claude-handoff \
+  teach design-an-interface qa request-refactor-plan ubiquitous-language grill-me \
+  find-skills -g -y
+```
+
+Когда какой engineering-скилл звать — в `meta/skills-guide.md` мета-репо Astra.
+
 ## Контекст Astra
 
 Скиллы — это общий слой возможностей. Контекст продукта (архитектура, реестр исследований, реестр возможностей, подход мета-репо) живёт в мета-репо Astra. Откройте `HARNESS.md` в корне Astra — там описано, как скиллы сочетаются с подходом мета-репо и с чего начать день-1 по ролям (аналитик, сейлз, продукт).

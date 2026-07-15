@@ -33,11 +33,20 @@ python3 skills/am-md-to-pdf/scripts/convert.py <input.md> <output.pdf> \
 ```
 
 - `--logo PATH` — logo top-left on every page (page 1: logo + title; inner: logo only). Passed as `file://`, so it renders fully — no truncation.
+- **Canonical Astra Monitoring logo:** `PM/roadmap/logo-BKsrVIqB.svg` (path from the Astra meta-repo root). Always pass it for AM PDFs — without `--logo`, or with a wrong/invented path, the dark header has no logo. This is the usual «logo doesn't render» failure in other sessions.
 - `--title TEXT` — page-1 title (default: first `# H1` in the `.md`).
 - `--chrome PATH` — Chrome/Chromium binary (default: macOS Google Chrome).
 - `--keep-html` — keep the intermediate `.html` next to the `.pdf`.
 
 Prerequisites: Python 3 (stdlib only), Google Chrome / Chromium.
+
+Example (Astra Monitoring roadmap PDF — note the `--logo` path):
+
+```bash
+python3 skills/am-md-to-pdf/scripts/convert.py \
+  PM/strategy/jtbd-roadmap-external.md PM/strategy/jtbd-roadmap-external.pdf \
+  --logo PM/roadmap/logo-BKsrVIqB.svg
+```
 
 ## Verify After Rendering
 
@@ -61,7 +70,7 @@ pdftoppm -png -r 80 -f 1 -l 1 <out.pdf> /tmp/check
 | Mistake | Fix |
 |---|---|
 | Hand-edit HTML to "fix" text | Edit the `.md`, re-run `convert.py`. Never the HTML. |
-| Logo truncates | Use `--logo` with the real SVG (`file://`), don't inline-draw it. |
+| Logo missing/blank in header | Pass `--logo PM/roadmap/logo-BKsrVIqB.svg` (canonical Astra Monitoring logo). Skipping `--logo` or guessing a path → dark header with no logo. |
 | Section splits across pages | It's longer than one page — shorten the `.md` section, or accept the clean split. |
 | PDF stale after `.md` edits | Re-run `convert.py`. The `.md` is source; the PDF is build output. |
 

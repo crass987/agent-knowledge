@@ -1,6 +1,10 @@
 #!/bin/bash
 # link.sh — connect agent-knowledge to Claude Code and other agents
 # Usage: ./link.sh [--unlink]
+#
+# Deploys: skills/* -> ~/.claude/skills/, agents/* -> ~/.claude/agents/, and
+# merges the infostyle-critic Stop hook into ~/.claude/settings.json (idempotent,
+# preserves all existing keys). One command => skill + agent + hook everywhere.
 
 set -e
 
@@ -12,6 +16,23 @@ LINK_AGENTS="$HOME/.claude/agents"
 TARGET_SKILLS="$REPO_DIR/skills"
 TARGET_AGENTS="$REPO_DIR/agents"
 TARGET_STANDARDS="$REPO_DIR/standards"
+GATE="$REPO_DIR/hooks/infostyle_critic_gate.py"
+HOOK_INSTALLER="$REPO_DIR/scripts/install_global_hook.py"
+# Command the harness will run at Stop. python3 (PATH) keeps it portable across machines.
+GATE_CMD="python3 \"$GATE\""
+
+# install/remove the global Stop hook (merge into ~/.claude/settings.json)
+sync_hook() {
+  if [ ! -f "$GATE" ] || [ ! -f "$HOOK_INSTALLER" ]; then
+    echo "  (gate or installer missing — hook sync skipped)"
+    return 0
+  fi
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "  WARN: python3 not on PATH — Stop hook not synced (skill+agent still linked)."
+    return 0
+  fi
+  python3 "$HOOK_INSTALLER" "$GATE_CMD" "$@"
+}
 
 unlink_all() {
   echo "Removing symlinks..."
@@ -35,6 +56,8 @@ unlink_all() {
       fi
     done
   fi
+  # Remove the global Stop hook
+  sync_hook --remove
   echo "Done."
 }
 
@@ -100,6 +123,9 @@ link_all() {
     done
   fi
 
+  # Merge the infostyle-critic Stop hook into ~/.claude/settings.json (global)
+  sync_hook
+
   # Link standards as a whole directory
   link_standards="$LINKS_CLAUDE/standards"
   if [ -L "$link_standards" ]; then
@@ -108,10 +134,10 @@ link_all() {
   ln -s "$TARGET_STANDARDS" "$link_standards"
   echo "  linked: standards/"
 
-  # Copy AGENTS.md to project roots if requested
   echo ""
-  echo "Done. Skills linked to ~/.claude/skills/"
-  echo "       Agents linked to ~/.claude/agents/"
+  echo "Done. Skills -> ~/.claude/skills/"
+  echo "       Agents -> ~/.claude/agents/"
+  echo "       Stop hook -> ~/.claude/settings.json"
   echo "To connect a specific project, add to its .gitignore:"
   echo "  .claude/skills"
   echo "  .claude/agents"

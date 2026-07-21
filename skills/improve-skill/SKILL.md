@@ -34,14 +34,14 @@ Flags can be combined: `/improve-skill --all --regen --dry-run`
 
 ## Architecture
 
-This skill is self-contained orchestration. Python handles deterministic evaluation;
-this SKILL.md handles all reasoning.
+This skill is **orchestration + LLM work**. Deterministic state and logic live in tested Python; this SKILL.md drives the phase flow and does the LLM steps (Agent dispatch for skill execution, rule generation, audit). **The model never holds loop state in its head** — it threads a `LoopState` JSON object through `improve_runner.py` CLI calls.
 
 | Component | Location | Role |
 |-----------|----------|------|
 | Eval generation | `lib/eval_generator.py` | Hybrid heuristic + LLM seam → evals.json |
 | Assertion scoring | `lib/assertion_runner.py` | Deterministic: text + evals → pass/fail JSON |
-| Improvement loop | This SKILL.md | Diagnosis, rule generation, file targeting, git |
+| **Loop state + logic** | `lib/improve_runner.py` | **Deterministic**: aggregate / pick-target / resolve-file / parse-rule / inject / decide / stop / update-state / parse-audit / recovery (CLI: stdin JSON → stdout JSON). State left the LLM's head on purpose. |
+| Orchestration + LLM | This SKILL.md | Phase flow, Agent dispatch (skill exec, rule-gen, audit), git commit/revert |
 
 The lib/ path is relative to this skill's directory:
 ```
@@ -67,9 +67,33 @@ python3 <skill_dir>/lib/eval_generator.py <target_skill_dir>
 
 ```bash
 python3 <skill_dir>/lib/assertion_runner.py --evals <evals.json> --output <output.txt>
-# → prints {"total": N, "passed": [...], "failed": [...]} to stdout
-# → exit code: 0 = all pass, 1 = any fail
+# → prints {"total": N, "passed": [{"id":..,"description":..}], "failed": [{"id":..,...}]} to stdout
+# → exit code: 0 = all pass, 1 = any fail (capture stdout regardless — failures are expected mid-loop)
 ```
+
+### improve_runner.py (deterministic state + logic)
+
+Every deterministic step is ONE CLI call: stdin = one JSON object, stdout = one JSON object. `<THIS_DIR>` = this skill's directory.
+
+```bash
+echo "$JSON" | python3 <THIS_DIR>/lib/improve_runner.py <command> [--skill-dir PATH]
+```
+
+| Command | stdin → stdout |
+|---|---|
+| `aggregate` | `{"per_output":[<assertion_runner outputs>]}` → `{"total","passed","failed","per_assertion"}` |
+| `pick-target` | `{"agg":<AggScore>}` → `{"id":"aXX"}` or `{"target":null}` |
+| `resolve-file` | `{"assertion":{...}}` → `{"file":"SKILL.md"\|"references/..."}` |
+| `parse-rule` | `{"text":"<LLM resp>"}` → `{"analysis","rule","section","position"}` or `{"result":null}` |
+| `inject` | `{"content","plan","block"?}` → `{"content":"<new file>"}` |
+| `decide` | `{"new":N,"prev":N}` → `{"action":"keep"\|"revert"}` (tie → revert) |
+| `stop` | `{"new":N,"total":N,"plateau":N,"iteration":N}` → `{"stop","reason","iteration"}` |
+| `update-state` | `{"state":<LoopState>,"action","delta":int}` → new `LoopState` |
+| `parse-audit` | `{"text":"<audit resp>"}` → `{"quality_score","dimensions","recurring_problems"}` |
+| `problems-to-assertions` | `{"problems":[...]}` → `{"result":[<proposed>]}` |
+| `recovery` | `--skill-dir PATH` → `{"iteration","last_assertion_id","last_action"}` |
+
+`LoopState` = `{iteration, prev_score, plateau_count, agent_calls, llm_calls, test_inputs_evaluated, baseline_scores}`. Malformed stdin / unknown command → `{"error":..}` + non-zero exit.
 
 ## Safety Constraints
 
@@ -84,22 +108,16 @@ These rules are ABSOLUTE. Violating them breaks the improvement loop's trustwort
 
 ## Crash Recovery
 
-Recovery is git-based — there are no checkpoint files. On restart:
+Recovery is git-based — no checkpoint files. On restart:
 
-1. Read the last 10 git commits on the current branch:
+1. Parse the git log for prior improve-skill commits (deterministic — via CLI):
    ```bash
-   cd <SKILL_DIR>
-   git log --oneline -10
+   python3 <THIS_DIR>/lib/improve_runner.py recovery --skill-dir <SKILL_DIR>
+   #   → {"iteration":N, "last_assertion_id":"aXX"|null, "last_action":"keep"|"revert"|"unknown"}
    ```
-2. Identify what was already attempted from commit messages (they contain assertion IDs and scores).
-3. Re-score the current state to get a fresh baseline:
-   - Run the target skill on all test inputs via Agent
-   - Score each output with assertion_runner.py
-   - This produces the current `PREV_SCORE`
-4. Continue the improvement loop from where it left off:
-   - If the last commit improved a score, start from the next failing assertion
-   - If the last change was reverted (no commit), re-diagnose the same assertion
-   - Set `ITERATION` to the number of improve-skill commits found + 1
+2. Re-score the current state for a fresh baseline (Agent run on all test inputs → `assertion_runner.py` → `aggregate` CLI) → current `prev_score`.
+3. Seed `STATE` from recovery (`iteration` from the CLI; resume from `last_assertion_id` / next failing assertion).
+4. Continue the loop from where it left off.
 
 No checkpoint files — recovery is git-based.
 
@@ -279,10 +297,14 @@ The runner prints JSON: `{"total": N, "passed": [...], "failed": [...]}`.
 
 #### 2c. Aggregate scores
 
-Combine results across all test inputs:
-- Count total assertions (from evals.json)
-- Count how many pass across ALL outputs (an assertion passes if it passes on ALL outputs)
-- List which assertions fail on at least one output
+Collect each assertion_runner stdout JSON (one per test input) and aggregate — an assertion passes IFF it passes on ALL outputs (set intersection):
+
+```bash
+echo "{\"per_output\":[$R1,$R2,...]}" | python3 <THIS_DIR>/lib/improve_runner.py aggregate
+# → {"total":N, "passed":["a01",...], "failed":["a03",...], "per_assertion":{<id>:[true,false,...]}}
+```
+
+`$R1,$R2,...` = the per-input assertion_runner stdout JSON objects. Store the result as `AGG`; `BASELINE_SCORE = len(AGG["passed"])`.
 
 Print:
 ```
@@ -310,13 +332,15 @@ PHASE 3: IMPROVEMENT LOOP (max 10 iterations)
 ══════════════════════════════════════════════
 ```
 
-Track these state variables across iterations:
-- `ITERATION`: starts at 1, increments each loop
-- `PREV_SCORE`: the passing count from the previous iteration (baseline score for iteration 1)
-- `PLATEAU_COUNT`: consecutive iterations with no improvement, starts at 0
-- `AGENT_CALLS`: cumulative Agent tool invocations
-- `LLM_CALLS`: cumulative LLM diagnosis/rule-generation calls
-- `TEST_INPUTS_EVALUATED`: cumulative test inputs evaluated across all iterations
+Carry loop state as a single `LoopState` JSON object and thread it through every iteration. **Update it ONLY via the `update-state` CLI** — never mutate fields by hand. That is the bug class this port fixes (the model used to forget to reset `PLATEAU_COUNT` or increment counters). Initialize after baseline:
+
+```
+STATE = {"iteration":1, "prev_score":<baseline_passed>, "plateau_count":0,
+         "agent_calls":0, "llm_calls":0, "test_inputs_evaluated":0,
+         "baseline_scores":{<id>:<bool>}}
+```
+
+Field meanings: `iteration` (loop count), `prev_score` (passing count last iteration), `plateau_count` (consecutive non-improving iterations), `agent_calls`/`llm_calls`/`test_inputs_evaluated` (cumulative cost counters), `baseline_scores` (assertion_id → pass/fail at baseline).
 
 #### 3a. DIAGNOSE
 
@@ -326,14 +350,14 @@ Print:
 Step 3a: DIAGNOSE
 ```
 
-**Identify first failing assertion:**
-From the aggregated score, pick the first failing assertion (lowest `id` sort).
-
-**Resolve target file:**
-1. Check the assertion's `source_file` field in evals.json
-2. If `source_file` is a specific file (e.g., `"references/templates.md"`): use it as target
-3. If `source_file` is `"SKILL.md"` or unclear: use SKILL.md as target
-4. If `source_file` is missing: use SKILL.md as target (last resort)
+**Identify first failing assertion + resolve target file** (both deterministic — via CLI):
+```bash
+echo "{\"agg\":<AGG>}" | python3 <THIS_DIR>/lib/improve_runner.py pick-target
+#   → {"id":"aXX"}  or  {"target":null}
+echo "{\"assertion\":<ASSERTION>}" | python3 <THIS_DIR>/lib/improve_runner.py resolve-file
+#   → {"file":"SKILL.md" | "references/..."}
+```
+`pick-target` returns the first failing assertion (lowest id). Enrich it with the full record (source_file, description, type) from `evals.json` by id, then `resolve-file` applies the `source_file → SKILL.md` fallback cascade.
 
 Print:
 ```
@@ -390,7 +414,12 @@ POSITION: <after "## Some Heading" or before "## Another Heading" or "end of sec
 
 Increment `LLM_CALLS`.
 
-Parse the Agent's response to extract: `RULE`, `SECTION`, `POSITION`.
+Parse the Agent's response (deterministic — via CLI; returns `{"result":null}` on malformed input instead of raising):
+```bash
+echo "{\"text\":<RESPONSE>}" | python3 <THIS_DIR>/lib/improve_runner.py parse-rule
+#   → {"analysis":..,"rule":..,"section":..,"position":..}  or  {"result":null}
+```
+If `null`: re-prompt the Agent for the exact format. Otherwise store as `PLAN`.
 
 Print:
 ```
@@ -415,26 +444,23 @@ Step 3c: INJECT
 ```
 Skip to Step 3d.
 
-**Otherwise:** Use the Edit tool to inject the rule into the target file at the specified position.
+**Otherwise:** Compute the new file content via the `inject` CLI (placement logic — after/before/end-of-section, including frontmatter and code-fence edge cases — lives in the function, not your head), then make ONE Edit.
 
-The rule must be wrapped in marker comments for traceability:
+1. Read the target file content.
+2. Build the marker-wrapped block for traceability:
+   ```
+   <!-- improve-skill: iteration <N>, assertion a<XX> -->
+   - <RULE text>
+   <!-- /improve-skill -->
+   ```
+3. Inject (stdin: `content` = current file, `plan` = `PLAN`, `block` = the marker block above; `block` defaults to `- {rule}` if omitted):
+   ```bash
+   echo "{\"content\":<FILE_CONTENT>,\"plan\":<PLAN>,\"block\":<BLOCK>}" | python3 <THIS_DIR>/lib/improve_runner.py inject
+   #   → {"content":"<full new file with the block placed per SECTION/POSITION>"}
+   ```
+4. Use the Edit tool ONCE to replace the target file's content with the returned `content`.
 
-```
-<!-- improve-skill: iteration <N>, assertion a<XX> -->
-- <RULE text>
-<!-- /improve-skill -->
-```
-
-**Placement logic:**
-- Read the target file
-- Find the section specified by `SECTION`
-- Apply the `POSITION`:
-  - If "after X": insert after the line containing X
-  - If "before X": insert before the line containing X
-  - If "end of section X": insert after the last content line in that section (before the next heading or end of file)
-- If the section doesn't exist, append to the end of the file before the last heading
-
-**IMPORTANT:** Only use Edit tool. Only modify the single target file. This must be an atomic change.
+**IMPORTANT:** One Edit, single target file, atomic change.
 
 Print:
 ```
@@ -480,35 +506,31 @@ Step 3e: DECIDE
 ```
 Skip to Step 3f.
 
-**Otherwise:**
+**Otherwise:** Let the CLI decide (tie → revert), then act on the verdict. Counters update ONLY via `update-state` — never by hand.
 
-**If score improved** (NEW_SCORE > PREV_SCORE):
 ```bash
-cd <SKILL_DIR>
-git add <target_file>
-git commit -m "improve(<skill-name>): <RULE text truncated to 60 chars> (score <PREV_SCORE>→<NEW_SCORE>)"
+echo "{\"new\":<NEW_SCORE>,\"prev\":<STATE.prev_score>}" | python3 <THIS_DIR>/lib/improve_runner.py decide
+#   → {"action":"keep"}  or  {"action":"revert"}
 ```
-Update `PREV_SCORE = NEW_SCORE`.
-Reset `PLATEAU_COUNT = 0`.
+
+**If `keep`:**
+```bash
+cd <SKILL_DIR> && git add <target_file> && git commit -m "improve(<skill-name>): <RULE truncated to 60 chars> (score <prev>→<new>)"
+```
+**If `revert`:**
+```bash
+cd <SKILL_DIR> && git checkout -- <target_file>
+```
+
+Then update `STATE` (handles `prev_score`, `plateau_count` reset/increment, cost counters — all in one call):
+```bash
+echo "{\"state\":<STATE>,\"action\":<ACTION>,\"delta\":<DELTA>}" | python3 <THIS_DIR>/lib/improve_runner.py update-state
+#   → new LoopState; store back as STATE.  (delta = NEW_SCORE - prev_score, an int)
+```
 
 Print:
 ```
-Action:     KEEP — score improved
-Commit:     improve(<skill-name>): <truncated rule>
-```
-
-**If score same or lower** (NEW_SCORE <= PREV_SCORE):
-```bash
-cd <SKILL_DIR>
-git checkout -- <target_file>
-```
-Keep `PREV_SCORE` unchanged.
-Increment `PLATEAU_COUNT += 1`.
-
-Print:
-```
-Action:     REVERT — score did not improve
-Reverted:   <target_file>
+Action:     <KEEP — score improved | REVERT — score did not improve>
 ```
 
 #### 3f. STOP CHECK
@@ -518,12 +540,12 @@ Print:
 Step 3f: STOP CHECK
 ```
 
-Check stopping conditions in order:
-1. **All pass**: `NEW_SCORE == TOTAL` → stop (success)
-2. **Plateau**: `PLATEAU_COUNT >= 3` → stop (no progress for 3 iterations)
-3. **Cap**: `ITERATION >= 10` → stop (hard cap)
+```bash
+echo "{\"new\":$NEW_SCORE,\"total\":$TOTAL,\"plateau\":$STATE[\"plateau_count\"],\"iteration\":$STATE[\"iteration\"]}" | python3 <THIS_DIR>/lib/improve_runner.py stop
+# → {"stop":bool, "reason":""|"ALL_PASS"|"PLATEAU"|"CAP", "iteration":N}
+```
 
-If none apply: increment `ITERATION += 1` and go back to **Step 3a**.
+If `stop` is false: increment `STATE["iteration"]` and go back to **Step 3a**.
 
 Print:
 ```
@@ -633,41 +655,27 @@ Audit:      completed (score: <QUALITY_SCORE>)
 
 #### 4b. Process findings
 
-Parse the Agent's response to extract:
-- Overall quality score
-- Per-dimension scores and issues
-- Recurring problems list
-
-Store these as `AUDIT_FINDINGS` for use in Phase 5.
+Parse the Agent's response (deterministic — via CLI; empty findings on malformed input):
+```bash
+echo "{\"text\":<AUDIT_RESPONSE>}" | python3 <THIS_DIR>/lib/improve_runner.py parse-audit
+#   → {"quality_score":"A".."F", "dimensions":{<name>:{"score","issues","suggestions"}}, "recurring_problems":[...]}
+```
+Store as `AUDIT_FINDINGS` for Phase 5.
 
 #### 4c. Generate proposed assertions
 
-For each recurring problem identified in the audit, convert it to a proposed assertion.
-
-A proposed assertion has the same structure as a regular assertion but is stored
-in a separate `proposed_assertions` array in evals.json — NOT in the `assertions`
-array. This ensures assertion_runner.py (which only reads `assertions`) will NOT
-score them.
-
-Format each proposed assertion:
-```
-{
-  "id": "p<NN>",
-  "description": "<description of what to check>",
-  "source_rule": "<the recurring problem description from audit>",
-  "type": "<contains|not_contains|regex|not_regex>",
-  "check": "<pattern if regex/not_regex>",
-  "value": "<value if contains/not_contains>",
-  "source_file": "SKILL.md",
-  "generator": "audit",
-  "status": "proposed"
-}
+Convert each recurring problem to a proposed assertion via CLI (deterministic heuristic: picks `contains`/`not_contains` type + key phrase; a human curates before promoting):
+```bash
+echo "{\"problems\":<AUDIT_FINDINGS.recurring_problems>}" | python3 <THIS_DIR>/lib/improve_runner.py problems-to-assertions
+#   → {"result":[ {"id":"p01","description":..,"type":"contains"|"not_contains",...}, ... ]}
 ```
 
-Write the proposed assertions to evals.json by:
-1. Reading the current evals.json
-2. Adding a top-level `proposed_assertions` array (create if missing, append if exists)
-3. Writing the updated evals.json back
+Proposed assertions live in a separate top-level `proposed_assertions` array in evals.json — NOT in `assertions` (so `assertion_runner.py`, which reads only `assertions`, will NOT score them). Format per item:
+```
+{"id":"p<NN>","description":..,"source_rule":..,"type":"contains"|"not_contains"|"regex"|"not_regex","check":..,"value":..,"source_file":"SKILL.md","generator":"audit","status":"proposed"}
+```
+
+Write them back: read evals.json, set/append the `proposed_assertions` array, write evals.json.
 
 Print:
 ```
@@ -802,9 +810,9 @@ No proposed assertions from audit.
 
 ## Cost Tracking
 
-After each iteration in Phase 3, display cumulative cost metrics:
+After each iteration in Phase 3, display cumulative cost metrics. These counters live in `STATE` (`agent_calls` / `llm_calls` / `test_inputs_evaluated`) and are maintained by `update-state`; all Phase 3f / Phase 5 displays read from `STATE`:
 ```
-[COST] Iteration <N>: <AGENT_CALLS> agent calls, <LLM_CALLS> LLM calls, <TEST_INPUTS_EVALUATED> test inputs evaluated (cumulative)
+[COST] Iteration <STATE.iteration>: <STATE.agent_calls> agent calls, <STATE.llm_calls> LLM calls, <STATE.test_inputs_evaluated> test inputs evaluated (cumulative)
 ```
 
 ---

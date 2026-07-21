@@ -6,8 +6,8 @@
 
 Навыки разбиты по трекам — как в `AGENTS.md` и `skills/_INDEX.md`:
 
-- **Discovery** (что строить — research/оценка/спеки): `am-research`, `am-research-index`, `am-grill-feature`, `am-grill-docs`, `am-pain-mining`, `am-write-specs`, `spec-writing`, `competitive-analysis`, `jtbd`, `grill-plan`, `book/video-knowledge-extraction`.
-- **Delivery** (как строить — код): `tdd`, `debugging`, `code-review`, `deploy-checklist`, `incident-response`.
+- **Discovery** (что строить — research/оценка/спеки): `am-research`, `am-research-index`, `am-grill-feature`, `am-grill-docs`, `am-pain-mining`, `am-write-specs`, `jtbd`, `grill-plan`, `book/video-knowledge-extraction`.
+- **Delivery** (как строить — код): `tdd`, `debugging`, `code-review`.
 - **Knowledge-Meta** (слой знаний харнесса): `improve-skill`, `decisions`, `prune`.
 
 Репо устроено так: `skills/` (навыки), `standards/` (конвенции по языкам), `learnings/` + `decisions/` + `state/` (сторы знаний), `scripts/` (инструменты харнесса), `docs/` (спеки/планы). Полная карта структуры — в `README.md`.
@@ -88,7 +88,7 @@ OIAE: Observe → Inspect → Amend → Evaluate → rollback   [авто вну
 
 Коротко: **захват, хранение и саму петлю харнесс делает сам. Человек решает, что улучшать, задаёт критерии и разбирает результат.**
 
-Футер стоит на **14 операционных навыках** (все am-*, deploy-checklist, debugging, incident-response, book/video-knowledge-extraction, spec-writing). Без футера: code-review, competitive-analysis, tdd, jtbd, improve-skill — нет рекуррентных операционных фактов.
+Футер стоит на **11 операционных навыках** (все am-*, debugging, book/video-knowledge-extraction). Без футера: code-review, tdd, jtbd, improve-skill — нет рекуррентных операционных фактов. (Удалены как generic-оверхед 2026-07-21: competitive-analysis, spec-writing, deploy-checklist, incident-response.)
 
 ## Улучшить навык (improve-skill)
 
@@ -179,4 +179,4 @@ python3 scripts/lint-portability.py skills
 
 ## Развитие
 
-Харнесс развивается фазами. Сделано: **P0** (захват, телеметрия, футер, tool-registry, линтер) → **P1** (стор решений `decisions`, OIAE-маппинг `improve-skill`) → **P2** (governance: `prune`, выборочный `auto-retrieve`, ротация) → **роллаут** футера на 14 операционных навыков. Спецификация и планы — в `docs/superpowers/specs/`, `docs/superpowers/plans/`. Возможное дальше: decay для preferences, авто-подгрузка решений по теме, CI-хук на линтер.
+Харнесс развивается фазами. Сделано: **P0** (захват, телеметрия, футер, tool-registry, линтер) → **P1** (стор решений `decisions`, OIAE-маппинг `improve-skill`) → **P2** (governance: `prune`, выборочный `auto-retrieve`, ротация) → **роллаут** футера на 11 операционных навыков. Спецификация и планы — в `docs/superpowers/specs/`, `docs/superpowers/plans/`. Возможное дальше: decay для preferences, авто-подгрузка решений по теме, CI-хук на линтер.

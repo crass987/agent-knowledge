@@ -16,7 +16,7 @@ This is **NOT** a feature go/no-go evaluation (that's `am-grill-feature`). This 
 - **One question at a time.** Wait for an answer before the next. Don't batch.
 - **Propose a recommended answer** for each question — don't ask open-ended without a steer.
 - **Explore, don't ask, when the answer is in the repo.** If a question can be answered by reading code/docs/decisions — read it instead of asking the user.
-- **Drive toward a PRD.** The endpoint is shared understanding crystallized into docs, ready to hand off to `am-write-specs` / `spec-writing`.
+- **Drive toward a PRD.** The endpoint is shared understanding crystallized into docs, ready to hand off to `am-write-specs`.
 
 ## Challenge against the existing model
 
@@ -44,14 +44,14 @@ brainstorming / am-grill-feature  →  grill-plan  →  spec/PRD  →  writing-p
 
 - **Before (entry):** `brainstorming` (explore intent) or `am-grill-feature` (go/no-go on the idea). Don't grill-plan something you haven't decided to pursue.
 - **This skill:** interview → shared understanding.
-- **After (handoff):** write the spec as a **file** via `am-write-specs` (Astra product) or `spec-writing` (general). Then `writing-plans` → `executing-plans`.
+- **After (handoff):** write the spec as a **file** via `am-write-specs` (Astra product); for non-Astra projects, write it directly. Then `writing-plans` → `executing-plans`.
 - **`to-prd` is NOT this skill's handoff.** It publishes a *finished* PRD to the issue tracker (Jira). It sits further down — after the spec exists — and only if you want to track it in Jira.
 
-Net: `grill-plan → am-write-specs / spec-writing → (optionally to-prd to publish)`.
+Net: `grill-plan → am-write-specs → (optionally to-prd to publish)`.
 
 ## Endpoint
 
-When the decision tree is resolved: summarize the **shared understanding** (decisions made, terms sharpened, open questions remaining) and hand off to **write the spec** — `am-write-specs` (Astra) or `spec-writing` (general). Do **not** jump to `to-prd` (it publishes to Jira — a separate, later step).
+When the decision tree is resolved: summarize the **shared understanding** (decisions made, terms sharpened, open questions remaining) and hand off to **write the spec** — `am-write-specs` (Astra); for non-Astra projects, write it directly. Do **not** jump to `to-prd` (it publishes to Jira — a separate, later step).
 
 ## Operational learning (run before finishing)
 

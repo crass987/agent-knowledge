@@ -667,8 +667,8 @@ class TestCleanV2Structure:
     """Validate that v1 artifacts have been cleaned up and only v2 remains."""
 
     def test_lib_has_only_v2_modules(self):
-        """lib/ contains only __init__.py, assertion_runner.py, eval_generator.py."""
-        allowed = {"__init__.py", "assertion_runner.py", "eval_generator.py"}
+        """lib/ contains only __init__.py, assertion_runner.py, eval_generator.py, improve_runner.py."""
+        allowed = {"__init__.py", "assertion_runner.py", "eval_generator.py", "improve_runner.py"}
         actual = {f for f in os.listdir(LIB_DIR) if not f.startswith(".") and f != "__pycache__"}
         assert actual == allowed, f"lib/ has unexpected files: {actual - allowed}"
 
@@ -705,6 +705,8 @@ class TestCleanV2Structure:
             "test_eval_generator.py",
             "test_skill_md_v2.py",
             "test_battle.py",
+            "test_improve_runner.py",
+            "test_improve_runner_cli.py",
             "fixture-evals.json",
             "fixture-output.txt",
         }

@@ -25,7 +25,34 @@ from eval_generator import (
 # ── Paths to real skills ──────────────────────────────────────────────
 
 SKILLS_DIR = "/Users/CraSS/Documents/Code_projects/agent-knowledge/skills"
-TDD_SKILL = os.path.join(SKILLS_DIR, "tdd")
+def _make_synthetic_tdd_fixture() -> str:
+    """Self-contained synthetic 'tdd' skill for generator tests.
+
+    `tdd` is a third-party (Matt Pocock) skill that lives in ~/.claude/skills,
+    not in this repo. The generator tests need a skill with extractable rules,
+    so we own a minimal one instead of pointing at a path that doesn't exist
+    here (env-coupling anti-pattern). See capability-audit fleet-audit.md.
+    """
+    d = tempfile.mkdtemp(prefix="evalgen-tdd-fixture-")
+    with open(os.path.join(d, "SKILL.md"), "w") as f:
+        f.write(
+            "---\n"
+            "name: tdd\n"
+            "description: Test-driven development. Write the test first.\n"
+            "---\n"
+            "# tdd — test-driven development\n\n"
+            "## Rules\n\n"
+            "1. Write a failing test before any implementation.\n"
+            "2. Run the tests; the new test must fail for the right reason.\n"
+            "3. Write the minimum code that makes the test pass.\n"
+            "4. Refactor only while all tests are green.\n\n"
+            "## Workflow\n\n"
+            "Red, then Green, then Refactor. Never commit a red test.\n"
+        )
+    return d
+
+
+TDD_SKILL = _make_synthetic_tdd_fixture()
 VKE_SKILL = os.path.join(SKILLS_DIR, "video-knowledge-extraction")
 CLAUDE_SKILLS_DIR = "/Users/CraSS/.claude/skills"
 

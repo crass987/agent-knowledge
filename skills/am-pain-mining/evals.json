@@ -1,172 +1,174 @@
 {
   "version": 2,
   "skill": "am-pain-mining",
-  "generated_at": "2026-05-31T17:00:00Z",
+  "generated_at": "2026-07-21T00:00:00Z",
   "test_inputs": [
     {
       "type": "file",
       "path": "/tmp/am-pain-test-input-tsrt.txt",
-      "label": "ЦРЦТ demo meeting transcript (51 min, Russian)"
+      "label": "ЦРЦТ demo meeting transcript (Russian) — regenerate if missing"
     }
   ],
   "assertions": [
     {
       "id": "a01",
       "description": "Report is written in Russian (matches transcript language)",
-      "source_rule": "Write in the language of the transcript — Russian transcript = Russian report, English = English",
+      "source_rule": "Write in the language of the transcript — Russian transcript = Russian report",
       "type": "regex",
-      "check": "(?:Профиль|Боли|Возражения|Следующие|Клиент|Карта|Триггер|Конкурент|Эмоциональн|Цитат|Шаг|Рекомендаци)",
+      "check": "(?:Профиль|Боли|Возражения|Карта|Core Jobs|Триггер|Конкурент|Эмоциональн|Цитат|разрыв|Gap|цепочк)",
       "flags": "i",
       "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "generator": "manual"
     },
     {
       "id": "a02",
-      "description": "JTBD section uses the required format: 'Когда... я хочу... чтобы...'",
-      "source_rule": "Convert → JTBD: 'Когда [ситуация], я хочу [мотивация], чтобы [результат]' — Functional / Emotional / Social",
+      "description": "Core Jobs include success criteria (not a criteria-less job-story)",
+      "source_rule": "A Job is 'I want to {outcome} with {success criteria}'. Criteria are mandatory — without them the Job can't be coverage-judged or designed against.",
       "type": "regex",
-      "check": "Когда.{5,200}я хочу.{5,200}чтобы",
-      "flags": "is",
+      "check": "критер|с\\s+(?:какими|уровнем|порог|условием)|criteria",
+      "flags": "i",
       "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "generator": "manual"
     },
     {
       "id": "a03",
-      "description": "Pains are categorized as явная or вероятная (explicit vs probable)",
-      "source_rule": "Extract raw signals: Pains (явная/вероятная), feature requests, objections, buying triggers...",
+      "description": "Each Job ladders to a Big Job (motivational parent), not a flat feature-level verb",
+      "source_rule": "Ladder to the Big Job — the motivational level above the Core Job. Orphan pain → raise the Job.",
       "type": "regex",
-      "check": "явная|вероятная",
+      "check": "Big Job|родитель|вышестоящ|мотивац|in order to|чтобы\\s+(?:держать|обеспечить|гарантировать|получить)",
       "flags": "i",
       "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "generator": "manual"
     },
     {
       "id": "a04",
-      "description": "Contains verbatim customer quotes with speaker attribution",
-      "source_rule": "Quote verbatim — use exact customer words, with speaker and timestamp",
+      "description": "Every pain is classified into a canon type (Problem / Barrier / Tax Job / emotion / fear)",
+      "source_rule": "Classify every pain — the fix depends on the class (Problem→value/chain; Barrier→reality; Tax Job→kill; emotion→remove; fear→verify).",
       "type": "regex",
-      "check": "(?:\"[^\"]{10,}\"|«[^»]{10,}»).{0,30}(?:—|–|\\bсказал|\\bПавел|\\bПолин|\\bИль[яю]|\\bЭмиль|\\bАнтон|\\bДмитри|\\bАнн|\\bМатузов|\\b\\d{2}:\\d{2})",
+      "check": "Problem|Barrier|Tax Job|State-A|эмоц|fear|Проблема|Барьер|налог|страх",
       "flags": "i",
       "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "generator": "manual"
     },
     {
       "id": "a05",
+      "description": "Contains verbatim customer quotes with speaker/timestamp attribution",
+      "source_rule": "Quote verbatim — exact customer words, with speaker and timestamp",
+      "type": "regex",
+      "check": "(?:\"[^\"]{10,}\"|«[^»]{10,}»).{0,40}(?:—|–|\\bсказал|\\b\\d{1,2}:\\d{2})",
+      "flags": "i",
+      "source_file": "SKILL.md",
+      "generator": "manual"
+    },
+    {
+      "id": "a06",
       "description": "Decision map includes role types (Champion/Blocker/ЛПР/Пользователь)",
       "source_rule": "Map decision dynamics: Champion / Blocker / Neutral / User for each participant",
       "type": "regex",
       "check": "Champion|Blocker|ЛПР|Пользовател|Neutral|нейтрал|сторонник|противник",
       "flags": "i",
-      "source_file": "SKILL.md",
-      "generator": "heuristic"
-    },
-    {
-      "id": "a06",
-      "description": "Opportunity scoring present with /12 total",
-      "source_rule": "Score opportunity: X/12 viability (see report-template.md §10 for criteria)",
-      "type": "regex",
-      "check": "/12|из 12|12 баллов|итого.*\\d+/12",
-      "flags": "i",
       "source_file": "report-template.md",
-      "generator": "heuristic"
+      "generator": "manual"
     },
     {
       "id": "a07",
-      "description": "Competitive context mentions at least one competitor from the transcript",
-      "source_rule": "Map competitive context: For each competitor: why mentioned, strengths, gaps, who brought it up",
+      "description": "Current Chain section present (how the customer walks the Big Job today, Tax Jobs marked)",
+      "source_rule": "Reconstruct the Current Chain; mark Tax Jobs. Mark [INSUFFICIENT DATA] if a demo doesn't supply it — don't skip silently.",
       "type": "regex",
-      "check": "Zabbix|Grafana|Метрик|Яндекс|DataLens|Prometheus",
+      "check": "Current Chain|Текущая цеп|цепочк.{0,30}(работ|шаг)|Tax Job",
       "flags": "i",
       "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "generator": "manual"
     },
     {
       "id": "a08",
-      "description": "Next steps are specific (not generic) — have priority marker AND deadline/owner",
-      "source_rule": "Each must have: priority, action, effort estimate, owner, target date. No generic advice — specific to THIS customer",
+      "description": "Gap map present with typed gaps (Core-Job / Barrier / chain-break / value)",
+      "source_rule": "Type every gap — the class sets the fix and effort. Core-Job gap→build; Barrier→reality; chain-break→repair; value→raise to criteria.",
       "type": "regex",
-      "check": "(?:P0|P1|P2|приоритет|🔴|🟡|🟢).{0,200}(?:до|к|deadline|срок|дедлайн|к\\s+\\d|до\\s+\\d|недел|дней|месяц)",
-      "flags": "is",
-      "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "check": "Core-Job|chain-break|value gap|разрыв|Gap.{0,40}(?:тип|type)",
+      "flags": "i",
+      "source_file": "report-template.md",
+      "generator": "manual"
     },
     {
       "id": "a09",
-      "description": "Report contains the misalignment/разрывы section with actual misalignment entries",
-      "source_rule": "Often the most valuable finding. Common patterns: Customer uses a term → our team interprets differently → demo goes off-track",
+      "description": "Per-finding confidence tags present (observed / inferred / hypothesis)",
+      "source_rule": "Tag confidence on every Job/pain/gap — the downstream gap-analysis uses tags to decide what needs a depth-interview.",
       "type": "regex",
-      "check": "(?:Разрыв|misalign|понимани|неправильн|понял|интерпретир).{0,300}(?:последств|потеря|время|ушл|демо|показ)",
-      "flags": "is",
+      "check": "🟢|🟡|🔴|observed|inferred|hypothesis|гипотез",
+      "flags": "i",
       "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "generator": "manual"
     },
     {
       "id": "a10",
-      "description": "Emotional timeline/energy map references specific time sections",
-      "source_rule": "Build emotional timeline: Energy spikes (what sells) and drops (what blocks)",
+      "description": "Competitive context / Consideration Set captured (what the customer compares at choice)",
+      "source_rule": "Map competitive context = Consideration Set evidence: why mentioned, strengths, gaps, who brought it up.",
       "type": "regex",
-      "check": "энерги|интерес| spiked|рост|падени|🔥|😴|😊|😐|timeline|карт[аи].*эмоци|эмоциональн",
-      "flags": "is",
-      "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "check": "Zabbix|Grafana|Метрик|Яндекс|DataLens|Prometheus|Consideration|сравнива",
+      "flags": "i",
+      "source_file": "report-template.md",
+      "generator": "manual"
     },
     {
       "id": "a11",
-      "description": "Pain mentions are linked to JTBD jobs (not standalone)",
-      "source_rule": "JTBD is the PRIMARY section. Pains are secondary — short list, linked to jobs. Don't duplicate content across sections",
+      "description": "Pains are linked to Jobs by ID (not standalone)",
+      "source_rule": "Pains link to Jobs (J1, J2…); the two halves of the report share Job IDs — nothing is duplicated.",
       "type": "regex",
-      "check": "J\\d|Job\\s*\\d|J_\\d|связан.*Job|привязан.*Job|Job.*\\d",
+      "check": "J\\d|Job\\s*\\d|J_\\d|связан.*Job|привязан.*Job|→\\s*J\\d",
       "flags": "i",
       "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "generator": "manual"
     },
     {
       "id": "a12",
-      "description": "Output does NOT contain the phrase 'generic advice'",
-      "source_rule": "No generic advice — next steps must be specific to THIS customer",
-      "type": "not_contains",
-      "value": "generic advice",
-      "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "description": "Deal viability score present with /12 total (deal, not product)",
+      "source_rule": "Score deal viability X/12 (template §12) — a deal-opportunity score, explicitly NOT a product go/no-go.",
+      "type": "regex",
+      "check": "/12|из 12|итого.*\\d+/12|\\d+/12",
+      "flags": "i",
+      "source_file": "report-template.md",
+      "generator": "manual"
     },
     {
       "id": "a13",
-      "description": "Ambiguous claims are marked with [AMBIGUOUS] or [INFERRED] markers",
-      "source_rule": "Don't guess — mark ambiguity as [AMBIGUOUS] with your best interpretation. Distinguish observed vs. inferred",
+      "description": "Ambiguous / inferred claims marked explicitly",
+      "source_rule": "Don't guess — mark ambiguity as [AMBIGUOUS]; distinguish observed vs inferred.",
       "type": "regex",
-      "check": "\\[AMBIGUOUS\\]|\\[INFERRED\\]|\\[НЕОДНОЗНАЧНО\\]|\\[ПРЕДПОЛОЖЕНИЕ\\]|\\[ВЕРОЯТНО\\]",
+      "check": "\\[AMBIGUOUS\\]|\\[INFERRED\\]|\\[INSUFFICIENT DATA\\]|\\[НЕОДНОЗНАЧНО\\]|\\[ПРЕДПОЛОЖЕНИЕ\\]",
       "flags": "i",
       "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "generator": "manual"
     },
     {
       "id": "a14",
-      "description": "Customer profile section covers organization, stack, and environment",
-      "source_rule": "Report template §1: Профиль клиента — организация, отрасль, масштаб, текущий стек, среда",
+      "description": "Misalignment section present with concrete entries (where the team misread the customer)",
+      "source_rule": "Misalignment Detection — often the most valuable sales finding. Flag every instance with consequences.",
       "type": "regex",
-      "check": "(?:организация|отрасль|масштаб|стек|среда|К8s|Kubernetes|on-prem|контурн|продукт|сервис|кластер)",
-      "flags": "i",
+      "check": "(?:Разрыв|misalign|понимани|неправильн|понял|интерпретир).{0,300}(?:последств|потеря|время|ушл|демо|показ)",
+      "flags": "is",
       "source_file": "report-template.md",
-      "generator": "heuristic"
+      "generator": "manual"
     },
     {
       "id": "a15",
-      "description": "Interest triggers section references specific timestamps from the transcript",
-      "source_rule": "Quick Reference Step 6: Map interest triggers with timestamps, what was shown, reaction type",
+      "description": "Next steps are specific — priority marker AND owner/deadline",
+      "source_rule": "Each next step: priority, action, effort, owner, target date. No generic advice.",
       "type": "regex",
-      "check": "\\d{1,2}:\\d{2}",
+      "check": "(?:P0|P1|P2|🔴|🟡|🟢).{0,200}(?:до|к\\s+\\d|deadline|срок|дедлайн|недел|дней|месяц)",
+      "flags": "is",
       "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "generator": "manual"
     },
     {
       "id": "a16",
-      "description": "Report distinguishes observed facts from inferred conclusions",
-      "source_rule": "Distinguish observed vs. inferred — 'Client said X' vs. 'Client likely feels Y because...'",
+      "description": "Epistemic humility — report flags thin-data findings (hypothesis / needs depth-interview), does not assert as settled",
+      "source_rule": "A single demo is weak evidence; don't assert structural findings as settled. Flag what needs depth-interview (Т-плюс lesson).",
       "type": "regex",
-      "check": "вероятн|скорее всего|предположительн|likely|probably|inferred|observed|сказал.*но|высказал|упомянул|скорее",
+      "check": "гипотез|hypothesis|inferred|INSUFFICIENT|требует|depth-interview|depth interview|интервью|валидаци",
       "flags": "i",
       "source_file": "SKILL.md",
-      "generator": "heuristic"
+      "generator": "manual"
     }
   ]
 }

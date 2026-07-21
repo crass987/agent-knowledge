@@ -25,7 +25,7 @@ Extract structured customer intelligence from a single demo/meeting transcript. 
 
 - **Product go/no-go across deals** (coverage map, RICE ranking, «надо ли автоматизировать в принципе») → `am-gap-analysis`. This skill answers *pursue this deal?* and *what's the Job/pain structure here?* — not *should we invest in automating X?*
 - Feature research → `am-research`
-- Competitive analysis without customer data → `competitive-analysis`
+- Competitive analysis without customer data → `nmt-market-research` (AJTBD market/competitor research; or do it directly)
 
 ## Input Formats
 

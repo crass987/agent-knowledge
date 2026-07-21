@@ -1,0 +1,62 @@
+# probe-template.yaml — schema for a capability-audit probe suite
+#
+# One entry per probe. Mine these from REAL session failures, not synthetic
+# cases (Anthropic: "prioritise volume over quality", "mirror real-world task
+# distribution"). Split 75/25: 75% for alignment, 25% held-out — contamination
+# is measurable and strong (+25.8% GPT-4 overestimation, arXiv:2405.19740).
+#
+# For a component that exists to catch a SILENT error Y, the probe MUST contain
+# Y and its variants (adversarial augmentation).
+#
+# Required fields per probe: id, task, expected, oracle, oracle_strength,
+# severity, held_out. Optional: category, notes, model_behavior_hint.
+
+suite_version: 1
+component_under_audit: <skill-or-tool-name>      # human label
+contract: |                                        # what the component guarantees
+  <one sentence: the behaviour that, if absent, would cause an error>
+pinned_model_version: <exact model id, NOT an alias>   # aliases drift silently
+cost_of_failure_tier: silent-high                  # loud-low | loud-high | silent-low | silent-high
+last_audited: 2026-07-21
+
+probes:
+  - id: p001
+    task: |
+      <the exact request or input the agent must handle, verbatim from a real
+      session log if possible>
+    expected: |
+      <what a correct outcome looks like — the ground truth the oracle checks
+      against>
+    oracle: |
+      <how pass/fail is decided: exit code, test command, exact string, rubric
+      checklist, or verifier-model prompt>
+    oracle_strength: strong        # strong | weak | none
+    # strong  = exit-code / passing test / exact-match ground truth
+    # weak    = rubric, verifier-model judgement, human spot-check
+    # none    = no automatic check (the audit cannot verdict the silent
+    #           quadrant here — tag "judge-not-trusted" and escalate to human)
+    severity: critical             # critical | high | medium | low
+    # how bad the failure is if the component is absent. Critical/high on a
+    # silent failure => protected class: never retire by delta alone.
+    held_out: false                # true = part of the 25% held-out set
+    category: <cluster label>      # for clustered SE; group related probes
+    notes: <optional context — where the failure was first seen>
+
+  - id: p002
+    task: |
+      <next probe>
+    expected: |
+      <expected outcome>
+    oracle: |
+      <check>
+    oracle_strength: weak
+    severity: high
+    held_out: true                 # held-out: NEVER used to align the component
+    category: <cluster label>
+
+# ── guidance ────────────────────────────────────────────────────────────
+# Start at 20–50 probes (Tier 1). For a full audit (Tier 2) grow toward the
+# n ≈ 969/δ² target for the smallest delta you want to resolve (3pp → ~1000,
+# 5pp → ~350, 10pp → ~87). Keep the 75/25 split at every size.
+# Balance classes: include cases where the component should NOT fire, not only
+# where it should — one-sided evals create one-sided optimisation.

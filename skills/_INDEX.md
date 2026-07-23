@@ -26,6 +26,7 @@ Load the relevant SKILL.md when the task matches. Grouped by track: **Discovery*
 | debugging, investigating bugs, errors, stack trace | `debugging/SKILL.md` |
 | code review, PR review, pull request, feedback | `code-review/SKILL.md` |
 | update artifacts, refresh profiles, C2 audit/fix, sync repos and docs, обнови артефакты, am-update | `am-update/SKILL.md` |
+| вид работ, разметка тикетов, CAPEX OPEX, Tempo, специализированная разработка, mark work type, классификация задач по видам работ | `vid-rabot/SKILL.md` |
 
 ## Knowledge-Meta — the harness knowledge layer
 

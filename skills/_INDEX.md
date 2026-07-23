@@ -35,4 +35,5 @@ Load the relevant SKILL.md when the task matches. Grouped by track: **Discovery*
 | improve skill, skill quality, auto-improve skills, improve the X skill | `improve-skill/SKILL.md` |
 | decision, что решили, напиши решение, supersede решение, архитектурное решение | `decisions/SKILL.md` |
 | prune, чистка памяти, устаревшие записи, conflicting entries, почисти память | `prune/SKILL.md` |
+| почисти харнес, доки устарели, дубли в CLAUDE/AGENTS, stale docs, context hygiene, am-docs-audit | `am-docs-audit/SKILL.md` |
 | audit skill necessity, is X overhead, keep or retire skill, capability audit, прожарь скилл на необходимость | `capability-audit/SKILL.md` |

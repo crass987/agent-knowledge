@@ -82,3 +82,19 @@ finding is reported as `{file · signal · evidence · proposed action}`.
 8. **RELEVANCE** — is each root/meta doc still needed? Combine: reference-count (0 = dead-prior)
    + mtime (tiebreaker only) [mechanical]; redundancy with canonical + necessity of a distinct
    concern [judgment]. Propose one of: **KEEP / TRIM / MERGE-into-\<X\> / ARCHIVE / SPLIT**.
+
+## Output
+
+Each finding: `{file · signal · evidence · proposed action}`.
+- `check` → table to chat. Optionally also write `meta/reports/docs-audit-<date>.md`
+  (mirror of `refresh-agents` → `refresh-summary-…`).
+- `fix` → show a diff per finding, ask the user to choose, apply approved changes.
+
+Docs are **not** append-only (unlike the stores): edits are normal in-place changes, but
+**every** change goes through human approval. Do not delete or rewrite a published doc
+without an explicit yes on its diff.
+
+<!-- learning-footer: am-docs-audit is operational — capture a learning + log the run -->
+After the run: if a durable operational lesson emerged (saves 5+ min next time), append it
+to `agent-knowledge/learnings/` (format in `learnings/README.md`), and append one row to
+`agent-knowledge/state/skill-runs.md` (skill / mode / finding-count / outcome).

@@ -76,4 +76,4 @@ Apply the choices. For conflicts, removing the older entry is the usual resoluti
 
 ## Operational learning (run before finishing)
 
-If this run surfaced a durable operational lesson that would save 5+ minutes next time — append it to `agent-knowledge/learnings/`, format in `learnings/README.md`. Gate: don't log obvious or transient facts. Then append one row to `agent-knowledge/state/skill-runs.md`.
+If this run surfaced a durable operational lesson that would save 5+ minutes next time — append it to `~/Documents/Code_projects/agent-knowledge/learnings/`, format in `learnings/README.md`. Gate: don't log obvious or transient facts. Then append one row to `~/Documents/Code_projects/agent-knowledge/state/skill-runs.md`.

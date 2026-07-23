@@ -57,6 +57,6 @@ Read each prompt file at the point it is needed — do not read all upfront.
 
 ## Operational learning (run before finishing)
 
-If this run surfaced a durable operational lesson (a command quirk, a tool gotcha, a project-specific fact) that would save 5+ minutes next time — append it to the matching file in `agent-knowledge/learnings/` using the frontmatter format in `learnings/README.md`. Gate: do not log obvious/transient facts.
+If this run surfaced a durable operational lesson (a command quirk, a tool gotcha, a project-specific fact) that would save 5+ minutes next time — append it to the matching file in `~/Documents/Code_projects/agent-knowledge/learnings/` using the frontmatter format in `learnings/README.md`. Gate: do not log obvious/transient facts.
 
-Then append one row to `agent-knowledge/state/skill-runs.md`: skill name, ISO timestamp, duration (s), outcome (success/fail/abort), branch, note. Both stores are local-only.
+Then append one row to `~/Documents/Code_projects/agent-knowledge/state/skill-runs.md`: skill name, ISO timestamp, duration (s), outcome (success/fail/abort), branch, note. Both stores are local-only.

@@ -52,4 +52,4 @@ Compute the next `id` (max existing `D-NNNN` + 1). Append a frontmatter block to
 
 ## Operational learning (run before finishing)
 
-If this run surfaced a durable operational lesson that would save 5+ minutes next time — append it to the matching file in `agent-knowledge/learnings/`, using the frontmatter format in `learnings/README.md`. Gate: don't log obvious or transient facts. Then append one row to `agent-knowledge/state/skill-runs.md`.
+If this run surfaced a durable operational lesson that would save 5+ minutes next time — append it to the matching file in `~/Documents/Code_projects/agent-knowledge/learnings/`, using the frontmatter format in `learnings/README.md`. Gate: don't log obvious or transient facts. Then append one row to `~/Documents/Code_projects/agent-knowledge/state/skill-runs.md`.

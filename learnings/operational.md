@@ -81,3 +81,14 @@ files: [sync-repos.sh]
 ts: 2026-07-01
 scope: skill:am-update
 ---
+
+---
+type: operational
+key: c2-audit-go-lib-storage-indirection
+insight: C2-audit «who writes table X» даёт ложный negative, если grep'ать только сервис-репо: AM Go-сервисы персистят через общий go-lib/storage (PersistMonitor / CreateRule / upsertConfig), поэтому INSERT/UPDATE лежит в go-lib, не в сервисе. Решение: grep и сервис-репо, и go-lib/storage/ по имени таблицы и storage-методам, ИЛИ трассировать Storage/Repo-интерфейс сервиса до его реализации в go-lib. Применимо и к атрибуции db_reads/db_writes в профилях. Сэкономило ~10-15 мин maker/checker-переделок на каждом таком drift'е.
+confidence: 9
+source: observed
+files: []
+ts: 2026-07-21
+scope: skill:am-update
+---

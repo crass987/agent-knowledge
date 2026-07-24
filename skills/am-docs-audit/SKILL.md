@@ -20,7 +20,7 @@ the audit. If the contract itself is wrong, fix it in `AGENTS.md`, not here.
 
 | Mode | What it does | When |
 |---|---|---|
-| `check` (default, no arg) | Scan doc-layer by the 8 signals + invoke `prune` in check mode; print one report with proposed actions. Changes nothing. | periodic health-check; before onboarding/release |
+| `check` (default, no arg) | Scan doc-layer by the 8 signals + invoke `prune` in check mode; print one report with proposed actions AND write `meta/reports/docs-audit-<date>.md` (the persisted artifact). Changes no audited docs. | periodic health-check; before onboarding/release |
 | `fix` | For each finding: show a diff and ask the user to choose (keep / remove / update / merge / archive); apply approved; invoke `prune` interactive at the end. | when you want to act on the report |
 
 ## Audit surface
@@ -50,6 +50,22 @@ finding is reported as `{file · signal · evidence · proposed action}`.
    grep -rhoE '`[A-Za-z0-9_./-]+`' *.md meta/*.md | tr -d '`' | sort -u
    ```
    Resolve each: Astra-relative under `./`, agent-knowledge under `~/Documents/Code_projects/agent-knowledge/`, home under `~/`. Flag misses (e.g. `meta/reference/`).
+   ```bash
+   # Resolve each token against every possible root; report only real misses.
+   # Skip URLs, slash-commands (/foo), and bare names without a slash or dot.
+   grep -rhoE '`[A-Za-z0-9_./-]+`' *.md meta/*.md | tr -d '`' | sort -u | while read -r p; do
+     case "$p" in http*|/*) continue;; esac          # skip URLs and slash-commands
+     case "$p" in *.*|*/*) ;; *) continue;; esac       # keep only path-like tokens
+     found=0
+     for root in "." "$HOME/Documents/Code_projects/agent-knowledge" "$HOME/Documents/Code_projects/am-skills" "$HOME"; do
+       [ -e "$root/$p" ] && { found=1; break; }
+     done
+     [ "$found" = 0 ] && echo "MISS $p"
+   done
+   ```
+   Note: multi-root resolution avoids false misses from sub-repo / sibling / home paths.
+   Resolve only against Astra/meta/sibling roots. Do NOT flag paths inside code sub-repos
+   (`analytics-hub/`, `docs/`, service repos) — those are OUT of the audit surface.
 
 2. **MISSING-OWNER** — a root/meta doc with no row in the AGENTS.md ownership table, or a row whose file is gone.
    ```bash
@@ -58,7 +74,9 @@ finding is reported as `{file · signal · evidence · proposed action}`.
    ```
 
 3. **TABLE-DIVERGENCE** — a file-listing inside a doc disagrees with real files.
-   For each listing block (CLAUDE File-Map, README structure tree, HARNESS "Что где"):
+   For each listing block (README.md structure tree, HARNESS.md «Что где» table, and the
+   `AGENTS.md → Ownership & Layering` table; CLAUDE.md File-Map is now a pointer — not a
+   listing block):
    compare the listed set to `find <dir> -maxdepth 1`. Flag listed-but-missing and present-but-unlisted.
 
 ### Judgment (agent + human — propose, never auto-apply)
@@ -73,7 +91,7 @@ finding is reported as `{file · signal · evidence · proposed action}`.
    `AGENTS.md` instead of supplementing. Propose "defer to the higher layer".
 
 7. **DEAD-ARTIFACT** — stray/backup files (`*.bak`, untracked clutter in `meta/`) [mechanical:
-   `git status --porcelain meta/` + `find meta -name '*.bak*'`]; or a doc superseded but not
+   `git status --porcelain meta/` + `find meta \( -name '*.bak*' -o -name '*.py' \)`]; or a doc superseded but not
    archived [judgment]. Zero references is a strong dead-prior:
    ```bash
    grep -rl '<filename>' . --include='*.md' | grep -v '/<filename>$' | wc -l
@@ -86,8 +104,8 @@ finding is reported as `{file · signal · evidence · proposed action}`.
 ## Output
 
 Each finding: `{file · signal · evidence · proposed action}`.
-- `check` → table to chat. Optionally also write `meta/reports/docs-audit-<date>.md`
-  (mirror of `refresh-agents` → `refresh-summary-…`).
+- `check` → table to chat AND write `meta/reports/docs-audit-<date>.md` (default — an audit
+  without a persisted artifact can't be found later; mirror of `refresh-agents` → `refresh-summary-…`).
 - `fix` → show a diff per finding, ask the user to choose, apply approved changes.
 
 Docs are **not** append-only (unlike the stores): edits are normal in-place changes, but

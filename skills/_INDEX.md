@@ -12,8 +12,9 @@ Load the relevant SKILL.md when the task matches. Grouped by track: **Discovery*
 | audit, docs, documentation, неточности, проверь доки, прожарь документацию | `am-grill-docs/SKILL.md` |
 | pain mining, customer meeting, transcript analysis, боли из встречи, demo analysis | `am-pain-mining/SKILL.md` |
 | requirements, specs, аналитика, напиши требования, write specs | `am-write-specs/SKILL.md` |
+| release notes, релиз-нотс, релиз-заметки, changelog релиза, что нового в релизе | `am-release-notes/SKILL.md` |
 | jtbd, jobs-to-be-done, job story, JTBD, формулировка задачи, напиши jtbd, заголовок задачи, issue title, PR title, название работы | `jtbd/SKILL.md` |
-| напиши текст, перепиши, статья, лендинг, анонс, релиз-нотс, письмо, инфостиль, проза, поправь стиль, write copy, rewrite, landing | `infostyle/SKILL.md` |
+| напиши текст, перепиши, статья, лендинг, анонс, письмо, инфостиль, проза, поправь стиль, write copy, rewrite, landing | `infostyle/SKILL.md` |
 | grill plan, прожарь план, прожарь меня, grill my design, стресс-тест плана, решить с агентом что делать | `grill-plan/SKILL.md` |
 | book, knowledge, extraction, convert, OCR, Pandoc | `book-knowledge-extraction/SKILL.md` |
 | video, YouTube, transcript, whisper, knowledge extraction, lecture, podcast | `video-knowledge-extraction/SKILL.md` |

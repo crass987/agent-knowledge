@@ -32,11 +32,12 @@ Grouped by track: **Discovery** (what to build), **Delivery** (how to build — 
 | audit, docs, неточности, проверь доки, прожарь документацию | `skills/am-grill-docs/SKILL.md` |
 | pain mining, customer meeting, transcript, боли из встречи, demo analysis | `skills/am-pain-mining/SKILL.md` |
 | requirements, specs, аналитика, напиши требования | `skills/am-write-specs/SKILL.md` |
+| release notes, релиз-нотс, релиз-заметки, changelog релиза, что нового в релизе | `skills/am-release-notes/SKILL.md` |
 | md to pdf, convert markdown, красивый pdf, сделай pdf, dark theme pdf | `skills/am-md-to-pdf/SKILL.md` |
 | spec, PRD, requirements, feature design | `skills/spec-writing/SKILL.md` |
 | competitor, market, analysis, benchmark | `skills/competitive-analysis/SKILL.md` |
 | jtbd, jobs-to-be-done, JTBD, формулировка задачи, заголовок задачи, issue title, PR title | `skills/jtbd/SKILL.md` |
-| напиши текст, перепиши, статья, лендинг, анонс, релиз-нотс, письмо, инфостиль, проза, write copy, rewrite, landing | `skills/infostyle/SKILL.md` |
+| напиши текст, перепиши, статья, лендинг, анонс, письмо, инфостиль, проза, write copy, rewrite, landing | `skills/infostyle/SKILL.md` |
 | grill plan, прожарь план, прожарь меня, стресс-тест плана | `skills/grill-plan/SKILL.md` |
 | book, knowledge, extraction, OCR, Pandoc | `skills/book-knowledge-extraction/SKILL.md` |
 | video, YouTube, transcript, whisper, lecture, podcast | `skills/video-knowledge-extraction/SKILL.md` |

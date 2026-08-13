@@ -92,3 +92,83 @@ files: []
 ts: 2026-07-21
 scope: skill:am-update
 ---
+
+---
+type: operational
+key: am-update-drift-vs-profile-date
+insight: В facts-отчёте drift (collect-repo-facts.sh) считается относительно даты repo-AGENTS.md, а не штампа «Last refreshed» в meta/repos/*.md — пересчитывай commits-since относительно даты профиля, иначе Stage 1 work-list раздувается (пример 2026-07-28: event-processing 418c→8c реально, agent/identity-provider/license-service/amctl/docs → 0c).
+confidence: 9
+source: observed
+files: [meta/scripts/collect-repo-facts.sh, meta/repos/*.md]
+ts: 2026-07-28
+scope: project
+---
+am-update Stage 1: `git log --since=<profile-refresh-date> --no-merges | wc -l` per repo — реальная дельта, а не число из Drift-блока facts.
+
+---
+name: am-seeding-two-docsets
+description: AM сидирование — два параллельных док-сета (master_docs=AS-IS, improvements=TO-BE design), дрейфуют
+metadata:
+  type: operational
+---
+По сидированию AM есть два док-сета, которые надо различать при аудите:
+- `analytics-hub/master_docs/docs/Установка и обновление/Сидирование/seeding.md` = **AS-IS**, описывает текущий код (`admin-backend/internal/seed/`, `cmd/seed.go`). Trust для текущего механизма, но отстаёт на релиз (на 2026-08-03 не хватает snmp/vector_configs, неверный exit code).
+- `analytics-hub/improvements/docs/Установка и обновление/Сидирование/` = **TO-BE design-спека** (README + Seeding_Specification + 01–06_task), описывает целевой единый механизм (`--profile`, `SourceProvider`, `ApplyRecords`) — НЕ реализован в runner.go, но не помечен как TO-BE.
+При любом вопросе по сиду читать оба; код-истина = `admin-backend/cmd/seed.go` (флаги/регистрация) + `internal/seed/*` (поведение по-сидерно). changeable/remove_absent есть только в ns/*, не в обобщённом Runner.
+
+---
+type: operational
+key: c2-canonical-copy
+insight: Канонический C2-контейнеры.md живёт в analytics-hub; rag-agent/Notes — устаревшее зеркало.
+confidence: 9
+source: observed
+---
+Две копии C2-контейнеры.md:
+- `analytics-hub/master_docs/docs/Архитектура/C2-контейнеры.md` = **канон** (vmalert уже «НЕ ИСПОЛЬЗУЕТСЯ, Сальников 2026-07-06»; modern-traps «подключён к runtime»).
+- `rag-agent/Notes/master_docs/Архитектура/C2-контейнеры.md` = **устаревшее зеркало** для RAG (старая vmalert-формулировка «legacy, планируется удаление»; modern-traps «не подключён»).
+
+Маркер свежести: формулировка vmalert (analytics-hub новее). Править ТОЛЬКО analytics-hub. (замечено при snmp-traps research 2026-08-04)
+
+---
+type: operational
+key: cross-repo-context-header-canonical
+insight: collect-repo-facts.sh:488 парсит Profile Connections по заголовку РОВНО «## Cross-Repo Context» (sed range). Неканоничные заголовки («Cross-Repo Dependencies»/«Communication»/«Connections») молча выпадают из facts → C2-audit получает неполные evidence для этих сервисов. На запуске 2026-08-11 так терялись core-сервисы config-api/incident-service/notification-service/clickhouse-adapter/agent. Лечение: normalize всех meta/repos/*.md заголовков на «## Cross-Repo Context» (TEMPLATE требует ровно это имя). Чек: `for f in meta/repos/*.md; do grep -qE "^## Cross-Repo Context" "$f" || echo "MISS $f"; done`.
+confidence: 9
+source: observed
+files: [meta/scripts/collect-repo-facts.sh, meta/repos/TEMPLATE.md]
+ts: 2026-08-11
+scope: skill:am-update
+---
+
+---
+type: operational
+key: confluence-content-file-sandbox
+insight: MCP `confluence_update_page` `content_file` сэндбокшен до cwd (Path traversal detected на /tmp). Для больших md (registry view и т.п.) пиши файл в gitignored-путь ВНУТРИ cwd (PM/tmp/ — gitignored по PM/CLAUDE.md) и передавай относительный path. Не пытаться /tmp или абсолютные пути вне репо.
+confidence: 9
+source: observed
+files: []
+ts: 2026-08-11
+scope: harness
+---
+
+---
+type: operational
+key: analytics-hub-pm-push-writable
+insight: analytics-hub (dev) и PM (main) пушатся из meta-repo штатно — remote содержит write-capable PAT (asalnikov:glpat-…), `git push origin <branch>` работает (наблюдалось 2026-08-11: analytics-hub aa27f34..bd0fd64, PM 846f3fb..91de510). Уточняет/противоречит CLAUDE.md «read-only token» — для клонов пользователя токен write-capable. am-update Stage 1/3/4 right-push в analytics-hub dev / PM main — нормальный flow (так живут C2-коммиты из истории).
+confidence: 8
+source: observed
+files: []
+ts: 2026-08-11
+scope: project
+---
+
+---
+type: operational
+key: meta-clone-single-branch-refspec
+insight: Клоны суб-репо в meta-repo (monitoring-astra-icl и др.) имеют refspec, пиненый к ОДНОЙ ветке (dev) — `git branch -r` показывает только dev. Чтобы увидеть feature-ветки, на которых стоят ArgoCD-стенды (напр. `sharding` → стенд am-sharding), юзай `git ls-remote origin 'refs/heads/*'` или `git fetch origin <branch>`; дефолтный fetch их не приносит.
+confidence: 9
+source: observed
+files: ["clone-repos.sh", "repos.yml"]
+ts: 2026-08-11
+scope: harness
+---

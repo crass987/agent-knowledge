@@ -1,7 +1,7 @@
 # Taxonomy — «Вид работ» и «Специализированная разработка»
 
 Канон: Confluence `DRSTAND`, pageId **322803823** «Вид работ в задачах продуктовых проектов».
-Поля Jira: **«Вид работ»** = `customfield_22202`; **«Специализированная разработка»** = `customfield_33800`.
+Поля Jira: **«Вид работ»** = `customfield_22202`; **«Account»** (Tempo) = `customfield_13600`; **«Специализированная разработка»** = `customfield_33800`.
 
 ## Governing lens: CAPEX или OPEX
 
@@ -36,8 +36,9 @@
 
 ## Решения команды (Astra Monitoring, 2026-07-23)
 
-Эти два правила — явная позиция команды по развилкам, где канон допускает трактовки:
+Эти правила — явная позиция команды по развилкам, где канон допускает трактовки:
 
+- **Развилка CAPEX/OPEX без решающего сигнала → CAPEX** (2026-08-13). Труд по умолчанию капитализируется: команда почти всё время делает продукт. Действует, когда сомнение именно между капекс- и опекс-трактовкой (Develop Roadmap vs Internal, Develop Roadmap vs Business Research, Certification vs Support и т.п.); тикет помечается в артефакте пометкой «по правилу сомнения», но не уходит в ручную разметку. Сомнение между двумя OPEX-значениями (Internal vs Support) — как раньше, ручная разметка.
 - **Дженерик-багфикс продукта** (тип «Ошибка» / баг без привязки к заказчику), идущий в релиз → **Develop Roadmap** (CAPEX). Фикс улучшает продукт для всех.
 - **Тестирование / QA** — включая стабилизацию тестов, тестовую инфру и тестовую документацию продукта → **Develop Roadmap** (CAPEX). Тестирование = этап роадмапа.
   - Исключение: **чистый CI/CD-пайплайн и девопс, НЕ связанный с тестированием** → **Internal** (OPEX).
@@ -50,6 +51,24 @@
 - `[Infra]` / `[DevOps]` часто → **Internal**;
 - `[Front]` / `[Back]` → обычно **Develop Roadmap** или **Custom Develop** (решает суть, не префикс);
 - `[Test]` → зависит (см. правило 4).
+
+## «Account» (customfield_13600) — Tempo-аккаунт продукта
+
+Поле Tempo Accounts (появилось в продуктовых задачах 2026-08). Значение = Tempo-аккаунт, **выводится детерминированно из «Вида работ»** — решение CAPEX/OPEX уже принято при классификации, здесь только механика. Сомнительных по Account не бывает: сомнительный «Вид работ» → сомнительный Account той же догадкой.
+
+| Вид работ | Account (MON) | id для записи |
+|---|---|---|
+| Develop Roadmap | Astra Monitoring: capex (`ASMON-CAPEX`) | `"282"` |
+| Certification | Astra Monitoring: capex (`ASMON-CAPEX`) | `"282"` |
+| Installation | Astra Monitoring: opex (`ASMON-OPEX`) | `"168"` |
+| Business Research | Astra Monitoring: opex (`ASMON-OPEX`) | `"168"` |
+| Custom Develop | Astra Monitoring: opex (`ASMON-OPEX`) | `"168"` |
+| Internal | Astra Monitoring: opex (`ASMON-OPEX`) | `"168"` |
+| Support | Astra Monitoring: opex (`ASMON-OPEX`) | `"168"` |
+
+- **Аккаунты заведены под продукт** (не глобальные CAPEX/OPEX): у каждого продукта своя пара. Для другого проекта ID смотрятся в Tempo (Jira → Apps → Tempo → Accounts) или `GET /rest/tempo-accounts/1/account`. JQL `"Account" = "<KEY>"` для проверки существования бесполезен — несуществующие ключи молча дают 0.
+- **Запись — только bare-строкой id**: `{"customfield_13600": "282"}`. Объект `{"id": N}`, `{"value": …}`, bare-int дают 400 «Account id 'null' is invalid» (перебор всех форм 2026-08-13).
+- **Доразметка (бэкфилл)** уже размеченных по «Виду работ» тикетов: JQL `project = MON AND "Вид работ" is not EMPTY AND "Account" is EMPTY` → две bulk-группы по таблице.
 
 ## «Специализированная разработка» (customfield_33800)
 

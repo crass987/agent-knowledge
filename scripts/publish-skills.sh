@@ -64,10 +64,15 @@ fi
 #     Refuse: the changes must first be folded back into agent-knowledge
 #     (the canon) — or be consciously discarded with FORCE_PUBLISH=1.
 LAST_PUBLISH="$(git -C "$AM_SKILLS_DIR" log --grep='^publish skills from agent-knowledge' -1 --format=%H 2>/dev/null || true)"
+MY_EMAIL="$(git -C "$AM_SKILLS_DIR" config user.email 2>/dev/null || git config user.email)"
 if [ -n "$LAST_PUBLISH" ] && [ "${FORCE_PUBLISH:-0}" != "1" ]; then
-  FOREIGN="$(git -C "$AM_SKILLS_DIR" log "$LAST_PUBLISH"..HEAD --format='%h %an — %s' \
+  # Own commits (my committer email) and publish commits are fine; anything
+  # else touching my skill dirs is a foreign edit the publish would overwrite.
+  FOREIGN="$(git -C "$AM_SKILLS_DIR" log "$LAST_PUBLISH"..HEAD --format='%h|%ce|%an — %s' \
     -- "${MY_SKILL_DIRS[@]}" 2>/dev/null \
-    | grep -v 'publish skills from agent-knowledge' || true)"
+    | grep -v 'publish skills from agent-knowledge' \
+    | grep -v "$MY_EMAIL" \
+    | cut -d'|' -f1,3 || true)"
   if [ -n "$FOREIGN" ]; then
     echo "ABORT: commits touching agent-knowledge-owned skills since last publish:"
     echo "$FOREIGN"

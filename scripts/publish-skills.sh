@@ -1,20 +1,27 @@
 #!/bin/bash
 # publish-skills.sh — publish agent-knowledge/skills → am-skills (team GitLab repo)
 #
-# One-way mirror: copies the skills layer (+ _shared, _INDEX, link.sh, README/USAGE)
-# from agent-knowledge into the am-skills repo and pushes. Colleagues clone am-skills.
+# ADDITIVE publish: am-skills is a TEAM repo — colleagues add their own skills
+# (e.g. tempo-fill, jira-task) directly there. This script syncs ONLY the skills
+# that exist in agent-knowledge and never deletes anything else:
+#   - per-skill rsync --delete (scoped to my own skill dirs)
+#   - _INDEX.md merged via scripts/merge-index.py (team rows preserved)
+#   - safety net: aborts if the staged diff deletes files outside my skills
 #
 # NEVER copied (personal): learnings/, decisions/, state/, standards/, docs/.
 # NMT skills live in a separate zamesin clone and are NOT here (self-install, CC BY-NC-SA).
 #
 # Usage:
-#   ./scripts/publish-skills.sh                                     # default clone path
-#   AM_SKILLS_DIR=/path/to/am-skills ./scripts/publish-skills.sh   # custom path
+#   ./scripts/publish-skills.sh [--dry-run]   # default clone path
+#   AM_SKILLS_DIR=/path/to/am-skills ./scripts/publish-skills.sh
 #
-# First time: create the empty repo in GitLab (astra-monitoring-icl/am-skills),
-# clone it locally, point AM_SKILLS_DIR at it (or use the default below), run this script.
+# First time: clone the repo (astra-monitoring-icl/workspace/am-skills), point
+# AM_SKILLS_DIR at it (or use the default below), run this script.
 
 set -euo pipefail
+
+DRY_RUN=0
+[ "${1:-}" = "--dry-run" ] && DRY_RUN=1
 
 SRC="$(cd "$(dirname "$0")/.." && pwd)"                       # agent-knowledge root
 AM_SKILLS_DIR="${AM_SKILLS_DIR:-$HOME/Documents/Code_projects/am-skills}"
@@ -24,24 +31,42 @@ if [ ! -d "$AM_SKILLS_DIR/.git" ]; then
   echo "ERROR: $AM_SKILLS_DIR is not a git clone of am-skills."
   echo ""
   echo "First-time setup:"
-  echo "  1. Create the repo in GitLab: astra-monitoring-icl/workspace/am-skills (private)"
-  echo "  2. Clone it:   git clone <am-skills-url> $AM_SKILLS_DIR"
-  echo "  3. Re-run:     ./scripts/publish-skills.sh"
+  echo "  1. Clone the repo:  git clone <am-skills-url> $AM_SKILLS_DIR"
+  echo "  2. Re-run:          ./scripts/publish-skills.sh"
   exit 1
 fi
 
-echo "Publishing agent-knowledge/skills → $AM_SKILLS_DIR"
+# Maintainer-only skills (not for end-users): dropped from the publish + index.
+#  Override:  EXCLUDE_SKILLS="prune improve-skill" ./publish-skills.sh
+EXCLUDE_SKILLS="${EXCLUDE_SKILLS:-prune}"
+
+echo "Publishing agent-knowledge/skills → $AM_SKILLS_DIR (additive; team skills untouched)"
 SRC_SHA="$(cd "$SRC" && git rev-parse --short HEAD)"
 
-# 1. Mirror skills/
-rm -rf "$AM_SKILLS_DIR/skills"
-cp -R "$SRC/skills" "$AM_SKILLS_DIR/skills"
+# 0. Freshness: the clone must be up to date with the server BEFORE we layer
+#    anything on top. Refuse to run on a stale/divergent clone — that is how
+#    team skills got wiped historically (2026-08-11).
+if [ "$DRY_RUN" -eq 0 ]; then
+  git -C "$AM_SKILLS_DIR" pull --ff-only
+fi
 
-# 1a. Strip embedded git repos inside skills/ (e.g. a nested local clone) so they
-#     publish as files, not as submodule pointers (which would be empty for colleagues).
+# 1. Sync my skills — per-skill, scoped. rsync --delete inside MY dir only
+#    (my files removed upstream disappear; other dirs are never touched).
+for d in "$SRC/skills"/*/; do
+  name="$(basename "$d")"
+  case " $EXCLUDE_SKILLS " in *" $name "*) continue;; esac
+  mkdir -p "$AM_SKILLS_DIR/skills/$name"
+  rsync -a --delete "$d" "$AM_SKILLS_DIR/skills/$name/"
+done
+_shared_src="$SRC/skills/_shared"
+if [ -d "$_shared_src" ]; then
+  rsync -a --delete "$_shared_src/" "$AM_SKILLS_DIR/skills/_shared/"
+fi
+
+# 1a. Strip embedded git repos inside my skills (publish as files, not gitlinks).
 find "$AM_SKILLS_DIR/skills" -name .git -prune -exec rm -rf {} +
 
-# 1b. Strip per-skill _shared symlinks (link.sh recreates them at install time)
+# 1b. Strip per-skill _shared symlinks (link.sh recreates them at install time).
 find "$AM_SKILLS_DIR/skills" -maxdepth 2 -type l -name _shared -delete
 
 # 1c. am-research depends on scripts/auto-retrieve.py, which in agent-knowledge is a
@@ -55,22 +80,13 @@ if [ -e "$AMR" ] && [ -e "$SRC/scripts/auto-retrieve.py" ]; then
   cp "$SRC/scripts/auto-retrieve.py" "$AMR/scripts/auto-retrieve.py"
 fi
 
-# 2. Copy the skill router (catalog with triggers)
-cp "$SRC/skills/_INDEX.md" "$AM_SKILLS_DIR/_INDEX.md"
+# 2. Index: MERGE, never overwrite. My rows come from SRC (canon), team rows
+#    (skills not in agent-knowledge) are preserved into a dedicated section.
+MERGE_EXCLUDE="$EXCLUDE_SKILLS" python3 "$SRC/scripts/merge-index.py" \
+  "$SRC/skills/_INDEX.md" "$AM_SKILLS_DIR/_INDEX.md" "$AM_SKILLS_DIR/_INDEX.md"
 
-# 2a. Exclude maintainer-only skills (not for end-users): drop the dir + its _INDEX row.
-#      Override the list via env, e.g.  EXCLUDE_SKILLS="prune improve-skill" ./publish-skills.sh
-EXCLUDE_SKILLS="${EXCLUDE_SKILLS:-prune}"
-for ex in $EXCLUDE_SKILLS; do
-  rm -rf "$AM_SKILLS_DIR/skills/$ex"
-  find "$AM_SKILLS_DIR" -maxdepth 2 -name "_INDEX.md" -type f -print0 2>/dev/null \
-    | while IFS= read -r -d '' idx; do
-        sed "\#${ex}/SKILL\.md#d" "$idx" > "$idx.tmp" && mv "$idx.tmp" "$idx"
-      done
-done
-
-# 3. Substitute the clone's remote URL into README/USAGE, then write templates
-# Strip any embedded creds (user:token@) so they don't leak into README/USAGE
+# 3. Substitute the clone's remote URL into README/USAGE, then write templates.
+#    (Repo infrastructure — my layer. Team skills/ content is untouched by this.)
 REMOTE_URL="$(cd "$AM_SKILLS_DIR" && git remote get-url origin 2>/dev/null | sed 's|//[^@]*@|//|')"
 REMOTE_URL="${REMOTE_URL:-https://gitlab.astra-monitoring.astralinux.ru/astra-monitoring-icl/workspace/am-skills.git}"
 sed "s|%%AM_SKILLS_URL%%|$REMOTE_URL|g" "$PUBLISH_DIR/README.md"  > "$AM_SKILLS_DIR/README.md"
@@ -79,16 +95,32 @@ cp "$PUBLISH_DIR/link.sh"     "$AM_SKILLS_DIR/link.sh"
 cp "$PUBLISH_DIR/.gitignore"  "$AM_SKILLS_DIR/.gitignore"
 chmod +x "$AM_SKILLS_DIR/link.sh"
 
-# 4. Commit + push — only if something changed
+# 4. Commit + push — only if something changed.
 cd "$AM_SKILLS_DIR"
-# Clear cached skills/ entries first: kills stale submodule gitlinks left by any
-# embedded repo (git won't replace a gitlink with files on plain `git add`).
 git rm -r --cached --quiet --ignore-unmatch skills/ >/dev/null 2>&1 || true
 git add -A
+
+# Safety net: if the staged diff deletes anything in skills/ that is NOT one of
+# my published skills, stop. Team content must never disappear in a publish.
+DELETIONS="$(git diff --cached --name-only --diff-filter=D | sed -n 's|^skills/||; s|/.*||p' | sort -u)"
+for del in $DELETIONS; do
+  if [ ! -d "$SRC/skills/$del" ]; then
+    echo "ABORT: publish would delete '$del' which is not from agent-knowledge."
+    echo "Restore it (git checkout -- skills/$del) and investigate before publishing."
+    exit 1
+  fi
+done
+
 if git diff --cached --quiet; then
   echo "Already up to date — no changes to publish (agent-knowledge@${SRC_SHA})."
 else
-  git commit -m "publish skills from agent-knowledge@${SRC_SHA}"
-  git push -u origin HEAD
-  echo "Published agent-knowledge@${SRC_SHA} → am-skills."
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "[DRY-RUN] Would commit + push. Staged changes:"
+    git diff --cached --stat | tail -5
+    git diff --cached --name-status | head -30
+  else
+    git commit -m "publish skills from agent-knowledge@${SRC_SHA} (additive — team skills preserved)"
+    git push -u origin HEAD
+    echo "Published agent-knowledge@${SRC_SHA} → am-skills."
+  fi
 fi

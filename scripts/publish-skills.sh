@@ -40,6 +40,15 @@ fi
 #  Override:  EXCLUDE_SKILLS="prune improve-skill" ./publish-skills.sh
 EXCLUDE_SKILLS="${EXCLUDE_SKILLS:-prune}"
 
+# The skill dirs this publish owns (canon = agent-knowledge). Everything else
+# in am-skills/skills/ is team territory and is never touched.
+MY_SKILL_DIRS=()
+for d in "$SRC/skills"/*/; do
+  name="$(basename "$d")"
+  case " $EXCLUDE_SKILLS " in *" $name "*) continue;; esac
+  MY_SKILL_DIRS+=("skills/$name")
+done
+
 echo "Publishing agent-knowledge/skills → $AM_SKILLS_DIR (additive; team skills untouched)"
 SRC_SHA="$(cd "$SRC" && git rev-parse --short HEAD)"
 
@@ -48,6 +57,25 @@ SRC_SHA="$(cd "$SRC" && git rev-parse --short HEAD)"
 #    team skills got wiped historically (2026-08-11).
 if [ "$DRY_RUN" -eq 0 ]; then
   git -C "$AM_SKILLS_DIR" pull --ff-only
+fi
+
+# 0a. Foreign edits guard: if teammates committed changes to MY skill dirs
+#     since the last publish, this publish would silently overwrite them.
+#     Refuse: the changes must first be folded back into agent-knowledge
+#     (the canon) — or be consciously discarded with FORCE_PUBLISH=1.
+LAST_PUBLISH="$(git -C "$AM_SKILLS_DIR" log --grep='^publish skills from agent-knowledge' -1 --format=%H 2>/dev/null || true)"
+if [ -n "$LAST_PUBLISH" ] && [ "${FORCE_PUBLISH:-0}" != "1" ]; then
+  FOREIGN="$(git -C "$AM_SKILLS_DIR" log "$LAST_PUBLISH"..HEAD --format='%h %an — %s' \
+    -- "${MY_SKILL_DIRS[@]}" 2>/dev/null \
+    | grep -v 'publish skills from agent-knowledge' || true)"
+  if [ -n "$FOREIGN" ]; then
+    echo "ABORT: commits touching agent-knowledge-owned skills since last publish:"
+    echo "$FOREIGN"
+    echo ""
+    echo "Fold these changes back into agent-knowledge (canon), then re-publish."
+    echo "To consciously overwrite them instead: FORCE_PUBLISH=1 ./scripts/publish-skills.sh"
+    exit 1
+  fi
 fi
 
 # 1. Sync my skills — per-skill, scoped. rsync --delete inside MY dir only

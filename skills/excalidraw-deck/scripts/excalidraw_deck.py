@@ -74,13 +74,25 @@ class Slide:
         self.accent = accent
         self.x0 = 0
         self.y0 = len(deck.slides) * (FRAME_H + GAP)
+        self._counters = {}
         fr = _base("frame", self.x0, self.y0)
         fr["width"], fr["height"] = FRAME_W, FRAME_H
         fr["name"] = f"{num} · {name}"
         fr["fillStyle"] = "solid"
         fr["strokeColor"] = "#dee2e6"
+        fr["customData"] = {"deck-key": f"frame/{num}"}
         deck.elements.append(fr)
         self.frame = fr
+
+    def _tag(self, el, kind, text=None):
+        """Стабильный ключ элемента (для режима слияния поверх правок владельца)."""
+        n = self._counters.get(kind, 0) + 1
+        self._counters[kind] = n
+        cd = el.setdefault("customData", {})
+        cd["deck-key"] = f"{self.num}/{kind}/{n}"
+        if el["type"] == "text" and text is not None:
+            cd["gen_text"] = text
+        return el
 
     # -- служебное ---------------------------------------------------------
     def _own(self, el):
@@ -88,7 +100,7 @@ class Slide:
         self.deck.elements.append(el)
         return el
 
-    def _text(self, x, y, text, fs, color=INK, font=2):
+    def _text(self, x, y, text, fs, color=INK, font=2, kind="text"):
         el = self._own(_base("text", self.x0 + x, self.y0 + y, font))
         el.update(text=text, originalText=text, fontSize=fs, lineHeight=LINE_H,
                   baseline=round(fs * 1.05, 2), textAlign="left",
@@ -96,26 +108,29 @@ class Slide:
         lines = text.split("\n")
         el["height"] = round(len(lines) * fs * LINE_H, 2)
         el["width"] = round(max(len(l) for l in lines) * fs * _GLYPH[font], 2)
+        self._tag(el, kind, text)
         return el
 
     # -- примитивы ----------------------------------------------------------
     def title(self, text, fs=40, color=INK, x=120, y=150):
-        return self._text(x, y, text, fs, color)
+        return self._text(x, y, text, fs, color, kind="title")
 
     def subtitle(self, text, fs=24, color=MUTED, x=120, y=None):
-        return self._text(x, y if y is not None else 330, text, fs, color)
+        return self._text(x, y if y is not None else 330, text, fs, color,
+                          kind="subtitle")
 
     def row(self, x, y, text, fs=20, color=INK):
-        return self._text(x, y, text, fs, color)
+        return self._text(x, y, text, fs, color, kind="row")
 
     def big(self, x, y, text, color, fs=44):
-        return self._text(x, y, text, fs, color)
+        return self._text(x, y, text, fs, color, kind="big")
 
     def underline(self, x, y, accent=None, w=90):
         _, st = PAL[accent or self.accent]
         el = self._own(_base("line", self.x0 + x, self.y0 + y))
         el.update(points=[[0, 0], [w, 0]], width=w, height=0,
                   strokeColor=st, strokeWidth=3)
+        self._tag(el, "underline")
         return el
 
     def pill(self, x, y, text, accent=None, fs=15):
@@ -137,6 +152,8 @@ class Slide:
         t["width"] = round(w - 32, 2)
         t["height"] = round(fs * LINE_H, 2)
         r["boundElements"] = [{"id": tid, "type": "text"}]
+        self._tag(r, "pill")
+        self._tag(t, "pill.t", text)
         return r
 
     def card(self, x, y, w, text, accent="gray", fs=20, align="center",
@@ -159,6 +176,8 @@ class Slide:
         t["width"] = round(w - 2 * PAD, 2)
         t["height"] = round(th, 2)
         r["boundElements"] = [{"id": tid, "type": "text"}]
+        self._tag(r, "card")
+        self._tag(t, "card.t", text)
         return r
 
     def arrow(self, x, y, dx, dy, curve=True, color=None, width=2):
@@ -168,12 +187,13 @@ class Slide:
                   endArrowhead="arrow", strokeWidth=width,
                   strokeColor=color or MUTED,
                   roundness={"type": 2} if curve else None)
+        self._tag(el, "arrow")
         return el
 
     def number(self, accent=None):
         """Номер слайда в правом верхнем углу фрейма."""
         _, st = PAL[accent or self.accent]
-        return self._text(FRAME_W - 140, 96, self.num, 16, st)
+        return self._text(FRAME_W - 140, 96, self.num, 16, st, kind="num")
 
     def screenshot_placeholder(self, x, y, w, caption, accent="gray"):
         return self.card(x, y, w, caption, accent, fs=18, h=150)
@@ -190,11 +210,12 @@ class Deck:
         self.slides.append(s)
         return s
 
-    def add_raw(self, elements, dx=0, dy=0):
-        """Вставить готовые элементы (заметки, панель) со сдвигом, вне фреймов."""
+    def add_raw(self, elements, dx=0, dy=0, key_prefix=None):
+        """Вставить готовые элементы (заметки, панель) со сдвигом, вне фреймов.
+        key_prefix — включить в режим слияния (правки владельца уважаются)."""
         import copy
-        for e in elements:
-            e = copy.deepcopy(e)
+        for i, src in enumerate(elements):
+            e = copy.deepcopy(src)
             e["id"] = _new_id()
             e.pop("index", None)
             e.pop("frameId", None)
@@ -202,7 +223,134 @@ class Deck:
             e.pop("groupIds", None)
             e["x"] = e.get("x", 0) + dx
             e["y"] = e.get("y", 0) + dy
+            if key_prefix:
+                cd = e.setdefault("customData", {})
+                cd["deck-key"] = f"{key_prefix}/{i:02d}"
+                if e["type"] == "text":
+                    cd["gen_text"] = e["text"]
             self.elements.append(e)
+
+    def _manifest_path(self, path):
+        return f"{path}.manifest.json"
+
+    def _keys(self):
+        out = set()
+        for e in self.elements:
+            k = (e.get("customData") or {}).get("deck-key")
+            if k:
+                out.add(k)
+        return out
+
+    def save(self, path):
+        doc = {
+            "type": "excalidraw", "version": 2,
+            "source": "agent-knowledge/excalidraw-deck",
+            "elements": self.elements, "appState": {
+                "viewBackgroundColor": "#ffffff", "gridSize": None},
+            "files": {},
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(doc, f, ensure_ascii=False)
+        with open(self._manifest_path(path), "w", encoding="utf-8") as f:
+            json.dump({"generated": sorted(self._keys())}, f)
+        return path
+
+    def merge_into(self, path):
+        """Наложить план поверх существующей деки, уважая правки владельца.
+
+        Политика: позиция/стиль/размер — всегда владельца; текст обновляется
+        только если владелец его не правил; правленый текст при изменившемся
+        плане = конфликт (остаётся текст владельца); ваших элементов план не
+        касается; удалённое владельцем не восстанавливается (манифест).
+        """
+        import copy
+        try:
+            old = json.load(open(path, encoding="utf-8"))
+        except FileNotFoundError:
+            old = None
+        if old is None:
+            self.save(path)
+            return {"mode": "baseline", "added": len(self.elements),
+                    "updated": 0, "kept_user": 0, "conflicts": [],
+                    "orphans": [], "skipped_deleted": []}
+        by_key, by_id = {}, {}
+        for e in old["elements"]:
+            by_id[e["id"]] = e
+            k = (e.get("customData") or {}).get("deck-key")
+            if k:
+                by_key[k] = e
+        try:
+            manifest = set(json.load(open(self._manifest_path(path)))["generated"])
+        except Exception:
+            manifest = set()
+
+        if not by_key:
+            # База ещё не помечена ключами — полная запись как первый прогон.
+            self.save(path)
+            return {"mode": "baseline", "added": len(self.elements),
+                    "updated": 0, "kept_user": 0, "conflicts": [],
+                    "orphans": [], "skipped_deleted": []}
+
+        report = {"mode": "merge", "added": 0, "updated": 0, "kept_user": 0,
+                  "conflicts": [], "orphans": [], "skipped_deleted": []}
+        frame_map = {}
+        additions = []
+        plan_keys = set()
+
+        for e in self.elements:
+            k = (e.get("customData") or {}).get("deck-key")
+            if not k:
+                continue
+            plan_keys.add(k)
+            ex = by_key.get(k)
+            if ex is None:
+                if k in manifest:
+                    report["skipped_deleted"].append(k)
+                    continue
+                e2 = copy.deepcopy(e)
+                fid = e2.get("frameId")
+                if fid and fid in frame_map:
+                    e2["frameId"] = frame_map[fid]
+                additions.append(e2)
+                report["added"] += 1
+                continue
+            if e["type"] == "frame":
+                frame_map[e["id"]] = ex["id"]  # фрейм целиком — владельца
+                continue
+            cd = ex.setdefault("customData", {})
+            if e["type"] == "text":
+                new_text = e["text"]
+                gen = cd.get("gen_text")
+                cur = ex["text"]
+                if gen is None:  # первый учёт этого элемента
+                    gen = cur
+                if cur == gen:
+                    if new_text != cur:
+                        ex["text"] = new_text
+                        ex["originalText"] = new_text
+                        c = by_id.get(ex.get("containerId"))
+                        if c:  # bound-текст: ширина от контейнера владельца
+                            ex["width"] = round(c["width"] - 2 * PAD, 2)
+                        ex["height"] = round(est_wrapped_height(
+                            new_text, ex["width"], ex["fontSize"],
+                            ex.get("fontFamily", 2)), 2)
+                        report["updated"] += 1
+                elif new_text != gen:
+                    report["conflicts"].append(
+                        f"{k}: план=«{new_text[:40]}», у владельца=«{cur[:40]}»")
+                else:
+                    report["kept_user"] += 1
+                cd["gen_text"] = new_text
+            else:
+                report["kept_user"] += 1  # не-текст: синхронизировать нечего
+
+        report["orphans"] = sorted(k for k in by_key if k not in plan_keys)
+        old["elements"].extend(additions)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(old, f, ensure_ascii=False)
+        with open(self._manifest_path(path), "w", encoding="utf-8") as f:
+            json.dump({"generated": sorted(manifest | plan_keys)}, f)
+        return report
 
     def validate(self):
         """Список проблем: FAIL чинить обязательно, WARN — по вкусу."""
@@ -244,15 +392,3 @@ class Deck:
                         f"WARN: {e['type']} вылезает из фрейма "
                         f"{f.get('name')}: {e.get('text', e['id'])[:40]!r}")
         return problems
-
-    def save(self, path):
-        doc = {
-            "type": "excalidraw", "version": 2,
-            "source": "agent-knowledge/excalidraw-deck",
-            "elements": self.elements, "appState": {
-                "viewBackgroundColor": "#ffffff", "gridSize": None},
-            "files": {},
-        }
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(doc, f, ensure_ascii=False)
-        return path

@@ -1,0 +1,330 @@
+{
+  "version": 1,
+  "description": "Каталог калек и канцелярита для calque_scan.py. Заведение нового паттерна — references/pattern-admission.md. Тиры: calque (кальки: классы 1–2a), officialese (канцелярит), hybrid (EN-ru склейки, пост-фильтр allowlist в коде), stop (оценки без меры), loose (шумное, только с --loose).",
+  "patterns": [
+    {
+      "id": "a1-urovnem-vyshe",
+      "tier": "calque",
+      "check": "уровн(?:ем|я|е|ю)\\s+(?:выше|ниже|основн|хост|систем|работ|главн|корн|больш|продукт)",
+      "fix": "of-phrase: «на уровень выше / вышестоящие», перестроить через глагол",
+      "source": "translationese.md Класс 1; evals b01"
+    },
+    {
+      "id": "a1-na-urovne-granular",
+      "tier": "calque",
+      "check": "на\\s+уровн(?:е|я|ю)\\s+(?:хост|систем|узл|кластер|микросервис|сервис|агент|контейнер|нод|под|приложен|виртуальн|вм)\\w*",
+      "fix": "← at the level of: «по хостам / по системам»",
+      "source": "translationese.md Класс 1; evals b02"
+    },
+    {
+      "id": "b-zhizn-uproshchaetsya",
+      "tier": "calque",
+      "check": "жизнь\\s+(?:заказчика|клиента|пользователя|человека)\\s+упрощается",
+      "fix": "«заказчику проще / работа упрощается»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-tsepochka-k-pribyli",
+      "tier": "calque",
+      "check": "цепочк\\w*\\s+к\\s+прибыли",
+      "fix": "«цепочка, ведущая к прибыли»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-dokazatelstvo-sborka",
+      "tier": "calque",
+      "check": "доказательств\\w*\\s+(?:превращается|становится)\\s+в\\s+ручную",
+      "fix": "«приходится собирать вручную»",
+      "source": "translationese.md Класс 2; evals b05"
+    },
+    {
+      "id": "b-vpisat-v-golovu",
+      "tier": "calque",
+      "check": "вписать\\s+\\w+\\s+в\\s+голову",
+      "fix": "«сформировать категорию у покупателя»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-svyazyvayushchee-ogranichenie",
+      "tier": "calque",
+      "check": "связывающее\\s+ограничение",
+      "fix": "«узкое место / ограничение, которое всё решает»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-na-dopushenii",
+      "tier": "calque",
+      "check": "на\\s+допущени\\w*",
+      "fix": "← stands on assumption: «опирается на допущения»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-verkh-tsepi",
+      "tier": "calque",
+      "check": "верх\\s+цепи",
+      "fix": "«начало цепи»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-zond-sprosa",
+      "tier": "calque",
+      "check": "зонд\\s+спроса",
+      "fix": "«проверка спроса»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-vremennaya-dyra",
+      "tier": "calque",
+      "check": "временн\\w*\\s+дыр\\w*",
+      "fix": "«временной разрыв / окно уязвимости»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-pravo-igrat",
+      "tier": "calque",
+      "check": "право\\s+играть",
+      "fix": "«право участвовать (на рынке)»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-kompundiruetsya",
+      "tier": "calque",
+      "check": "компаундиру\\w*",
+      "fix": "«накапливается / усиливается»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-dempfer-paritet",
+      "tier": "calque",
+      "check": "демпфер-паритет",
+      "fix": "«оборонительный паритет»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-zakroyut-rassmotrenie",
+      "tier": "calque",
+      "check": "закро(?:ют|ет)\\s+рассмотрение",
+      "fix": "«закроют потребность / выиграют тендер»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-razmazannyh-po-agentu",
+      "tier": "calque",
+      "check": "размазанн\\w*\\s+по\\s+агенту",
+      "fix": "«разнесённых на уже развёрнутый агент»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b-oshibochen-vhod",
+      "tier": "calque",
+      "check": "ошибочен\\s+вход",
+      "fix": "«входные данные неверны»",
+      "source": "translationese.md Класс 2"
+    },
+    {
+      "id": "b2a-set-ne-hodila",
+      "tier": "calque",
+      "check": "сет(?:ь|и)\\s+не\\s+ходил\\w*",
+      "fix": "«запрос к таргету ещё не ушёл»",
+      "source": "translationese.md Класс 2a"
+    },
+    {
+      "id": "b2a-stoyat-na-kontsah",
+      "tier": "calque",
+      "check": "стоят\\s+на\\s+(?:разных|противоположных)\\s+концах",
+      "fix": "«срабатывают на разных этапах»",
+      "source": "translationese.md Класс 2a"
+    },
+    {
+      "id": "b2a-bezhit-po",
+      "tier": "calque",
+      "check": "бежит\\s+по",
+      "fix": "← runs over: «проходит по / прогоняется по»",
+      "source": "translationese.md Класс 2a"
+    },
+    {
+      "id": "lex-vokabulyar",
+      "tier": "calque",
+      "check": "вокабуляр\\w*",
+      "fix": "«словарь»",
+      "source": "правка владельца, CLAUDE.md 2026-08-12"
+    },
+    {
+      "id": "lex-rezolv-glagol",
+      "tier": "calque",
+      "check": "\\bрезолв(?:ить|ится|ит|им|ите|ят|л|ла|ли|лся|лась|лись)\\b",
+      "fix": "«разрешать / определять» (существительное «резолвер» — допустимый техтермин)",
+      "source": "правка владельца, CLAUDE.md 2026-08-12; сужено 09-09 после прогона (резолвер-компонент — не калька)"
+    },
+    {
+      "id": "lex-matcher",
+      "tier": "loose",
+      "check": "\\bматчер\\w*",
+      "fix": "в бытовой прозе — «фильтр / сопоставитель»; в контексте Prometheus/relabel — легитимный термин",
+      "source": "правка владельца, CLAUDE.md 2026-08-12; в loose 09-09 (термин Prometheus)"
+    },
+    {
+      "id": "lex-propagatsiya",
+      "tier": "calque",
+      "check": "пропагаци\\w*",
+      "fix": "«распространение»",
+      "source": "правка владельца, CLAUDE.md 2026-08-12"
+    },
+    {
+      "id": "lex-zamkovy-kamen",
+      "tier": "calque",
+      "check": "замков\\w*\\s+камень",
+      "fix": "«основа» (но не «краеугольный камень» — он устоявшийся)",
+      "source": "правка владельца, CLAUDE.md 2026-08-12"
+    },
+    {
+      "id": "lex-edinoe-okno",
+      "tier": "calque",
+      "check": "един\\w*\\s+окно",
+      "fix": "«один вход / точка входа»; исключение — официальный термин госуслуг",
+      "source": "правка владельца, CLAUDE.md 2026-08-12"
+    },
+    {
+      "id": "o1-osushchestvlyaet",
+      "tier": "officialese",
+      "check": "осуществля(?:ет|ются?|ем|ете|ться|лся|лась|лись)",
+      "fix": "отглагольное → прямой глагол: «проводит, считает»",
+      "source": "hygiene.md; evals b06"
+    },
+    {
+      "id": "o2-proizvodit-sushchestvitelnoe",
+      "tier": "officialese",
+      "check": "производи\\w*\\s+(?:оплату|подключение|настройку|проверку|запуск|установку|очистку|выгрузку|загрузку)",
+      "fix": "«платит, подключает, настраивает…»",
+      "source": "hygiene.md «Глагол, не отглагольное»"
+    },
+    {
+      "id": "o3-prinyato-reshenie",
+      "tier": "officialese",
+      "check": "принято\\s+решение",
+      "fix": "«решили»",
+      "source": "CLAUDE.md «английский порядок слов и залоги»"
+    },
+    {
+      "id": "o4-na-osnove",
+      "tier": "officialese",
+      "check": "на\\s+(?:ежедневной|еженедельной|ежемесячной|постоянной|регулярной|периодической)\\s+основе",
+      "fix": "← on a daily basis: «ежедневно / постоянно»",
+      "source": "разбор калек 2026-09-09"
+    },
+    {
+      "id": "o5-imeet-mesto",
+      "tier": "officialese",
+      "check": "имеет\\s+место",
+      "fix": "«бывает / происходит / наблюдается → конкретный глагол»",
+      "source": "разбор калек 2026-09-09"
+    },
+    {
+      "id": "o6-v-nastoyashchee-vremya",
+      "tier": "officialese",
+      "check": "в\\s+настоящее\\s+время",
+      "fix": "«сейчас»",
+      "source": "разбор калек 2026-09-09"
+    },
+    {
+      "id": "o7-stoit-otmetit",
+      "tier": "officialese",
+      "check": "(?:стоит|необходимо|следует)\\s+(?:отметить|заметить|упомянуть)|важно\\s+(?:отметить|заметить|понять|учитывать)",
+      "fix": "удалить: факт говорит сам, преамбулы не нужны",
+      "source": "разбор калек 2026-09-09"
+    },
+    {
+      "id": "o8-igraet-rol",
+      "tier": "officialese",
+      "check": "играет\\s+(?:важную|ключевую|значительную|решающую)\\s+роль",
+      "fix": "«определяет / влияет: назвать, что именно делает»",
+      "source": "разбор калек 2026-09-09"
+    },
+    {
+      "id": "o9-yavlyaetsya-predikat",
+      "tier": "officialese",
+      "check": "является\\s+(?:эффективн|надёжн|надежн|удобн|оптимальн|важн|решени|инструмент)\\w*",
+      "fix": "связка-хомяк → глагол",
+      "source": "evals b07"
+    },
+    {
+      "id": "o10-v-sluchae-esli",
+      "tier": "officialese",
+      "check": "в\\s+случае,?\\s+если",
+      "fix": "«если»",
+      "source": "разбор калек 2026-09-09"
+    },
+    {
+      "id": "o14-pri-nalichii-vozmozhnosti",
+      "tier": "officialese",
+      "check": "при\\s+наличии\\s+возможности",
+      "fix": "«если можно»",
+      "source": "разбор калек 2026-09-09"
+    },
+    {
+      "id": "o11-predstavlyaet-soboy",
+      "tier": "loose",
+      "check": "представляет\\s+собой",
+      "fix": "обычно «это» или прямой глагол",
+      "source": "Ильяхов, канцелярит"
+    },
+    {
+      "id": "o12-v-ramkah",
+      "tier": "loose",
+      "check": "в\\s+рамках",
+      "fix": "обычно «внутри / при / для»",
+      "source": "Ильяхов, канцелярит"
+    },
+    {
+      "id": "o13-danny",
+      "tier": "loose",
+      "check": "\\bданн(?:ый|ая|ое|ые)\\b",
+      "fix": "обычно «этот»",
+      "source": "Ильяхов, канцелярит"
+    },
+    {
+      "id": "o15-napravlen-na",
+      "tier": "loose",
+      "check": "направлен\\w*\\s+на",
+      "fix": "назвать действие прямо: «служит для / делает X»",
+      "source": "Ильяхов, канцелярит"
+    },
+    {
+      "id": "a1-vida-tipa",
+      "tier": "loose",
+      "check": "\\b(?:вида|типа)\\s+[а-яё]+",
+      "fix": "возможен of-phrase: «такие продукты, как X / продукты, которые X»",
+      "source": "translationese.md Класс 1 (тест «уровня/вида/типа»)"
+    },
+    {
+      "id": "h1-defis-en-ru",
+      "tier": "hybrid",
+      "check": "([A-Za-z][A-Za-z0-9]*)-([а-яё]+)",
+      "fix": "перевести обе части или вынести термин курсивом; допустимо, если EN — устоявшийся термин, а RU — родовое (API-ключ, SaaS-решение)",
+      "source": "translationese.md Класс 3; evals b10"
+    },
+    {
+      "id": "l1-en-probel-ru",
+      "tier": "loose",
+      "check": "\\b[A-Za-z]{3,}\\s+[а-яё]{4,}\\b",
+      "fix": "гибрид через пробел: EN-определение + RU-существительное — проверить глазами",
+      "source": "translationese.md Класс 3 «гибрид через пробел»"
+    },
+    {
+      "id": "s1-effektivnost",
+      "tier": "stop",
+      "check": "эффективн\\w*",
+      "fix": "оценка без меры → измеримый факт",
+      "source": "_shared/infostyle-core.md; evals b08"
+    },
+    {
+      "id": "s2-otsenochnye",
+      "tier": "stop",
+      "check": "(?:удобн|надёжн|надежн|оптимальн|современн|инновационн)\\w*",
+      "fix": "оценка → измеримый факт",
+      "source": "_shared/infostyle-core.md; evals b09"
+    }
+  ],
+  "hybrid_allowlist": ["saas", "api", "it", "http", "https", "rest", "grpc", "yaml", "json", "ui", "ux", "ci", "cd", "cli", "sdk", "sql", "nosql", "ml", "ai", "vm", "dns", "ssh", "tls", "smtp", "snmp", "oauth", "k8s", "devops", "mvp", "otel", "web", "gdpr", "sso", "rbac", "pg", "ch"],
+  "hybrid_generic_ru": ["решени", "ключ", "ключи", "ключа", "ключей", "компани", "сервис", "сервисы", "сервисов", "платформ", "интерфейс", "интерфейсы", "запрос", "запросы", "запроса", "файл", "файлы", "файла", "формат", "форматы", "панел", "модул", "токен", "агент", "кластер", "контейнер", "манифест", "схем", "составляющ", "компонент"]
+}

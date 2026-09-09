@@ -295,6 +295,23 @@ class Slide:
             self._text(x + 340 + bw + 16, yb + 6, str(v), 24,
                        self.deck.theme["muted"], kind="bar.val")
 
+    def bar(self, x, y, w, h=46, accent="blue"):
+        """Полоса водопада без текста (span-бар)."""
+        bg, st, _ = self._pal(accent)
+        r = self._own(_base("rectangle", self.x0 + x, self.y0 + y))
+        r.update(width=w, height=h, backgroundColor=bg, strokeColor=st,
+                 roundness={"type": 3})
+        self._tag(r, "bar")
+        return r
+
+    def connector(self, x, y, dy, color=None):
+        """Тонкая вертикальная линия связи parent→child."""
+        el = self._own(_base("line", self.x0 + x, self.y0 + y))
+        el.update(points=[[0, 0], [0, dy]], width=0, height=abs(dy),
+                  strokeColor=color or self.deck.theme["muted"], strokeWidth=2)
+        self._tag(el, "conn")
+        return el
+
 
 class Deck:
     def __init__(self, theme="handdrawn"):

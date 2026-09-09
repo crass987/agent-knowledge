@@ -160,7 +160,7 @@ class Slide:
         return el
 
     # -- примитивы ----------------------------------------------------------
-    def title(self, text, fs=64, color=None, x=120, y=140):
+    def title(self, text, fs=64, color=None, x=120, y=215):
         return self._text(x, y, text, fs, color, kind="title")
 
     def subtitle(self, text, fs=30, color=None, x=120, y=None):

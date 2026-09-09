@@ -10,13 +10,14 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from excalidraw_deck import est_wrapped_height  # noqa: E402
+from excalidraw_deck import est_wrapped_height, contrast  # noqa: E402
 
 
 def validate(path):
     problems = []
     d = json.load(open(path, encoding="utf-8"))
     els = d["elements"]
+    paper = d.get("appState", {}).get("viewBackgroundColor", "#ffffff")
     ids = [e["id"] for e in els]
     if len(ids) != len(set(ids)):
         problems.append("FAIL: дубликаты id")
@@ -42,6 +43,22 @@ def validate(path):
         fid = e.get("frameId")
         if fid and fid not in frames:
             problems.append(f"FAIL: {e['id']} ссылается на чужой фрейм")
+    for e in els:
+        if e["type"] != "text":
+            continue
+        key = (e.get("customData") or {}).get("deck-key") or ""
+        keyed = bool(key) and not key.startswith("panel/")
+        c = by_id.get(e.get("containerId"))
+        bg = c["backgroundColor"] if c and c.get("backgroundColor") not in (None, "transparent") else paper
+        r = contrast(e["strokeColor"], bg)
+        fs = e.get("fontSize", 0)
+        fail_at = 3.0 if fs >= 40 else 4.5
+        warn_at = 4.5 if fs >= 40 else (7.0 if fs >= 22 else None)
+        if r < fail_at:
+            lvl = "FAIL" if keyed else "WARN"
+            problems.append(f"{lvl}: контраст {r:.1f}:1 < {fail_at} — {e['text'][:40]!r} на {bg}")
+        elif warn_at and r < warn_at:
+            problems.append(f"WARN: контраст {r:.1f}:1 < {warn_at} — {e['text'][:40]!r} на {bg}")
     for f in frames.values():
         kids = [e for e in els if e.get("frameId") == f["id"]]
         for e in kids:

@@ -20,32 +20,63 @@ FRAME_W, FRAME_H, GAP = 1920, 1080, 240
 PAD = 12            # внутренний отступ bound-текста (Excalidraw использует 2x5)
 INK = "#1e1e1e"
 MUTED = "#495057"
-FAINT = "#868e96"
+FAINT = "#71757c"
 NUMBER = "#adb5bd"
 
-# Роль -> (мягкая заливка, обводка). Полный смысл ролей — references/palette.md.
+# Роль -> (заливка, обводка, текст). Полный смысл ролей — references/palette.md.
+# Третий компонент — цвет ТЕКСТА роли на бумаге темы (контраст >= 4.5:1, WCAG).
 PAL = {
-    "blue":   ("#a5d8ff", "#1971c2"),   # факты, классика, техника
-    "violet": ("#d0bfff", "#6741d9"),   # вступление, теория, рамка доклада
-    "green":  ("#b2f2bb", "#2f9e44"),   # решения, «как правильно»
-    "amber":  ("#ffec99", "#f08c00"),   # ключевые формулы, акцент-баннеры
-    "red":    ("#ffc9c9", "#e03131"),   # анти-паттерны, финал, предупреждения
-    "gray":   ("#e9ecef", "#495057"),   # нейтральное, плейсхолдеры
+    "blue":   ("#a5d8ff", "#1971c2", "#1864ab"),
+    "violet": ("#d0bfff", "#6741d9", "#5f3dc4"),
+    "green":  ("#b2f2bb", "#2f9e44", "#1e7d34"),
+    "amber":  ("#ffec99", "#f08c00", "#b23c05"),
+    "red":    ("#ffc9c9", "#e03131", "#c92a2a"),
+    "gray":   ("#e9ecef", "#495057", "#495057"),
 }
 
-# грубая ширина глифа в долях fontSize (для оценки переноса строк)
-_GLYPH = {1: 0.58, 2: 0.52, 3: 0.60}
+# грубая ширина глифа в долях fontSize (для оценки переноса строк; завышено намеренно)
+_GLYPH = {1: 0.58, 2: 0.56, 3: 0.60}
 LINE_H = 1.25
 
+
+def _lum(hex_color):
+    """Относительная яркость WCAG."""
+    h = hex_color.lstrip("#")
+    r, g, b = (int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    f = lambda c: c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)
+
+
+def contrast(a, b):
+    """Коэффициент контраста WCAG (1…21). Порог читаемости — 4.5, цель — 7."""
+    la, lb = _lum(a), _lum(b)
+    hi, lo = max(la, lb), min(la, lb)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def text_on(bg_hex, theme):
+    """Цвет текста поверх заливки: чернила или бумага темы — что контрастнее."""
+    cands = [theme["ink"], "#ffffff", "#1e1e1e"]
+    return max(cands, key=lambda c: contrast(c, bg_hex))
+
+
 # Пресеты стилей — references/style-presets.md. Один пресет на деку.
+# Роли dark — глубокие заливки + яркие обводки: светлые чернила дают ≥7:1.
 THEMES = {
     "handdrawn": {"paper": "#ffffff", "ink": "#1e1e1e", "muted": "#495057",
-                  "faint": "#868e96", "roughness": 1},
+                  "faint": "#71757c", "roughness": 1, "roles": PAL},
     "clean":     {"paper": "#ffffff", "ink": "#1e1e1e", "muted": "#495057",
-                  "faint": "#868e96", "roughness": 0},
+                  "faint": "#71757c", "roughness": 0, "roles": PAL},
     "dark":      {"paper": "#1a1a1a", "ink": "#f1f3f5", "muted": "#ced4da",
                   "faint": "#adb5bd", "roughness": 1,
-                  "gray": ("#343a40", "#adb5bd")},
+                  "roles": {
+                      "blue":   ("#1f3a5f", "#4dabf7", "#4dabf7"),
+                      "violet": ("#3d2f66", "#b197fc", "#b197fc"),
+                      "green":  ("#1f4d36", "#69db7c", "#69db7c"),
+                      "amber":  ("#5c4713", "#ffd43b", "#ffd43b"),
+                      "red":    ("#5a2323", "#ff8787", "#ff8787"),
+                      "gray":   ("#343a40", "#adb5bd", "#ced4da"),
+                  }},
 }
 
 
@@ -113,10 +144,8 @@ class Slide:
         return el
 
     def _pal(self, accent):
-        """Цвет роли с учётом пресета (тёмная тема перекрашивает серый)."""
-        if accent == "gray" and "gray" in self.deck.theme:
-            return self.deck.theme["gray"]
-        return PAL[accent]
+        """Цвета роли с учётом пресета темы."""
+        return self.deck.theme["roles"][accent]
 
     def _text(self, x, y, text, fs, color=None, font=2, kind="text"):
         el = self._own(_base("text", self.x0 + x, self.y0 + y, font))
@@ -145,7 +174,7 @@ class Slide:
         return self._text(x, y, text, fs, color, kind="big")
 
     def underline(self, x, y, accent=None, w=120):
-        _, st = PAL[accent or self.accent]
+        st = self._pal(accent or self.accent)[1]
         el = self._own(_base("line", self.x0 + x, self.y0 + y))
         el.update(points=[[0, 0], [w, 0]], width=w, height=0,
                   strokeColor=st, strokeWidth=4)
@@ -154,7 +183,7 @@ class Slide:
 
     def pill(self, x, y, text, accent=None, fs=18):
         """Надзаголовок-чип. Ширина по тексту."""
-        bg, st = self._pal(accent or self.accent)
+        bg, st, _ = self._pal(accent or self.accent)
         w = round(len(text) * fs * _GLYPH[2] + 52, 2)  # запас, чтобы оценка переноса не была пограничной
         h = round(fs * LINE_H + 18, 2)
         r = self._own(_base("rectangle", self.x0 + x, self.y0 + y))
@@ -171,6 +200,7 @@ class Slide:
         t["width"] = round(w - 32, 2)
         t["height"] = round(fs * LINE_H, 2)
         r["boundElements"] = [{"id": tid, "type": "text"}]
+        t["strokeColor"] = text_on(bg, self.deck.theme)
         self._tag(r, "pill")
         self._tag(t, "pill.t", text)
         return r
@@ -178,7 +208,7 @@ class Slide:
     def card(self, x, y, w, text, accent="gray", fs=26, align="center",
              h=None, pad_h=40):
         """Фигура с bound-текстом. Высота — по оценке переноса (или явная h)."""
-        bg, st = self._pal(accent)
+        bg, st, _ = self._pal(accent)
         th = est_wrapped_height(text, w - 2 * PAD, fs)
         hh = round(h or th + pad_h, 2)
         r = self._own(_base("rectangle", self.x0 + x, self.y0 + y))
@@ -196,6 +226,7 @@ class Slide:
         t["width"] = round(w - 2 * PAD, 2)
         t["height"] = round(th, 2)
         r["boundElements"] = [{"id": tid, "type": "text"}]
+        t["strokeColor"] = text_on(bg, self.deck.theme)
         self._tag(r, "card")
         self._tag(t, "card.t", text)
         return r
@@ -212,7 +243,7 @@ class Slide:
 
     def number(self, accent=None):
         """Номер слайда в правом верхнем углу фрейма."""
-        _, st = PAL[accent or self.accent]
+        st = self._pal(accent or self.accent)[2]
         return self._text(FRAME_W - 160, 110, self.num, 18, st, kind="num")
 
     def screenshot_placeholder(self, x, y, w, caption, accent="gray"):
@@ -222,7 +253,7 @@ class Slide:
     def timeline(self, x, y, w, items, accent=None):
         """Линия времени: точки по числу событий, подписи снизу.
         items: [(текст, роль|None)]."""
-        _, st = PAL[accent or self.accent]
+        st = self._pal(accent or self.accent)[1]
         line = self._own(_base("line", self.x0 + x, self.y0 + y))
         line.update(points=[[0, 0], [w, 0]], width=w, height=0,
                     strokeColor=st, strokeWidth=3)
@@ -230,7 +261,7 @@ class Slide:
         n = max(len(items) - 1, 1)
         step = w / n
         for i, (label, role) in enumerate(items):
-            bg, rst = PAL[role or accent or self.accent]
+            bg, rst, _ = self._pal(role or accent or self.accent)
             cx = x + i * step
             dot = self._own(_base("ellipse", self.x0 + cx - 8, self.y0 + y - 8))
             dot.update(width=16, height=16, strokeColor=rst,
@@ -242,7 +273,7 @@ class Slide:
 
     def stat(self, x, y, number, label, accent=None, fs=120):
         """Цифра-удар: гигантское число + подпись под ним."""
-        _, st = PAL[accent or self.accent]
+        st = self._pal(accent or self.accent)[2]
         self._text(x, y, str(number), fs, st, kind="stat.num")
         self._text(x, y + round(fs * LINE_H * 1.02, 2), label, 28,
                    self.deck.theme["muted"], kind="stat.label")
@@ -250,7 +281,7 @@ class Slide:
     def bars(self, x, y, w, items, accent="blue"):
         """Горизонтальные бары: items=[(label, value)], сортируй по убыванию.
         Колонка лейблов 340px, бар по доле максимума, значение справа."""
-        bg, st = PAL[accent]
+        bg, st, _ = self._pal(accent)
         maxv = max(v for _, v in items)
         bar_w = w - 420
         for i, (label, v) in enumerate(items):
@@ -447,6 +478,25 @@ class Deck:
             fid = e.get("frameId")
             if fid and fid not in frames:
                 problems.append(f"FAIL: frameId на несуществующий фрейм")
+        # контраст текста (WCAG): FAIL < 4.5 (крупный < 3); WARN — основной текст < 7.
+        # Элементы без ключа (правки владельца) не хороним — только WARN.
+        paper = self.theme["paper"]
+        for e in self.elements:
+            if e["type"] != "text":
+                continue
+            key = (e.get("customData") or {}).get("deck-key") or ""
+            keyed = bool(key) and not key.startswith("panel/")
+            c = by_id.get(e.get("containerId"))
+            bg = c["backgroundColor"] if c and c.get("backgroundColor") not in (None, "transparent") else paper
+            r = contrast(e["strokeColor"], bg)
+            fs = e.get("fontSize", 0)
+            fail_at = 3.0 if fs >= 40 else 4.5
+            warn_at = 4.5 if fs >= 40 else (7.0 if fs >= 22 else None)
+            if r < fail_at:
+                lvl = "FAIL" if keyed else "WARN"
+                problems.append(f"{lvl}: контраст {r:.1f}:1 < {fail_at} — {e['text'][:40]!r} на {bg}")
+            elif warn_at and r < warn_at:
+                problems.append(f"WARN: контраст {r:.1f}:1 < {warn_at} — {e['text'][:40]!r} на {bg}")
         for f in frames.values():
             kids = [e for e in self.elements if e.get("frameId") == f["id"]]
             outside = [e for e in kids

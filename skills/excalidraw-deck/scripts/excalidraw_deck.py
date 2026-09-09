@@ -312,6 +312,23 @@ class Slide:
         self._tag(el, "conn")
         return el
 
+    def hline(self, x, y, w, color=None, width=2):
+        """Горизонтальная линия (оси, сетка)."""
+        el = self._own(_base("line", self.x0 + x, self.y0 + y))
+        el.update(points=[[0, 0], [w, 0]], width=w, height=0,
+                  strokeColor=color or self.deck.theme["muted"], strokeWidth=width)
+        self._tag(el, "hline")
+        return el
+
+    def dot(self, x, y, d=12, accent="blue"):
+        """Точка-маркер сервиса (цвет роли)."""
+        bg, st, _ = self._pal(accent)
+        e = self._own(_base("ellipse", self.x0 + x, self.y0 + y))
+        e.update(width=d, height=d, strokeColor=st, backgroundColor=bg,
+                 fillStyle="solid")
+        self._tag(e, "dot")
+        return e
+
 
 class Deck:
     def __init__(self, theme="handdrawn"):

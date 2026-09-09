@@ -112,32 +112,32 @@ class Slide:
         return el
 
     # -- примитивы ----------------------------------------------------------
-    def title(self, text, fs=40, color=INK, x=120, y=150):
+    def title(self, text, fs=64, color=INK, x=120, y=140):
         return self._text(x, y, text, fs, color, kind="title")
 
-    def subtitle(self, text, fs=24, color=MUTED, x=120, y=None):
+    def subtitle(self, text, fs=30, color=MUTED, x=120, y=None):
         return self._text(x, y if y is not None else 330, text, fs, color,
                           kind="subtitle")
 
-    def row(self, x, y, text, fs=20, color=INK):
+    def row(self, x, y, text, fs=28, color=INK):
         return self._text(x, y, text, fs, color, kind="row")
 
-    def big(self, x, y, text, color, fs=44):
+    def big(self, x, y, text, color, fs=56):
         return self._text(x, y, text, fs, color, kind="big")
 
-    def underline(self, x, y, accent=None, w=90):
+    def underline(self, x, y, accent=None, w=120):
         _, st = PAL[accent or self.accent]
         el = self._own(_base("line", self.x0 + x, self.y0 + y))
         el.update(points=[[0, 0], [w, 0]], width=w, height=0,
-                  strokeColor=st, strokeWidth=3)
+                  strokeColor=st, strokeWidth=4)
         self._tag(el, "underline")
         return el
 
-    def pill(self, x, y, text, accent=None, fs=15):
+    def pill(self, x, y, text, accent=None, fs=18):
         """Надзаголовок-чип. Ширина по тексту."""
         bg, st = PAL[accent or self.accent]
-        w = round(len(text) * fs * _GLYPH[2] + 44, 2)  # запас, чтобы оценка переноса не была пограничной
-        h = round(fs * LINE_H + 14, 2)
+        w = round(len(text) * fs * _GLYPH[2] + 52, 2)  # запас, чтобы оценка переноса не была пограничной
+        h = round(fs * LINE_H + 18, 2)
         r = self._own(_base("rectangle", self.x0 + x, self.y0 + y))
         r.update(width=w, height=h, backgroundColor=bg, strokeColor=st,
                  roundness={"type": 3})
@@ -156,8 +156,8 @@ class Slide:
         self._tag(t, "pill.t", text)
         return r
 
-    def card(self, x, y, w, text, accent="gray", fs=20, align="center",
-             h=None, pad_h=30):
+    def card(self, x, y, w, text, accent="gray", fs=26, align="center",
+             h=None, pad_h=40):
         """Фигура с bound-текстом. Высота — по оценке переноса (или явная h)."""
         bg, st = PAL[accent]
         th = est_wrapped_height(text, w - 2 * PAD, fs)
@@ -193,10 +193,10 @@ class Slide:
     def number(self, accent=None):
         """Номер слайда в правом верхнем углу фрейма."""
         _, st = PAL[accent or self.accent]
-        return self._text(FRAME_W - 140, 96, self.num, 16, st, kind="num")
+        return self._text(FRAME_W - 160, 110, self.num, 18, st, kind="num")
 
     def screenshot_placeholder(self, x, y, w, caption, accent="gray"):
-        return self.card(x, y, w, caption, accent, fs=18, h=150)
+        return self.card(x, y, w, caption, accent, fs=24, h=180)
 
 
 class Deck:

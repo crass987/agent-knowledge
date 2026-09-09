@@ -32,6 +32,7 @@ PAL = {
     "amber":  ("#ffec99", "#f08c00", "#b23c05"),
     "red":    ("#ffc9c9", "#e03131", "#c92a2a"),
     "gray":   ("#e9ecef", "#495057", "#495057"),
+    "code":   ("#343a40", "#adb5bd", "#e9ecef"),
 }
 
 # грубая ширина глифа в долях fontSize (для оценки переноса строк; завышено намеренно)
@@ -76,6 +77,7 @@ THEMES = {
                       "amber":  ("#5c4713", "#ffd43b", "#ffd43b"),
                       "red":    ("#5a2323", "#ff8787", "#ff8787"),
                       "gray":   ("#343a40", "#adb5bd", "#ced4da"),
+                      "code":   ("#21262d", "#adb5bd", "#e9ecef"),
                   }},
 }
 
@@ -206,10 +208,11 @@ class Slide:
         return r
 
     def card(self, x, y, w, text, accent="gray", fs=26, align="center",
-             h=None, pad_h=40):
-        """Фигура с bound-текстом. Высота — по оценке переноса (или явная h)."""
+             h=None, pad_h=40, font=2):
+        """Фигура с bound-текстом. Высота — по оценке переноса (или явная h).
+        font=3 — моно (JSON, код); accent="code" — тёмная карточка кода."""
         bg, st, _ = self._pal(accent)
-        th = est_wrapped_height(text, w - 2 * PAD, fs)
+        th = est_wrapped_height(text, w - 2 * PAD, fs, font)
         hh = round(h or th + pad_h, 2)
         r = self._own(_base("rectangle", self.x0 + x, self.y0 + y))
         r.update(width=w, height=hh, backgroundColor=bg, strokeColor=st,
@@ -217,10 +220,11 @@ class Slide:
         tid = _new_id()
         t = self._own(_base("text", 0, 0))
         t.update(id=tid, text=text, originalText=text, fontSize=fs,
-                 lineHeight=LINE_H, baseline=round(fs * 1.05, 2),
+                 fontFamily=font, lineHeight=LINE_H,
+                 baseline=round(fs * 1.05, 2),
                  containerId=r["id"], textAlign=align,
                  verticalAlign="middle", autoResize=False,
-                 strokeColor=self.deck.theme["ink"])
+                 strokeColor=text_on(bg, self.deck.theme))
         t["x"] = self.x0 + x + PAD
         t["y"] = self.y0 + y + round(hh / 2 - th / 2, 2)
         t["width"] = round(w - 2 * PAD, 2)

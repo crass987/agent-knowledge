@@ -37,6 +37,17 @@ PAL = {
 _GLYPH = {1: 0.58, 2: 0.52, 3: 0.60}
 LINE_H = 1.25
 
+# Пресеты стилей — references/style-presets.md. Один пресет на деку.
+THEMES = {
+    "handdrawn": {"paper": "#ffffff", "ink": "#1e1e1e", "muted": "#495057",
+                  "faint": "#868e96", "roughness": 1},
+    "clean":     {"paper": "#ffffff", "ink": "#1e1e1e", "muted": "#495057",
+                  "faint": "#868e96", "roughness": 0},
+    "dark":      {"paper": "#1a1a1a", "ink": "#f1f3f5", "muted": "#ced4da",
+                  "faint": "#adb5bd", "roughness": 1,
+                  "gray": ("#343a40", "#adb5bd")},
+}
+
 
 def _new_id():
     return secrets.token_hex(10)
@@ -97,14 +108,22 @@ class Slide:
     # -- служебное ---------------------------------------------------------
     def _own(self, el):
         el["frameId"] = self.frame["id"]
+        el["roughness"] = self.deck.theme["roughness"]
         self.deck.elements.append(el)
         return el
 
-    def _text(self, x, y, text, fs, color=INK, font=2, kind="text"):
+    def _pal(self, accent):
+        """Цвет роли с учётом пресета (тёмная тема перекрашивает серый)."""
+        if accent == "gray" and "gray" in self.deck.theme:
+            return self.deck.theme["gray"]
+        return PAL[accent]
+
+    def _text(self, x, y, text, fs, color=None, font=2, kind="text"):
         el = self._own(_base("text", self.x0 + x, self.y0 + y, font))
         el.update(text=text, originalText=text, fontSize=fs, lineHeight=LINE_H,
                   baseline=round(fs * 1.05, 2), textAlign="left",
-                  verticalAlign="top", autoResize=True, strokeColor=color)
+                  verticalAlign="top", autoResize=True,
+                  strokeColor=color or self.deck.theme["ink"])
         lines = text.split("\n")
         el["height"] = round(len(lines) * fs * LINE_H, 2)
         el["width"] = round(max(len(l) for l in lines) * fs * _GLYPH[font], 2)
@@ -112,17 +131,17 @@ class Slide:
         return el
 
     # -- примитивы ----------------------------------------------------------
-    def title(self, text, fs=64, color=INK, x=120, y=140):
+    def title(self, text, fs=64, color=None, x=120, y=140):
         return self._text(x, y, text, fs, color, kind="title")
 
-    def subtitle(self, text, fs=30, color=MUTED, x=120, y=None):
-        return self._text(x, y if y is not None else 330, text, fs, color,
-                          kind="subtitle")
+    def subtitle(self, text, fs=30, color=None, x=120, y=None):
+        return self._text(x, y if y is not None else 330, text, fs,
+                          color or self.deck.theme["muted"], kind="subtitle")
 
-    def row(self, x, y, text, fs=28, color=INK):
+    def row(self, x, y, text, fs=28, color=None):
         return self._text(x, y, text, fs, color, kind="row")
 
-    def big(self, x, y, text, color, fs=56):
+    def big(self, x, y, text, color=None, fs=56):
         return self._text(x, y, text, fs, color, kind="big")
 
     def underline(self, x, y, accent=None, w=120):
@@ -135,7 +154,7 @@ class Slide:
 
     def pill(self, x, y, text, accent=None, fs=18):
         """Надзаголовок-чип. Ширина по тексту."""
-        bg, st = PAL[accent or self.accent]
+        bg, st = self._pal(accent or self.accent)
         w = round(len(text) * fs * _GLYPH[2] + 52, 2)  # запас, чтобы оценка переноса не была пограничной
         h = round(fs * LINE_H + 18, 2)
         r = self._own(_base("rectangle", self.x0 + x, self.y0 + y))
@@ -159,7 +178,7 @@ class Slide:
     def card(self, x, y, w, text, accent="gray", fs=26, align="center",
              h=None, pad_h=40):
         """Фигура с bound-текстом. Высота — по оценке переноса (или явная h)."""
-        bg, st = PAL[accent]
+        bg, st = self._pal(accent)
         th = est_wrapped_height(text, w - 2 * PAD, fs)
         hh = round(h or th + pad_h, 2)
         r = self._own(_base("rectangle", self.x0 + x, self.y0 + y))
@@ -170,7 +189,8 @@ class Slide:
         t.update(id=tid, text=text, originalText=text, fontSize=fs,
                  lineHeight=LINE_H, baseline=round(fs * 1.05, 2),
                  containerId=r["id"], textAlign=align,
-                 verticalAlign="middle", autoResize=False, strokeColor=INK)
+                 verticalAlign="middle", autoResize=False,
+                 strokeColor=self.deck.theme["ink"])
         t["x"] = self.x0 + x + PAD
         t["y"] = self.y0 + y + round(hh / 2 - th / 2, 2)
         t["width"] = round(w - 2 * PAD, 2)
@@ -185,7 +205,7 @@ class Slide:
         el = self._own(_base("arrow", self.x0 + x, self.y0 + y))
         el.update(points=[[0, 0], [dx, dy]], width=abs(dx), height=abs(dy),
                   endArrowhead="arrow", strokeWidth=width,
-                  strokeColor=color or MUTED,
+                  strokeColor=color or self.deck.theme["muted"],
                   roundness={"type": 2} if curve else None)
         self._tag(el, "arrow")
         return el
@@ -198,9 +218,56 @@ class Slide:
     def screenshot_placeholder(self, x, y, w, caption, accent="gray"):
         return self.card(x, y, w, caption, accent, fs=24, h=180)
 
+    # -- инфографика (references/infographics.md) ---------------------------
+    def timeline(self, x, y, w, items, accent=None):
+        """Линия времени: точки по числу событий, подписи снизу.
+        items: [(текст, роль|None)]."""
+        _, st = PAL[accent or self.accent]
+        line = self._own(_base("line", self.x0 + x, self.y0 + y))
+        line.update(points=[[0, 0], [w, 0]], width=w, height=0,
+                    strokeColor=st, strokeWidth=3)
+        self._tag(line, "tl.line")
+        n = max(len(items) - 1, 1)
+        step = w / n
+        for i, (label, role) in enumerate(items):
+            bg, rst = PAL[role or accent or self.accent]
+            cx = x + i * step
+            dot = self._own(_base("ellipse", self.x0 + cx - 8, self.y0 + y - 8))
+            dot.update(width=16, height=16, strokeColor=rst,
+                       backgroundColor=bg, fillStyle="solid")
+            self._tag(dot, "tl.dot")
+            t = self._text(cx - 150, y + 28, label, 22, kind="tl.label")
+            t["textAlign"] = "center"
+            t["x"] = self.x0 + cx - t["width"] / 2
+
+    def stat(self, x, y, number, label, accent=None, fs=120):
+        """Цифра-удар: гигантское число + подпись под ним."""
+        _, st = PAL[accent or self.accent]
+        self._text(x, y, str(number), fs, st, kind="stat.num")
+        self._text(x, y + round(fs * LINE_H * 1.02, 2), label, 28,
+                   self.deck.theme["muted"], kind="stat.label")
+
+    def bars(self, x, y, w, items, accent="blue"):
+        """Горизонтальные бары: items=[(label, value)], сортируй по убыванию.
+        Колонка лейблов 340px, бар по доле максимума, значение справа."""
+        bg, st = PAL[accent]
+        maxv = max(v for _, v in items)
+        bar_w = w - 420
+        for i, (label, v) in enumerate(items):
+            yb = y + i * 76
+            self._text(x, yb + 6, label, 24, kind="bar.label")
+            r = self._own(_base("rectangle", self.x0 + x + 340, self.y0 + yb))
+            bw = round(max(bar_w * v / maxv, 24), 2)
+            r.update(width=bw, height=48, backgroundColor=bg,
+                     strokeColor=st, roundness={"type": 3})
+            self._tag(r, "bar.rect")
+            self._text(x + 340 + bw + 16, yb + 6, str(v), 24,
+                       self.deck.theme["muted"], kind="bar.val")
+
 
 class Deck:
-    def __init__(self):
+    def __init__(self, theme="handdrawn"):
+        self.theme = THEMES[theme]
         self.elements = []
         self.slides = []
 
@@ -246,7 +313,7 @@ class Deck:
             "type": "excalidraw", "version": 2,
             "source": "agent-knowledge/excalidraw-deck",
             "elements": self.elements, "appState": {
-                "viewBackgroundColor": "#ffffff", "gridSize": None},
+                "viewBackgroundColor": self.theme["paper"], "gridSize": None},
             "files": {},
         }
         with open(path, "w", encoding="utf-8") as f:

@@ -1,0 +1,258 @@
+"""Библиотека сборки .excalidraw-дек: слайд = фрейм 1920x1080.
+
+Скилл: excalidraw-deck (agent-knowledge). См. SKILL.md и references/templates.md.
+
+Ключевые решения:
+- каждый слайд — element type 'frame' с именем «NN · метка»; дети помечены frameId;
+- текст внутри фигуры ВСЕГДА bound (containerId + boundElements) — Excalidraw сам
+  переносит строки внутри рамки, переполнение по ширине невозможно;
+- цвета только из PAL (semantic роли), шрифт fontFamily=2 по умолчанию;
+- программа-element'ы не содержат 'index' (дробный порядок Excalidraw) — он
+  регенерируется при загрузке; унаследованные элементы сохраняют свой.
+"""
+
+import json
+import math
+import secrets
+import time
+
+FRAME_W, FRAME_H, GAP = 1920, 1080, 240
+PAD = 12            # внутренний отступ bound-текста (Excalidraw использует 2x5)
+INK = "#1e1e1e"
+MUTED = "#495057"
+FAINT = "#868e96"
+NUMBER = "#adb5bd"
+
+# Роль -> (мягкая заливка, обводка). Полный смысл ролей — references/palette.md.
+PAL = {
+    "blue":   ("#a5d8ff", "#1971c2"),   # факты, классика, техника
+    "violet": ("#d0bfff", "#6741d9"),   # вступление, теория, рамка доклада
+    "green":  ("#b2f2bb", "#2f9e44"),   # решения, «как правильно»
+    "amber":  ("#ffec99", "#f08c00"),   # ключевые формулы, акцент-баннеры
+    "red":    ("#ffc9c9", "#e03131"),   # анти-паттерны, финал, предупреждения
+    "gray":   ("#e9ecef", "#495057"),   # нейтральное, плейсхолдеры
+}
+
+# грубая ширина глифа в долях fontSize (для оценки переноса строк)
+_GLYPH = {1: 0.58, 2: 0.52, 3: 0.60}
+LINE_H = 1.25
+
+
+def _new_id():
+    return secrets.token_hex(10)
+
+
+def _base(kind, x, y, font=2):
+    """Каркас элемента с обязательными полями формата Excalidraw v2."""
+    now = int(time.time() * 1000)
+    return {
+        "id": _new_id(), "type": kind, "x": x, "y": y,
+        "width": 0, "height": 0, "angle": 0,
+        "strokeColor": INK, "backgroundColor": "transparent",
+        "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
+        "roughness": 1, "opacity": 100, "roundness": None,
+        "seed": secrets.randbelow(2**31), "version": 2,
+        "versionNonce": secrets.randbelow(2**31), "isDeleted": False,
+        "boundElements": None, "updated": now, "link": None, "locked": False,
+        "fontFamily": font,
+    }
+
+
+def est_wrapped_height(text, box_width, fs, font=2):
+    """Оценка высоты текста после переноса в коробку шириной box_width."""
+    cpl = max(6, int(box_width / (fs * _GLYPH.get(font, 0.55))))
+    lines = sum(max(1, math.ceil(len(l) / cpl)) for l in text.split("\n"))
+    return lines * fs * LINE_H
+
+
+class Slide:
+    """Один фрейм-слайд. Все координаты методов — ЛОКАЛЬНЫЕ (от угла фрейма)."""
+
+    def __init__(self, deck, num, name, accent):
+        self.deck = deck
+        self.num = num
+        self.accent = accent
+        self.x0 = 0
+        self.y0 = len(deck.slides) * (FRAME_H + GAP)
+        fr = _base("frame", self.x0, self.y0)
+        fr["width"], fr["height"] = FRAME_W, FRAME_H
+        fr["name"] = f"{num} · {name}"
+        fr["fillStyle"] = "solid"
+        fr["strokeColor"] = "#dee2e6"
+        deck.elements.append(fr)
+        self.frame = fr
+
+    # -- служебное ---------------------------------------------------------
+    def _own(self, el):
+        el["frameId"] = self.frame["id"]
+        self.deck.elements.append(el)
+        return el
+
+    def _text(self, x, y, text, fs, color=INK, font=2):
+        el = self._own(_base("text", self.x0 + x, self.y0 + y, font))
+        el.update(text=text, originalText=text, fontSize=fs, lineHeight=LINE_H,
+                  baseline=round(fs * 1.05, 2), textAlign="left",
+                  verticalAlign="top", autoResize=True, strokeColor=color)
+        lines = text.split("\n")
+        el["height"] = round(len(lines) * fs * LINE_H, 2)
+        el["width"] = round(max(len(l) for l in lines) * fs * _GLYPH[font], 2)
+        return el
+
+    # -- примитивы ----------------------------------------------------------
+    def title(self, text, fs=40, color=INK, x=120, y=150):
+        return self._text(x, y, text, fs, color)
+
+    def subtitle(self, text, fs=24, color=MUTED, x=120, y=None):
+        return self._text(x, y if y is not None else 330, text, fs, color)
+
+    def row(self, x, y, text, fs=20, color=INK):
+        return self._text(x, y, text, fs, color)
+
+    def big(self, x, y, text, color, fs=44):
+        return self._text(x, y, text, fs, color)
+
+    def underline(self, x, y, accent=None, w=90):
+        _, st = PAL[accent or self.accent]
+        el = self._own(_base("line", self.x0 + x, self.y0 + y))
+        el.update(points=[[0, 0], [w, 0]], width=w, height=0,
+                  strokeColor=st, strokeWidth=3)
+        return el
+
+    def pill(self, x, y, text, accent=None, fs=15):
+        """Надзаголовок-чип. Ширина по тексту."""
+        bg, st = PAL[accent or self.accent]
+        w = round(len(text) * fs * _GLYPH[2] + 44, 2)  # запас, чтобы оценка переноса не была пограничной
+        h = round(fs * LINE_H + 14, 2)
+        r = self._own(_base("rectangle", self.x0 + x, self.y0 + y))
+        r.update(width=w, height=h, backgroundColor=bg, strokeColor=st,
+                 roundness={"type": 3})
+        tid = _new_id()
+        t = self._own(_base("text", 0, 0))
+        t.update(id=tid, text=text, originalText=text, fontSize=fs,
+                 lineHeight=LINE_H, baseline=round(fs * 1.05, 2),
+                 containerId=r["id"], textAlign="center",
+                 verticalAlign="middle", autoResize=False, strokeColor=INK)
+        t["x"] = self.x0 + x + 16
+        t["y"] = self.y0 + y + round(h / 2 - fs * LINE_H / 2, 2)
+        t["width"] = round(w - 32, 2)
+        t["height"] = round(fs * LINE_H, 2)
+        r["boundElements"] = [{"id": tid, "type": "text"}]
+        return r
+
+    def card(self, x, y, w, text, accent="gray", fs=20, align="center",
+             h=None, pad_h=30):
+        """Фигура с bound-текстом. Высота — по оценке переноса (или явная h)."""
+        bg, st = PAL[accent]
+        th = est_wrapped_height(text, w - 2 * PAD, fs)
+        hh = round(h or th + pad_h, 2)
+        r = self._own(_base("rectangle", self.x0 + x, self.y0 + y))
+        r.update(width=w, height=hh, backgroundColor=bg, strokeColor=st,
+                 roundness={"type": 3})
+        tid = _new_id()
+        t = self._own(_base("text", 0, 0))
+        t.update(id=tid, text=text, originalText=text, fontSize=fs,
+                 lineHeight=LINE_H, baseline=round(fs * 1.05, 2),
+                 containerId=r["id"], textAlign=align,
+                 verticalAlign="middle", autoResize=False, strokeColor=INK)
+        t["x"] = self.x0 + x + PAD
+        t["y"] = self.y0 + y + round(hh / 2 - th / 2, 2)
+        t["width"] = round(w - 2 * PAD, 2)
+        t["height"] = round(th, 2)
+        r["boundElements"] = [{"id": tid, "type": "text"}]
+        return r
+
+    def arrow(self, x, y, dx, dy, curve=True, color=None, width=2):
+        """Стрелка из (x,y) со смещением (dx,dy). points относительные."""
+        el = self._own(_base("arrow", self.x0 + x, self.y0 + y))
+        el.update(points=[[0, 0], [dx, dy]], width=abs(dx), height=abs(dy),
+                  endArrowhead="arrow", strokeWidth=width,
+                  strokeColor=color or MUTED,
+                  roundness={"type": 2} if curve else None)
+        return el
+
+    def number(self, accent=None):
+        """Номер слайда в правом верхнем углу фрейма."""
+        _, st = PAL[accent or self.accent]
+        return self._text(FRAME_W - 140, 96, self.num, 16, st)
+
+    def screenshot_placeholder(self, x, y, w, caption, accent="gray"):
+        return self.card(x, y, w, caption, accent, fs=18, h=150)
+
+
+class Deck:
+    def __init__(self):
+        self.elements = []
+        self.slides = []
+
+    def slide(self, name, accent="violet", num=None):
+        num = num or f"{len(self.slides) + 1:02d}"
+        s = Slide(self, num, name, accent)
+        self.slides.append(s)
+        return s
+
+    def add_raw(self, elements, dx=0, dy=0):
+        """Вставить готовые элементы (заметки, панель) со сдвигом, вне фреймов."""
+        import copy
+        for e in elements:
+            e = copy.deepcopy(e)
+            e["id"] = _new_id()
+            e.pop("index", None)
+            e.pop("frameId", None)
+            e.pop("groupId", None)
+            e.pop("groupIds", None)
+            e["x"] = e.get("x", 0) + dx
+            e["y"] = e.get("y", 0) + dy
+            self.elements.append(e)
+
+    def validate(self):
+        """Список проблем: FAIL чинить обязательно, WARN — по вкусу."""
+        problems = []
+        ids = [e["id"] for e in self.elements]
+        if len(ids) != len(set(ids)):
+            problems.append("FAIL: дубликаты id")
+        by_id = {e["id"]: e for e in self.elements}
+        frames = {e["id"]: e for e in self.elements if e["type"] == "frame"}
+        for e in self.elements:
+            if e.get("containerId"):
+                c = by_id.get(e["containerId"])
+                if not c:
+                    problems.append(f"FAIL: текст {e['id']} без контейнера")
+                    continue
+                if not (c["x"] <= e["x"] and c["y"] <= e["y"] and
+                        e["x"] + e["width"] <= c["x"] + c["width"] and
+                        e["y"] + e["height"] <= c["y"] + c["height"]):
+                    problems.append(
+                        f"FAIL: bound-текст вне контейнера {c['id']}")
+                th = est_wrapped_height(e["text"], e["width"],
+                                        e["fontSize"], e["fontFamily"])
+                if th > c["height"] - 4:
+                    problems.append(
+                        f"WARN: текст в {c['id']} тесноват "
+                        f"(~{th:.0f} > {c['height']:.0f}): {e['text'][:40]!r}")
+            fid = e.get("frameId")
+            if fid and fid not in frames:
+                problems.append(f"FAIL: frameId на несуществующий фрейм")
+        for f in frames.values():
+            kids = [e for e in self.elements if e.get("frameId") == f["id"]]
+            outside = [e for e in kids
+                       if e["x"] < f["x"] - 1 or e["y"] < f["y"] - 1 or
+                       e["x"] + e["width"] > f["x"] + f["width"] + 1 or
+                       e["y"] + e["height"] > f["y"] + f["height"] + 1]
+            for e in outside:
+                if e["type"] not in ("arrow",):  # стрелкам прощаем кривизну
+                    problems.append(
+                        f"WARN: {e['type']} вылезает из фрейма "
+                        f"{f.get('name')}: {e.get('text', e['id'])[:40]!r}")
+        return problems
+
+    def save(self, path):
+        doc = {
+            "type": "excalidraw", "version": 2,
+            "source": "agent-knowledge/excalidraw-deck",
+            "elements": self.elements, "appState": {
+                "viewBackgroundColor": "#ffffff", "gridSize": None},
+            "files": {},
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(doc, f, ensure_ascii=False)
+        return path

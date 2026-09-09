@@ -26,6 +26,7 @@ Load the relevant SKILL.md when the task matches. Grouped by track: **Discovery*
 | testing, TDD, red-green-refactor, write tests first | `tdd/SKILL.md` |
 | debugging, investigating bugs, errors, stack trace | `debugging/SKILL.md` |
 | code review, PR review, pull request, feedback | `code-review/SKILL.md` |
+| excalidraw deck, колода, слайды excalidraw, презентация excalidraw, переложи доклад в деку, вылезание текста | `excalidraw-deck/SKILL.md` |
 | update artifacts, refresh profiles, C2 audit/fix, sync repos and docs, обнови артефакты, am-update | `am-update/SKILL.md` |
 | вид работ, разметка тикетов, CAPEX OPEX, Tempo, специализированная разработка, mark work type, классификация задач по видам работ | `vid-rabot/SKILL.md` |
 

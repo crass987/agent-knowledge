@@ -95,21 +95,13 @@ scope: skill:am-update
 
 ---
 type: operational
-key: am-update-drift-vs-profile-date
-insight: В facts-отчёте drift (collect-repo-facts.sh) считается относительно даты repo-AGENTS.md, а не штампа «Last refreshed» в meta/repos/*.md — пересчитывай commits-since относительно даты профиля, иначе Stage 1 work-list раздувается (пример 2026-07-28: event-processing 418c→8c реально, agent/identity-provider/license-service/amctl/docs → 0c).
+key: am-seeding-two-docsets
+insight: AM сидирование — два параллельных док-сета (master_docs = AS-IS, improvements = TO-BE design), при аудите читать оба; код-истина = admin-backend/cmd/seed.go + internal/seed/*.
 confidence: 9
 source: observed
-files: [meta/scripts/collect-repo-facts.sh, meta/repos/*.md]
-ts: 2026-07-28
-scope: project
----
-am-update Stage 1: `git log --since=<profile-refresh-date> --no-merges | wc -l` per repo — реальная дельта, а не число из Drift-блока facts.
-
----
-name: am-seeding-two-docsets
-description: AM сидирование — два параллельных док-сета (master_docs=AS-IS, improvements=TO-BE design), дрейфуют
-metadata:
-  type: operational
+files: [analytics-hub/master_docs/docs/Установка и обновление/Сидирование/seeding.md, analytics-hub/improvements/docs/Установка и обновление/Сидирование/, admin-backend/cmd/seed.go]
+ts: 2026-08-03
+scope: skill:am-docs-audit
 ---
 По сидированию AM есть два док-сета, которые надо различать при аудите:
 - `analytics-hub/master_docs/docs/Установка и обновление/Сидирование/seeding.md` = **AS-IS**, описывает текущий код (`admin-backend/internal/seed/`, `cmd/seed.go`). Trust для текущего механизма, но отстаёт на релиз (на 2026-08-03 не хватает snmp/vector_configs, неверный exit code).
@@ -119,9 +111,12 @@ metadata:
 ---
 type: operational
 key: c2-canonical-copy
-insight: Канонический C2-контейнеры.md живёт в analytics-hub; rag-agent/Notes — устаревшее зеркало.
+insight: Канонический C2-контейнеры.md живёт в analytics-hub; rag-agent/Notes — устаревшее зеркало. Править только analytics-hub.
 confidence: 9
 source: observed
+files: [analytics-hub/master_docs/docs/Архитектура/C2-контейнеры.md, rag-agent/Notes/master_docs/Архитектура/C2-контейнеры.md]
+ts: 2026-08-04
+scope: skill:am-update
 ---
 Две копии C2-контейнеры.md:
 - `analytics-hub/master_docs/docs/Архитектура/C2-контейнеры.md` = **канон** (vmalert уже «НЕ ИСПОЛЬЗУЕТСЯ, Сальников 2026-07-06»; modern-traps «подключён к runtime»).
@@ -172,3 +167,37 @@ files: ["clone-repos.sh", "repos.yml"]
 ts: 2026-08-11
 scope: harness
 ---
+
+---
+type: operational
+key: cc-logs-dir-underscore-flattening
+insight: Каталог логов Claude Code = путь проекта в ~/.claude/projects с заменой на дефисы и слэшей, и подчёркиваний (Code_projects → Code-projects).
+confidence: 9
+source: observed
+files: [agent-knowledge/scripts/measure-run.py]
+ts: 2026-08-21
+scope: harness
+---
+Оригинальный measure-run.py от nick-vels делал только replace("/", "-") и молча не находил каталог; фикс — добавить .replace("_", "-").
+
+---
+type: operational
+key: req-spec-path-internal-docs
+insight: REQ/SPEC в analytics-hub лежат в internal_docs/docs/requirements/ и internal_docs/docs/specifications/ (PM.md ошибочно указывает analytics-hub/docs/requirements/) — перед сверкой формата REQ искать в internal_docs.
+confidence: 9
+source: observed
+files: [analytics-hub/internal_docs/docs/requirements, analytics-hub/internal_docs/docs/specifications, PM.md]
+ts: 2026-08-24
+scope: skill:am-write-specs
+---
+---
+type: operational
+key: facts-drift-counter-profile-date
+insight: Дрейф в facts-репорте считается от даты Last-refreshed в шапке профиля, а не от последнего C2-аудита — для аудита C2 брать окно «с даты последнего c2-audit» (git log --since), не число из facts.
+confidence: 9
+source: observed
+files: ["meta/scripts/collect-repo-facts.sh"]
+ts: 2026-09-04
+scope: project
+---
+admin-console: facts показал 16 коммитов с 2026-09-03, фактическое окно после аудита 08-11 — ~230. Отдельный дефект: секция Dirs go-lib в facts обрезана на 30 записях (поднять лимит листинга в collect-repo-facts.sh).

@@ -7,6 +7,11 @@
       "type": "file",
       "path": "/tmp/am-pain-test-input-tsrt.txt",
       "label": "ЦРЦТ demo meeting transcript (Russian) — regenerate if missing"
+    },
+    {
+      "type": "file",
+      "path": "/tmp/am-pain-test-input-vls.txt",
+      "label": "ВЛС demo, real 66-min RU transcript (baseline report exists)"
     }
   ],
   "assertions": [
@@ -168,6 +173,16 @@
       "check": "гипотез|hypothesis|inferred|INSUFFICIENT|требует|depth-interview|depth interview|интервью|валидаци",
       "flags": "i",
       "source_file": "SKILL.md",
+      "generator": "manual"
+    },
+    {
+      "id": "a17",
+      "description": "Current Chain follows canon critical-chain §2: branch-end nodes at any depth, no ancestor next to its own sub-Job, chain runs to where the Big Job lands",
+      "source_rule": "SKILL.md Current Chain + canon critical-chain.md §2 (v0.6.18): chain nodes = bottom of each branch; well-formed chain has no node that is an ancestor of another node on the same line",
+      "type": "regex",
+      "check": "под-Job|конц[еа] ветви|концы ветвей|внутри шага|приземл|глубине ветви",
+      "flags": "i",
+      "source_file": "report-template.md",
       "generator": "manual"
     }
   ]

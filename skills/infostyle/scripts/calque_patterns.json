@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "description": "Каталог калек и канцелярита для calque_scan.py. Заведение нового паттерна — references/pattern-admission.md. Тиры: calque (кальки: классы 1–2a), officialese (канцелярит), hybrid (EN-ru склейки, пост-фильтр allowlist в коде), stop (оценки без меры), loose (шумное, только с --loose).",
+  "version": 2,
+  "description": "Каталог калек, канцелярита и переводной пунктуации для calque_scan.py. Заведение нового паттерна — references/pattern-admission.md. Тиры: calque (кальки: классы 1–2a), officialese (канцелярит), hybrid (EN-ru склейки, пост-фильтр allowlist в коде), stop (оценки без меры), punct (переводная пунктуация), loose (шумное, только с --loose). Поле line_exclude — regex: строка, совпавшая с ним, не проверяется этим паттерном.",
   "patterns": [
     {
       "id": "a1-urovnem-vyshe",
@@ -323,6 +323,28 @@
       "check": "(?:удобн|надёжн|надежн|оптимальн|современн|инновационн)\\w*",
       "fix": "оценка → измеримый факт",
       "source": "_shared/infostyle-core.md; evals b09"
+    },
+    {
+      "id": "p1-semi-clause",
+      "tier": "punct",
+      "check": ";",
+      "line_exclude": "^\\s*(?:[-*+]|\\d+[.)])\\s|^\\s*\\||^(?:[^;]*;){2}",
+      "fix": "точка с запятой вне перечисления: по-русски самостоятельные предложения точкой с запятой не склеивают — точка / двоеточие / тире (если это перечисление — ок)",
+      "source": "правка владельца 2026-09-17; references/punctuation.md §1"
+    },
+    {
+      "id": "p2-defis-kak-tire",
+      "tier": "punct",
+      "check": "\\S\\s+-\\s+\\S",
+      "fix": "дефис вместо тире: « — » (в диапазонах среднее «–»: 10–20)",
+      "source": "references/punctuation.md §2"
+    },
+    {
+      "id": "p3-pryamye-kavychki",
+      "tier": "punct",
+      "check": "\"[^\"\\n]*[А-Яа-яЁё][^\"\\n]*\"",
+      "fix": "прямые кавычки → «ёлочки»; внутри цитаты — „лапки“ (в коде и inline-code — ок)",
+      "source": "references/punctuation.md §3"
     }
   ],
   "hybrid_allowlist": ["saas", "api", "it", "http", "https", "rest", "grpc", "yaml", "json", "ui", "ux", "ci", "cd", "cli", "sdk", "sql", "nosql", "ml", "ai", "vm", "dns", "ssh", "tls", "smtp", "snmp", "oauth", "k8s", "devops", "mvp", "otel", "web", "gdpr", "sso", "rbac", "pg", "ch"],

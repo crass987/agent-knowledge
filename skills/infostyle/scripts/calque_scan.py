@@ -19,6 +19,7 @@ TIER_LABELS = {
     "officialese": "канцелярит",
     "hybrid": "гибрид",
     "stop": "стоп",
+    "punct": "пунктуация",
     "loose": "loose",
 }
 
@@ -31,6 +32,7 @@ def load():
             "id": p["id"],
             "tier": p["tier"],
             "re": re.compile(p["check"], re.IGNORECASE),
+            "line_exclude": re.compile(p["line_exclude"]) if p.get("line_exclude") else None,
             "fix": p.get("fix", ""),
             "source": p.get("source", ""),
         })
@@ -77,6 +79,8 @@ def scan_text(text, patterns, cfg, use_loose=False):
         for p in patterns:
             if p["tier"] == "loose" and not use_loose:
                 continue
+            if p["line_exclude"] and p["line_exclude"].search(raw):
+                continue
             for m in p["re"].finditer(line):
                 if p["tier"] == "hybrid" and is_allowed_hybrid(m, allowlist, generic):
                     continue
@@ -98,7 +102,8 @@ def report(fname, hits, words):
     for h in hits:
         counts[h["tier"]] = counts.get(h["tier"], 0) + 1
     parts = [f"{TIER_LABELS[t]} {counts[t]}" for t in
-             ("calque", "officialese", "hybrid", "stop", "loose") if t in counts]
+             ("calque", "officialese", "hybrid", "stop", "punct", "loose")
+             if t in counts]
     density = (len(hits) / words * 1000) if words else 0.0
     print(f"— {fname}: {', '.join(parts) if parts else 'чисто'} · "
           f"{len(hits)} находок / {words} слов = {density:.1f} на 1000 слов")
@@ -128,7 +133,7 @@ def main():
         inputs = {i["id"]: i["text"] for i in
                   json.loads(evals_path().read_text(encoding="utf-8"))["test_inputs"]}
         failures = 0
-        for fid, floor in (("i1", 8), ("i2", 6)):
+        for fid, floor in (("i1", 8), ("i2", 6), ("i3", 3)):
             n = len(scan_text(inputs[fid], patterns, cfg))
             ok = n >= floor
             failures += not ok

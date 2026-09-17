@@ -12,7 +12,7 @@ Extract structured customer intelligence from a single demo/meeting transcript. 
 - **Sales / pre-sale** — deal tactics: decision map, misalignments, emotional map, deal viability, next steps.
 - **Product / `am-gap-analysis`** — a **Zamesin payload**: Core Jobs with success criteria, Current Chain, classified pains, typed Gap map. This is the feed for cross-meeting product-gap analysis.
 
-**Methodology base = AJTBD / Next Move Theory (Zamesin).** Geoffrey Moore's headpin + deal-viability enter only as a **presale overlay** (§§8, 12 of the template) — not as the segmentation root. The canon lives in `Next-Move-Theory-Canon/Advanced-Jobs-To-Be-Done/` (read `job-structure.md`, `value-creation.md`, `barrier-removal.md` before heavy runs). Apply canon in your own words; do not copy canon text.
+**Methodology base = AJTBD / Next Move Theory (Zamesin).** Geoffrey Moore's headpin + deal-viability enter only as a **presale overlay** (§§8, 12 of the template) — not as the segmentation root. The canon lives in `Next-Move-Theory-Canon/Advanced-Jobs-To-Be-Done/` (read `job-structure.md`, `value-creation.md`, `barrier-removal.md`, `critical-chain.md` before heavy runs). Apply canon in your own words; do not copy canon text.
 
 ## When to Use
 
@@ -79,6 +79,8 @@ A flat «боль» is unusable downstream — different classes need different 
 ### Current Chain
 
 Reconstruct how the customer walks the Big Job **today**, step by step. Mark Tax Jobs — they are your kill-a-Job / take-the-Job-off-customer candidates (the «unautomated work»). A demo transcript often under-supplies this — mark `[INSUFFICIENT DATA]` rather than fabricate, and note what a depth-interview must recover.
+
+Chain discipline (canon `critical-chain.md` §2): nodes are the **branch ends** of the Job Graph, each at its own branch depth. A Job and its own sub-Job never sit side by side — a sub-Job happens **inside** a step, so change that step's zoom. Build the chain from the Big Job it must land and carry it to the node where the Big Job **lands** — a chain that stops at a side step is unfinished. Cross-cutting Jobs from another pass over the Big Job («on the next incident», «when expertise comes back») are not chain steps — they have no place on this incident's timeline.
 
 ### Type every gap (the `am-gap-analysis` feed)
 

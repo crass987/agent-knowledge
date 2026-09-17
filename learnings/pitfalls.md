@@ -188,3 +188,68 @@ ts: 2026-09-08
 scope: skill:video-knowledge-extraction
 ---
 Также regex-поиск таймкодов по большому SRT — только линейным поиском по блокам (split по пустым строкам); finditer с вложенными квантификаторами по 100k+ файлу уходит в катастрофический бэктрекинг.
+---
+type: pitfall
+key: mon-sprint-vs-fixversion
+insight: В MON активный спринт (=имени релиза, напр. «1.7.0») шире fixVersion: 122 открытых задачи спринта 3641 не имели fixVersion — релизный хвост считать только JQL по fixVersion, иначе скоуп раздувается втрое
+confidence: 9
+source: observed
+files: []
+ts: 2026-09-10
+scope: project
+---
+Ревизия v.1.7.0 (10-09): fixVersion-срез 21 открытая, спринт-срез 143. Дополнительно: эпики с «(релиз 1.7.0)» в названии могут не состоять в fixVersion (MON-4663/4664) — заголовок не источник скоупа.
+
+---
+id: playwright-mcp-profile-lock
+date: 2026-09-15
+tags: [playwright, mcp, browser]
+---
+
+**Playwright MCP: «Browser is already in use» = зависший chrome прошлой сессии держит профиль.** Все browser_* вызовы падают сразу. Лечится за один шаг: `pgrep -f "user-data-dir=/Users/CraSS/Library/Caches/ms-playwright-mcp/<профиль>"` → `kill <главный PID>` (процесс с `Google Chrome.app/Contents/MacOS/Google Chrome` в команде, не Helper) → подождать 2–3 с → navigate снова работает. Проверять `pgrep | wc -l` = 0 перед повтором.
+
+---
+type: pitfall
+key: searxng-russian-regulatory-queries-garbage
+insight: локальный searxng инстанс для длинных русских нормативных запросов («класс защищённости К2 ЕМИАС приказ ФСТЭК 17») отдаёт мусор: движок только Bing, запрос дробится на слова → словарные статьи вместо регуляторики. Рабочий паттерн: сразу WebFetch на канонические страницы (fstec.ru, профильные порталы вроде it-security.admin-smolensk.ru для таблицы УЗ×масштаб ГИС, centerbit.ru) + встроенный WebSearch как фоллбэк — 3 пустых searxng-вызова съедают больше времени, чем один прицельный WebFetch.
+confidence: 8
+source: observed
+files: []
+ts: 2026-09-15
+scope: harness
+---
+---
+type: pitfall
+key: confluence-update-content-placeholder
+insight: mcp confluence_update_page публикует ЛЮБОЙ переданный content немедленно — accidental placeholder уходит на живую страницу; для больших тел использовать content_file, но путь обязан быть внутри workspace (path traversal guard режет /tmp)
+confidence: 10
+source: observed
+files: []
+ts: 2026-09-16
+scope: harness
+---
+am-update 2026-09-16: в content утекла строка-заглушка → Confluence v15 опубликован мусором; лечится немедленным повторным update с реальным телом (v16) + верификацией get_page. content_file принимает только пути внутри cwd сессии — сначала скопировать файл из /tmp в workspace.
+
+---
+type: pitfall
+key: speech-to-text-doc-summary-vs-transcript
+insight: Файлы speech_to_text*.doc и презентационные .doc из Downloads — это HTML под маской .doc; конверт может оказаться кратким AI-саммари встречи (Заголовок/ОПИСАНИЕ/ДАЛЬНЕЙШИЕ ШАГИ/Концепции-SWOT), а не полным транскриптом — проверять объём конвертата (self-summary ~5–7 КБ vs транскрипт ~100+ КБ) и просить у пользователя полный speech_to_text файл
+confidence: 9
+source: observed
+files: []
+ts: 2026-09-17
+scope: harness
+---
+textutil -convert txt работает; признак саммари: структура «Заголовок: НАИМЕНОВАНИЕ… Содержимое: <таймкоды-оглавление> Концепции: SWOT».
+
+---
+name: searxng-russian-queries-degraded
+description: SearXNG-инстанс деградирует на русскоязычных поисковых запросах (пустые google/yandex/ddg, мусорный bing) — RU-ресёрч вести через WebSearch
+metadata:
+  type: pitfall
+---
+
+SearXNG (mcp__searxng__searxng_web_search) на русскоязычных запросах отрабатывает нерелевантно: движки google/yandex/ddg возвращают пусто, bing — мусор; web_url_read падает на SSL части RU-сайтов. Подтверждено независимо 4 саб-агентами в одном прогоне (pain research мониторинга 1С, 2026-09-17): все четверо в итоге переключились на WebSearch (z.ai) для поиска. Нюансы обхода: infostart.ru режет кириллицу из HTML при скачивании (анти-скрейп) — тексты брать через README-ссылки/конспекты; habr-комментарии — через kek API; mista.ru в cp1251 (curl + перекодировка).
+
+**Why:** каждый ресёрчер терял 10–20 минут на диагностику «сломанного поиска» вместо сразу рабочего пути.
+**How to apply:** в брифах RU-ресёрч-агентов сразу указывать основной поиск = WebSearch, searxng — запасной для латиницы; RU-сайты читать web_url_read/curl с перекодировкой, инфостарт — не полнотекстом.

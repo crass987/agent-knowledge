@@ -201,3 +201,15 @@ ts: 2026-09-04
 scope: project
 ---
 admin-console: facts показал 16 коммитов с 2026-09-03, фактическое окно после аудита 08-11 — ~230. Отдельный дефект: секция Dirs go-lib в facts обрезана на 30 записях (поднять лимит листинга в collect-repo-facts.sh).
+
+---
+type: operational
+key: srt-clean-strips-timestamps
+insight: srt-clean.py выдаёт transcript.txt без таймкодов, а шаблон документа знаний требует MM:SS для каждой единицы — якоря восстанавливаются перепарсингом исходного SRT из source/ (python: regex по блокам, поиск фразы → первый таймкод).
+confidence: 9
+source: observed
+files: ["~/.claude/skills/video-knowledge-extraction/scripts/srt-clean.py"]
+ts: 2026-09-14
+scope: harness
+---
+SRT парсится одним python-скриптом: split по \n\n, блок с '-->' в строке 1, timestamp из start, текст после тегов. Оригинал SRT сохраняйте в source/ до очистки.

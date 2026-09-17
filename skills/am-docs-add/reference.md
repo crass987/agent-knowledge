@@ -18,6 +18,9 @@ the project-specific gotchas. The **values** (baseline counts, hosts, quirks) li
   `gitlab.astra-monitoring.astralinux.ru`.
 - Wrong branch-name recovery: the commit survives `git branch -D` →
   `git branch <new> <sha>`, push, the old MR auto-closes.
+- **MR description** — та же человеческая таблица, что и Jira-коммент (`||Страница||Что
+  сделали||Смотреть||`), + `Closes MON-XXXX`. **Не** дамп «Что и зачем / Изменения /
+  Grounding / file:line» — ревьюер это не читает (см. gotcha в «Jira comment»).
 
 ## Ticket (`/jtbd`)
 
@@ -38,9 +41,16 @@ the project-specific gotchas. The **values** (baseline counts, hosts, quirks) li
 Three parts:
 
 1. Header: `Смержено в dev: [MR !N|<mr-url>] (merge commit {*}<hash>{*}). <one line: what & why>.`
-2. Table `||Файл||Что изменилось||Ссылка (dev-сайт)||` — rows
-   `|{{docs: source/<path>}}|<change>|[<Title>|<dev-url>]|`.
+2. Table `||Страница||Что сделали||Смотреть||` — rows
+   `|<название страницы простыми словами>|<что изменилось, человеческим текстом>|[<Title>|<dev-url>]|`.
 3. Footer: a dev-stand link + a note that it rebuilds after the `dev` pipeline.
+
+**Gotcha (из сессии MON-4916):** колонка 1 — **название страницы, как её видит
+пользователь** («Шаблоны оповещений», «Мониторы и оповещения»), **НЕ** путь файла
+`{{docs: source/<path>}}`. Первый вариант через пути читался ревьюером как
+технический список файлов — он просил переписать «по-человечески». Связанные мелкие
+правки (сломанные ссылки на одной переименованной странице, CSS-твик) группируйте в
+одну строку со ссылками inline, а не в N строк «ссылка monitor_setup_gui → …».
 
 Dev-stand URL via `memory:ref-docs-dev-site.md` (host `docs-docs-dev.…sslip.io`, double
 `docs-`, path `/dev/<page-path>.html`). Build the link for the page from step 1.

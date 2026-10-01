@@ -50,11 +50,35 @@ Classify every claim and trace it:
 |---|---|
 | `code:line` | read the code — definition **and** call site — not a nearby comment. The line must be on the repo's `dev` branch (`repos.yml`); if it lives only on a feature branch → **block** the docs, file a ticket, do not ship as truth |
 | `live-probe` (URL / endpoint) | `curl -sI`; if a probe **surprises** you → trace the **root cause before writing** (a doc of a symptom rots on day one). Document reality, not aspiration; if the probe reveals a real defect → file a follow-up ticket alongside the docs MR |
-| `config-file:line` / `doc-cross-ref` | open it |
+| `config-file:line` | open it |
 
-*Done when:* every claim has a cited source; none rests on a comment or an assumption.
+**A behavioral claim is never grounded on another doc.** «Режим X существует / недоступен
+/ означает Y», флаг, поле, дефолт, лимит — трейсится в `code:line` или `live-probe`,
+всегда, даже если формулировка уже стояла в доке до тебя. Existing docs are *claims to
+verify*, not sources: a restructuring that copies paragraphs between pages launders
+fabrication (in production a phantom NoData mode «Evaluate as zero» survived a
+doc→doc transplant this way). Doc-cross-ref stays valid only for navigation («подробнее —
+см. …»), never as evidence.
 
-### 4. Structural surfaces
+FIX extra — **claim inventory**: before editing, extract every behavioral claim in the
+sections you touch (both directions: what you change and what the change invalidates
+nearby) into a table `{claim | type | source | verdict}`. A claim whose row has no source
+is not «probably fine because it was already there» — it is unverified.
+
+*Done when:* every claim has a cited source; none rests on a comment, an assumption, or
+another page's word.
+
+### 3b. Term sweep (mechanical gate)
+Run `agent-knowledge/scripts/docs-term-sweep.py <page.md>` — it extracts every inline-code
+token from the page and greps it against the code repos from `repos.yml` (docs, PM and
+snapshots excluded — a hit there is an echo, not evidence). `UNMATCHED` = the term exists
+only in docs: ground it, fix the name, or allowlist it (`--allow`) with a reason; RU UI
+labels need `--alias "лейбл=code string"`. ~5 min per page — cheap next to shipping a
+fabricated mode name.
+
+*Done when:* every UNMATCHED row is resolved to grounded / renamed / allowlisted. The
+sweep flags *unknown names*, not wrong semantics — «режим X означает Y» still needs
+step 3.
 Enumerate every surface that references the category: **tab · list · matrix · toctree ·
 cross-link · counter**. Plan one edit per surface. The matrix is forgotten most often — it
 lives far from the edited page.

@@ -121,17 +121,6 @@ scope: harness
 
 ---
 type: pitfall
-key: srt-clean-drops-timestamps
-insight: scripts/srt-clean.py (video-knowledge-extraction) выкидывает тайминги при очистке rolling captions, а шаблон knowledge-дока требует временные метки MM:SS на каждой единице.
-confidence: 9
-source: observed
-files: [~/.claude/skills/video-knowledge-extraction/scripts/srt-clean.py]
-ts: 2026-08-21
-scope: harness
----
-После очистки метки приходится считать пропорционально позиции в тексте и честно помечать их «оценочными» в метаданных документа; если метки важны точнее — чистить vtt/srt с сохранением маркеров времени вместо srt-clean.py.
----
-type: pitfall
 key: workflow-overlapping-edits-apply-order
 insight: Пакетное применение одобренных workflow-правок падает, если old_text'ы перекрываются — перед replace задать явный порядок (большая правка первой) и проверять count==1 на каждую.
 confidence: 9
@@ -143,23 +132,11 @@ scope: harness
 am-update 2026-09-04: cha-1 содержал old_text вложенной c2-idp-readyz-1; порядок cha-1→idp сработал, обратный сломал бы вторую правку. Правило: при ≥2 APPROVE-правках в одну область C2 строить граф вложенности old_text.
 ---
 type: pitfall
-key: confluence-publish-placeholder-risk
-insight: Большие md в Confluence публиковать одним вызовом с полным телом и сразу верифицировать результат (версия+кусок тела) — частичная публикация с placeholder уходит на сервер как новая версия.
-confidence: 10
-source: observed
-files: []
-ts: 2026-09-04
-scope: harness
----
-am-update 2026-09-04: страница 677878056 на ~2 минуты получила v8 с PLACEHOLDER вместо тела реестра; поймано сразу, v9 с полным телом перезаписала. Файл-посредник (/tmp/…md) → Read → полный content в один update_page.
-
----
-type: pitfall
 key: am-local-config-not-in-tmp
 insight: Конфиги long-lived процессов на Mac-девбоксе НЕ держать в /tmp — macOS чистит /tmp между ребутами и живой бинарь остаётся без конфига (бэк :8082, 08.09). Канон: /Users/CraSS/am-backend-local/am-local.yaml; секреты env — /tmp/backend-demo.env, команда подъёма в landscape-файле ~/.amctl.
 confidence: 10
 source: observed
-files: ["PM/initiatives/monitoring-1c/HANDOFF-tj-traces.md"]
+files: ["PM/initiatives/monitoring-1c/history/HANDOFF-tj-traces.md"]
 ts: 2026-09-08
 scope: project
 ---
@@ -201,23 +178,17 @@ scope: project
 Ревизия v.1.7.0 (10-09): fixVersion-срез 21 открытая, спринт-срез 143. Дополнительно: эпики с «(релиз 1.7.0)» в названии могут не состоять в fixVersion (MON-4663/4664) — заголовок не источник скоупа.
 
 ---
-id: playwright-mcp-profile-lock
-date: 2026-09-15
-tags: [playwright, mcp, browser]
----
-
-**Playwright MCP: «Browser is already in use» = зависший chrome прошлой сессии держит профиль.** Все browser_* вызовы падают сразу. Лечится за один шаг: `pgrep -f "user-data-dir=/Users/CraSS/Library/Caches/ms-playwright-mcp/<профиль>"` → `kill <главный PID>` (процесс с `Google Chrome.app/Contents/MacOS/Google Chrome` в команде, не Helper) → подождать 2–3 с → navigate снова работает. Проверять `pgrep | wc -l` = 0 перед повтором.
-
----
 type: pitfall
-key: searxng-russian-regulatory-queries-garbage
-insight: локальный searxng инстанс для длинных русских нормативных запросов («класс защищённости К2 ЕМИАС приказ ФСТЭК 17») отдаёт мусор: движок только Bing, запрос дробится на слова → словарные статьи вместо регуляторики. Рабочий паттерн: сразу WebFetch на канонические страницы (fstec.ru, профильные порталы вроде it-security.admin-smolensk.ru для таблицы УЗ×масштаб ГИС, centerbit.ru) + встроенный WebSearch как фоллбэк — 3 пустых searxng-вызова съедают больше времени, чем один прицельный WebFetch.
-confidence: 8
+key: playwright-mcp-profile-lock
+insight: «Browser is already in use» в Playwright MCP = зависший chrome прошлой сессии держит профиль — все browser_* вызовы падают сразу; лечится убийством главного PID процесса с user-data-dir профиля
+confidence: 9
 source: observed
 files: []
 ts: 2026-09-15
 scope: harness
 ---
+Лечится за один шаг: `pgrep -f "user-data-dir=/Users/CraSS/Library/Caches/ms-playwright-mcp/<профиль>"` → `kill <главный PID>` (процесс с `Google Chrome.app/Contents/MacOS/Google Chrome` в команде, не Helper) → подождать 2–3 с → navigate снова работает. Проверять `pgrep | wc -l` = 0 перед повтором.
+
 ---
 type: pitfall
 key: confluence-update-content-placeholder
@@ -243,13 +214,86 @@ scope: harness
 textutil -convert txt работает; признак саммари: структура «Заголовок: НАИМЕНОВАНИЕ… Содержимое: <таймкоды-оглавление> Концепции: SWOT».
 
 ---
-name: searxng-russian-queries-degraded
-description: SearXNG-инстанс деградирует на русскоязычных поисковых запросах (пустые google/yandex/ddg, мусорный bing) — RU-ресёрч вести через WebSearch
-metadata:
-  type: pitfall
+type: pitfall
+key: jql-worklogdate-date-only
+insight: worklogDate в JQL MON не принимает время — только YYYY-MM-DD; ISO-время из vid-rabot last-run.txt обрезать до даты
+confidence: 9
+source: observed
+files: []
+ts: 2026-09-21
+scope: harness
 ---
+Jira Server MON отклоняет `worklogDate >= "2026-09-08 15:50"` (400 «Date value is invalid»; валидные форматы YYYY/MM/DD, YYYY-MM-DD, периоды вроде -5d). Для vid-rabot в режиме since-last: ISO-время из last-run.txt обрезать до даты (прогон 2026-09-21 потерял вызов на этой ошибке до первого результата). Перепокрытие (работлоги с 00:00 дня прошлого прогона) безвредно — фильтр `"Вид работ" is EMPTY` отсекает уже размеченное.
+---
+type: pitfall
+key: jira-search-truncates-at-maxresults
+insight: search_issues молча режет issues до max_results — при total>limit агрегаты и списки врут; сверять .total с .issues|length
+confidence: 9
+source: observed
+files: []
+ts: 2026-09-21
+scope: harness
+---
+mcp__jira__search_issues при total > max_results сохраняет в файл только первую страницу (224 total → 200 issues, isLast:false), без предупреждения в тексте результата. Прогон am-release-notes v.1.7.0 (2026-09-21): скилл-рецепт с max_results=200 потерял 24 задачи — поймано по расхождению `.total` vs `jq '.issues|length'`. Потерянные задачи = дыры в dev-файле релиз-нотсов; coverage-проверка ловит их не всегда — expected-набор может быть собран из той же обрезанной выдачи (оба неполны, проверка зелёная при дыре). Лечение: после выдачи всегда `jq '{total, have: (.issues|length), isLast}' $F`; если have < total — дотягивать страницами start_at, слить `jq -s '{total: .[0].total, issues: (.[0].issues + .[1].issues)}'`.
 
-SearXNG (mcp__searxng__searxng_web_search) на русскоязычных запросах отрабатывает нерелевантно: движки google/yandex/ddg возвращают пусто, bing — мусор; web_url_read падает на SSL части RU-сайтов. Подтверждено независимо 4 саб-агентами в одном прогоне (pain research мониторинга 1С, 2026-09-17): все четверо в итоге переключились на WebSearch (z.ai) для поиска. Нюансы обхода: infostart.ru режет кириллицу из HTML при скачивании (анти-скрейп) — тексты брать через README-ссылки/конспекты; habr-комментарии — через kek API; mista.ru в cp1251 (curl + перекодировка).
+---
+type: pitfall
+key: am-dev-jwt-24h-and-split-dns
+insight: Токены am-dev живут 24ч и протухают молча (amctl отдаёт 403/401); split-DNS VPN может давать трафик без системного DNS — браузер спасает DoH
+confidence: 9
+source: observed
+files: ["~/.amctl-dev-live.yaml"]
+ts: 2026-09-25
+scope: project
+---
+JWT am-dev живёт ~24 часа (exp = iat + 86400). Протухание молчаливое: amctl отдаёт 403/401, сервисы-обёртки (полигон ai-agent) — «инструмент не работает», стек прототипа остаётся без рук. Свежий токен — в `~/.amctl-dev-live.yaml` (обновляется перелогином владельца); конфиг полигона на ВМ — `astra@10.205.142.219:/home/astra/.amctl.yaml` (ro-mount, заменять файл на хосте, контейнер перезапускать не надо). Дата-чек: `python3 -c` base64-decode payload.
 
-**Why:** каждый ресёрчер терял 10–20 минут на диагностику «сломанного поиска» вместо сразу рабочего пути.
-**How to apply:** в брифах RU-ресёрч-агентов сразу указывать основной поиск = WebSearch, searxng — запасной для латиницы; RU-сайты читать web_url_read/curl с перекодировкой, инфостарт — не полнотекстом.
+Split-DNS VPN: туннель поднят (ВМ по IP отвечает), но системный DNS macOS не получает записи `*.dev.astra-monitoring.astralinux.ru` — curl/amctl/vite-прокси падают NXDOMAIN, а браузер владельца работает (браузерный DoH). Диагностика: `host <имя>` против `curl http://<ВМ-IP>:порт/health`; если ВМ жива, а имя нет — просить IP или перезапуск туннеля, не гадать про «сеть мертва».
+
+---
+type: pitfall
+key: subagent-briefs-require-russian-explicitly
+insight: Брифы саб-агентов на GLM обязаны содержать явное требование «работай только по-русски» — без него агент скатывается на китайский в рассуждениях и правках
+confidence: 9
+source: observed
+files: []
+ts: 2026-09-25
+scope: harness
+---
+Наблюдение 25.09 (верификатор демо-сцен AI-SRE). В каждый бриф — строка «работай и пиши ТОЛЬКО на русском, без китайских иероглифов», плюс при приёмке — проверка внесённых правок на иероглифы (grep по файлу правок).
+---
+type: pitfall
+key: sandbox-tcc-documents-ephemeral
+insight: Bash-песочница может внезапно потерять TCC-доступ к ~/Documents (EPERM на ls/Read) — перепроверить stat'ом и перезапустить вызов с dangerouslyDisableSandbox
+confidence: 9
+source: observed
+files: []
+ts: 2026-09-25
+scope: harness
+---
+В одной сессии Bash-вызовы свободно читали ~/Documents/..., затем новые вызовы стали получать `Operation not permitted` на ls/open (и Read tool EPERM) — macOS TCC-гейт для sandboxed-процессов; файл при этом нормальный (`stat` показывает обычные права). Песочница Bash-инструмента изолируется, а TCC-разрешение на Documents у неё своего нет — ранее выданный доступ не гарантирован для последующих вызовов. При неожиданном `Operation not permitted` на файлы проекта — сначала `stat` (отличить sandbox от реальных прав), затем перезапустить тот же вызов с `dangerouslyDisableSandbox: true` (легитимно для файлов проекта). Пользователю о сбое доступа сказать прямо — он может поднять разрешение.
+
+---
+type: pitfall
+key: facts-scanner-make-slash-targets
+insight: collect-repo-facts.sh не видит Make-цели со слэшем (regexp без /) — «отсутствие цели» в facts-отчёте неподтверждено, сверять с Makefile репо
+confidence: 9
+source: observed
+files: [Astra/meta/scripts/collect-repo-facts.sh]
+ts: 2026-10-01
+scope: project
+---
+am-update 2026-10-01: сканер не показал `swagger/doc` в agent (цель существует, Makefile:129) и feeder; профиль agent чуть не починили «по фактам». Вторая ловушка того же запуска: счёт top-level каталогов go-lib — аудит дал 34, двойной пересчёт 35 (8 удалённых подкаталогов под ОДНИМ top-level). Счётчики пересчитывать двумя способами перед правкой C2.
+
+---
+type: pitfall
+key: searxng-russian-queries-degraded
+insight: SearXNG-инстанс деградирует на русскоязычных запросах (google/yandex/ddg пусто, bing — мусор) — RU-ресёрч вести через WebSearch, RU-сайты читать web_url_read/curl с перекодировкой
+confidence: 9
+source: observed
+files: []
+ts: 2026-09-28
+scope: harness
+---
+Подтверждено независимо 4 саб-агентами в одном прогоне (pain research мониторинга 1С, 2026-09-17) и B2B-ресёрчем ЦИФРА (2026-09-28): каждый ресёрчер терял 10–20 минут на диагностику «сломанного поиска». В брифах RU-ресёрч-агентов сразу указывать основной поиск = WebSearch, searxng — запасной для латиницы. Нюансы обхода: infostart.ru режет кириллицу из HTML при скачивании (анти-скрейп) — тексты брать через README-ссылки/конспекты; habr-комментарии — через kek API; mista.ru в cp1251 (curl + перекодировка). Для длинных нормативных запросов («класс защищённости К2 ЕМИАС приказ ФСТЭК 17») searxng дробит запрос → словарные статьи вместо регуляторики; прицельный WebFetch на канонические страницы (fstec.ru и профильные порталы) результативнее трёх пустых поисков. Русская B2B-выдача тоже слабо покрыта (запросы вида «ЦИФРА Диспетчер отзывы внедрение» → авторемонт/Steam); вендорские PDF (презентации ЦИФРА) лежат на intechnology.ru/files/, где все читалки (web_url_read/webReader) падают по SSL — качать голым curl, href искать grep'ом по HTML страницам вендора.
+

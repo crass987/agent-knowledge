@@ -191,6 +191,18 @@ ts: 2026-10-08
 scope: skill:am-write-specs
 ---
 Скилл am-write-specs и PM.md ещё указывают старые расположения. Референс искать `find analytics-hub -name "REQ-*" -o -name "SPEC-*"` (сейчас десятки в amps/docs/AMP-003/006/009/011/016…). PM.md в метарепе показывает мёртвый analytics-hub/docs/requirements/ — править вне скоупа prune.
+
+---
+type: operational
+key: git-diff-quotepath-cyrillic
+insight: git diff --name-only экранирует кириллицу в путях (core.quotepath=true по умолчанию) — grep по литеральному русскому имени файла молча даёт 0 совпадений; для сверок путей использовать git -c core.quotepath=false
+confidence: 9
+source: observed
+files: []
+ts: 2026-10-08
+scope: harness
+---
+Проявилось при prune 2026-10-08: проверка пересечения локально-грязного файла analytics-hub (…/Ролевая модель/RBAC/rbac-feature-DRAFT.md) с входящим диффом дала ложное «0 пересечений», а git pull честно абортился — проверка была сломана экранированием. Правило: в репо с кириллическими путями все сверки имён — только с `-c core.quotepath=false`.
 ---
 type: operational
 key: facts-drift-counter-profile-date

@@ -96,33 +96,29 @@ scope: skill:am-update
 ---
 type: operational
 key: am-seeding-two-docsets
-insight: AM сидирование — два параллельных док-сета (master_docs = AS-IS, improvements = TO-BE design), при аудите читать оба; код-истина = admin-backend/cmd/seed.go + internal/seed/*.
+insight: AM сидирование — два параллельных док-сета (AMP-013/seeding.md = AS-IS, improvements = TO-BE design), при аудите читать оба; код-истина = admin-backend/cmd/seed.go + internal/seed/*.
 confidence: 9
 source: observed
-files: [analytics-hub/master_docs/docs/Установка и обновление/Сидирование/seeding.md, analytics-hub/improvements/docs/Установка и обновление/Сидирование/, admin-backend/cmd/seed.go]
+files: [analytics-hub/amps/docs/AMP-013/seeding.md, analytics-hub/improvements/docs/Установка и обновление/Сидирование/, admin-backend/cmd/seed.go]
 ts: 2026-08-03
 scope: skill:am-docs-audit
 ---
-По сидированию AM есть два док-сета, которые надо различать при аудите:
-- `analytics-hub/master_docs/docs/Установка и обновление/Сидирование/seeding.md` = **AS-IS**, описывает текущий код (`admin-backend/internal/seed/`, `cmd/seed.go`). Trust для текущего механизма, но отстаёт на релиз (на 2026-08-03 не хватает snmp/vector_configs, неверный exit code).
+По сидированию AM есть два док-сета, которые надо различать при аудите (пути после AMP-реструктуризации 2026-10):
+- `analytics-hub/amps/docs/AMP-013/seeding.md` = **AS-IS**, описывает текущий код (`admin-backend/internal/seed/`, `cmd/seed.go`). Trust для текущего механизма, но отстаёт на релиз (на 2026-08-03 не хватает snmp/vector_configs, неверный exit code).
 - `analytics-hub/improvements/docs/Установка и обновление/Сидирование/` = **TO-BE design-спека** (README + Seeding_Specification + 01–06_task), описывает целевой единый механизм (`--profile`, `SourceProvider`, `ApplyRecords`) — НЕ реализован в runner.go, но не помечен как TO-BE.
 При любом вопросе по сиду читать оба; код-истина = `admin-backend/cmd/seed.go` (флаги/регистрация) + `internal/seed/*` (поведение по-сидерно). changeable/remove_absent есть только в ns/*, не в обобщённом Runner.
 
 ---
 type: operational
 key: c2-canonical-copy
-insight: Канонический C2-контейнеры.md живёт в analytics-hub; rag-agent/Notes — устаревшее зеркало. Править только analytics-hub.
+insight: Канонический C2-контейнеры.md живёт в analytics-hub/internal_docs/docs/Архитектура/ (переехал из master_docs при AMP-реструктуризации 2026-10); rag-agent/Notes — устаревшее зеркало. Править только analytics-hub.
 confidence: 9
 source: observed
-files: [analytics-hub/master_docs/docs/Архитектура/C2-контейнеры.md, rag-agent/Notes/master_docs/Архитектура/C2-контейнеры.md]
+files: [analytics-hub/internal_docs/docs/Архитектура/C2-контейнеры.md]
 ts: 2026-08-04
 scope: skill:am-update
 ---
-Две копии C2-контейнеры.md:
-- `analytics-hub/master_docs/docs/Архитектура/C2-контейнеры.md` = **канон** (vmalert уже «НЕ ИСПОЛЬЗУЕТСЯ, Сальников 2026-07-06»; modern-traps «подключён к runtime»).
-- `rag-agent/Notes/master_docs/Архитектура/C2-контейнеры.md` = **устаревшее зеркало** для RAG (старая vmalert-формулировка «legacy, планируется удаление»; modern-traps «не подключён»).
-
-Маркер свежести: формулировка vmalert (analytics-hub новее). Править ТОЛЬКО analytics-hub. (замечено при snmp-traps research 2026-08-04)
+Канон C1/C2/C3 = `analytics-hub/internal_docs/docs/Архитектура/` (до AMP-реструктуризации октября 2026 — `master_docs/docs/Архитектура/`). Править ТОЛЬКО analytics-hub; rag-agent/Notes — зеркало для RAG, не канон. (замечено при snmp-traps research 2026-08-04; путь обновлён 2026-10-08)
 
 ---
 type: operational

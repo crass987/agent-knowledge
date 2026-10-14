@@ -4,7 +4,7 @@ Durable facts that save time next session: command quirks, tool gotchas, project
 
 ## Format
 
-Each entry is a YAML frontmatter block followed by an optional one-line body. Append new entries at the bottom of the matching category file. Append-only; on contradiction, add a newer entry (latest wins) — `auto-prune` (P2) will surface conflicts.
+Each entry is a YAML frontmatter block followed by an optional one-line body. Append new entries at the bottom of the matching category file. Append-only; on contradiction, add a newer entry (latest wins) — `auto-prune` (P2) will surface conflicts. On enrichment (same fact, new detail), merge into the existing entry and bump `ts` — do not append a "clarification" entry next to it (`skills/ingest` does this routing and dedup).
 
 ```yaml
 ---

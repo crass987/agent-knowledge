@@ -43,7 +43,7 @@ Grep stores for the item's subject (synonyms, both languages). Then:
 - Never `git commit` / push — leave the change uncommitted unless asked.
 - Never write outside the routed destination. Skills, code, other repos are read-only here.
 - Don't invent `files:` paths the user didn't give; don't log obvious or transient things.
-- After writing: if `scripts/store-check.py` exists, run it with `--quick` on the touched
+- After writing: if `scripts/store_check.py` exists, run it with `--quick` on the touched
   store; report failures instead of hand-fixing.
 
 ## Report

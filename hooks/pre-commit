@@ -1,0 +1,5 @@
+#!/bin/sh
+# pre-commit: битая запись не приземляется. Блокируют только ERROR-проверки store_check
+# (WARN/INFO — сигналы для prune, коммиту не мешают).
+root="$(git rev-parse --show-toplevel)"
+exec python3 "$root/scripts/store_check.py" --root "$root" --quick

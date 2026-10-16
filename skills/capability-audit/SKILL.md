@@ -35,6 +35,8 @@ This skill is the **operationalisation of that question into a measuring procedu
 
 A skill can be valid and high-quality but still be overhead — only the audit catches that. Sequence by cost: **prune → capability-audit → improve-skill** (cheapest signal first).
 
+**Context-size is a necessity signal too:** `scripts/store_check.py` reports store budgets (e.g. MEMORY.md line count vs 200). A component whose descriptions/lines blow the budget is a retire/shrink candidate even before probing — bloated context degrades every rule at once, not just the extra one.
+
 ## Honest limits (state up front)
 
 - **Audit reliability is inverse to harness necessity.** The whole method rests on detecting a delta the model cannot produce alone — but if the component truly is unnecessary, the delta is near zero and noise dominates. Underpowered audits falsely "retire" useful things.

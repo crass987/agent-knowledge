@@ -6,7 +6,7 @@
 Проверка: `scripts/cadence-check.sh` — печатает только просроченное active, молчит иначе.
 
 store-check | 0 | never | planned
-traverse | 14 | never | planned
+traverse | 14 | never | active
 prune | 30 | 2026-10-08 | active
 budgets | 30 | never | planned
-estate | 7 | never | planned
+estate | 7 | 2026-10-16 | active

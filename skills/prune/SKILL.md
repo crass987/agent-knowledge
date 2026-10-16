@@ -7,17 +7,18 @@ description: Use to clean up growing harness stores — "почисти learning
 
 ## Overview
 
-As `learnings/`, `decisions/`, and `memory/` grow, entries go stale (reference deleted files) or contradict each other (same key, different insight). This skill finds them and asks what to do. The pattern mirrors `am-research-index` `check`: **mechanical signals first, judgment only on the flagged set.**
+As `learnings/`, `decisions/`, and `memory/` grow, entries go stale (reference deleted
+files) or contradict each other. This skill finds them and asks what to do. Pattern:
+**mechanical signals first (`scripts/store_check.py`), judgment only on the flagged set.**
 
-Two modes:
-- **`check`** — scan and report flagged entries; change nothing.
-- **`prune`** — scan, then for each flagged entry ask remove / keep / update; apply.
-
-Append-only: updates are new entries (latest wins), never in-place rewrites of history.
+Three modes:
+- **`check`** — run the script + semantic read, print the flagged report; change nothing.
+- **`prune`** — apply fixes: mechanical in batch, semantic per finding; supersede, never delete.
+- **`compact`** — explicitly requested; physically removes entries `status: superseded` for 30+ days. The only mode that deletes.
 
 ## When to Use
 
-- Periodic cleanup ("почисти learnings", "prune the stores").
+- Periodic cleanup ("почисти learnings", "prune the stores") — cadence: monthly, see `state/cadence.md`.
 - After a refactor that deleted files referenced by learnings.
 - When the stores feel noisy or contradictory.
 
@@ -25,52 +26,52 @@ Append-only: updates are new entries (latest wins), never in-place rewrites of h
 
 - Astra research-index staleness → `am-research-index` (separate store, separate skill).
 - Improving a skill's output → `improve-skill`.
-
-## Stores & scope
-
-| Store | Path | Default |
-|---|---|---|
-| learnings | `learnings/*.md` | scanned |
-| decisions | `decisions/decisions.active.md` | scanned |
-| memory | `--memory <path>` | opt-in (you curate reflexive memory by hand) |
+- Storing something new → `ingest` (dedup happens at write time, not at cleanup).
 
 ## Signals
 
-| Signal | How detected | Flag |
-|---|---|---|
-| **Stale ref** | an entry's `files: [path]` where `path` no longer exists (`test -e`) | STALE |
-| **Contradiction** | two learnings share a `key` with opposing `insight`; or two active decisions overlap in scope with conflicting `rationale` | CONFLICT |
-| **Orphan supersede** | a decision is `status: superseded` but missing `superseded_by` | ORPHAN |
-| **Age** | entry date | tiebreaker only — never flags alone |
+**Mechanical** — run first, they define the flagged set:
 
-Age is never a trigger on its own — change is (same rule as `am-research-index`).
+```sh
+python3 scripts/store_check.py --root <repo> [--memory <auto-memory-path>]
+```
+
+Owns: stale `files:` refs, duplicate keys, broken `[[links]]` (LINK-ROT), dangling
+`superseded_by` (ORPHAN), index↔file sync, budgets (WARN), no-frontmatter.
+Age is INFO there — never a trigger by itself; change is (same rule as `am-research-index`).
+
+**Semantic** — your judgment, on the flagged set plus a full-store read:
+
+| Signal | Flag |
+|---|---|
+| Contradiction | two entries with opposing insight within one scope (keys may differ) |
+| Near-duplicate | same fact stated twice in different words/keys |
+| Off-format | entry deviates from the store's README format |
 
 ## `check` mode
 
-1. Scan the stores; collect signals (batchable — pure file/parse checks).
-2. Print a report:
-
-```
-STALE:    learnings/operational.md: <key> — references deleted <path>
-CONFLICT: learnings/pitfalls.md: <key> — "<insight A>" vs "<insight B>"
-ORPHAN:   decisions.active.md: D-0003 — superseded, no superseded_by
-```
-
+Run the script, do the semantic read, print a report grouped ERROR/WARN/semantic.
 No files changed.
 
 ## `prune` mode
 
-For each flagged entry, ask via AskUserQuestion:
-- A) Remove (delete the entry)
-- B) Keep (no change)
-- C) Update (dictate the new insight — appended as a new entry, latest-wins)
-
-Apply the choices. For conflicts, removing the older entry is the usual resolution. Commit the stores afterward.
+1. **Backup**: `cp -R learnings decisions state /tmp/prune-backup-$(date +%Y%m%d-%H%M)/`.
+   Never rely on git alone — stores may be dirty.
+2. Mechanical findings: propose one batch fix, single confirmation, apply.
+3. Semantic findings: ask per finding via AskUserQuestion:
+   - **A) Supersede** (default for contradictions) — old entry gets `status: superseded`,
+     `superseded_by: <new-key>`; write the new entry (latest-wins). History stays readable.
+   - **B) Enrich** — merge into the existing entry in place (overlap without
+     contradiction), bump `ts`. No "clarification" entries next to originals.
+   - **C) Keep** — no change.
+4. Every edit bumps `ts` — that's the recency signal for the next run and the budget check.
+5. Commit the stores afterward; if unrelated dirty files exist, commit only the store paths.
 
 ## Rules
 
-- **Write scope:** only `learnings/`, `decisions/`, and (with `--memory`) the given memory path. Never touch skills, code, or the Astra meta-repo.
-- **Append-only for updates** — never rewrite an old entry's insight in place; supersede it.
+- **Write scope:** only `learnings/`, `decisions/`, and (with `--memory`) the given memory
+  path. Never touch skills, code, or other repos.
+- **Never delete outside `compact`.** Supersede or enrich — history stays reconstructable.
 - Flag uncertainty; don't auto-delete on judgment calls — ask.
 - Age alone never flags.
 

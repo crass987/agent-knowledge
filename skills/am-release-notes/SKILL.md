@@ -6,8 +6,9 @@ description: Use when generating Astra Monitoring **release notes** for a releas
 # AM Release Notes
 
 Generate **release notes** for an Astra Monitoring release (format `v.X.Y.0`). Output
-is the **three files** — dev, changelog, marketing — in
-`analytics-hub/internal_docs/docs/release-notes/`, dated by release date (`YYYY-MM-DD-…`).
+is the **three files** — `dev.md`, `changelog.md`, `marketing.md` — in the release
+folder `analytics-hub/internal_docs/docs/release-notes/<версия>/` (no date in names;
+the date lives in the dev-file header).
 Source data: Jira project **MON**, `fixVersion`.
 
 Leading words: **release notes**, **три файла** (dev / changelog / marketing).
@@ -25,8 +26,8 @@ Leading words: **release notes**, **три файла** (dev / changelog / marke
 
 ## Source of truth
 
-- **Process:** this skill is authoritative. The legacy `analytics-hub/internal_docs/docs/release-notes/HOWTO-generate.md` keeps the epic→section table but has **stale paths** (`docs/release-notes/` → actually `internal_docs/docs/release-notes/`) and a board-id step you no longer need (`fixVersion` replaces it).
-- **Templates:** the latest `YYYY-MM-DD-*` files in the same folder — read the previous release as your structural model.
+- **Process:** this skill is authoritative. The legacy HOWTO lives at `analytics-hub/internal_docs/HOWTO-generate.md` (moved out of the site content — служебный регламент не публикуется); it keeps the epic→section table but has **stale paths** and a board-id step you no longer need (`fixVersion` replaces it).
+- **Templates:** the latest release folder in `release-notes/` — read the previous release as your structural model.
 - **Feature context:** `Astra/PM.md` (Knowledge Map, Glossary) for flagship descriptions.
 
 ## Process
@@ -66,9 +67,11 @@ Identify the **flagships** (the marketing «Ключевые возможнос�
 
 Full templates + the epic→section map are in `reference.md`. Short form:
 
-- **`YYYY-MM-DD-release-notes-dev.md`** — `Added / Changed / Fixed / Security / Testing / Known Issues / Breaking Changes`. **Every shipping issue appears, with a Jira link, exactly once.** Includes Testing and infra.
-- **`YYYY-MM-DD-changelog.md`** — `# Изменения` → `## X.Y.Z` → `Новые возможности / Изменения / Bug fixes / Исправления безопасности`. **No Jira links.** Exclude Testing epic, infra-internal, research. Style mirrors `docs/source/changelog.md` (NOT Keep a Changelog).
-- **`YYYY-MM-DD-release-notes-marketing.md`** — `Что нового / Ключевые возможности / Улучшения / Безопасность / Исправления / Итоги`. User value, telegraph density. Written in infostyle (basis: `_shared/infostyle-core.md`).
+- **`<версия>/dev.md`** — H1 `# Детали разработки v.X.Y.Z`; sections `Added / Security / Nice to have (не блокирует дату) / Changed / Testing / Known Issues / Breaking Changes`. **Every shipping issue appears, with a clickable Jira link (`[MON-X](url) - summary`), exactly once.** Includes Testing and infra.
+- **`<версия>/changelog.md`** — H1 `# Изменения v.X.Y.Z` → `Новые возможности / Изменения / В работе (nice to have) / Исправления безопасности`. **No Jira links.** Exclude Testing epic, infra-internal. Style mirrors `docs/source/changelog.md` (NOT Keep a Changelog).
+- **`<версия>/marketing.md`** — H1 `# Мониторинг v.X.Y.Z — <хедлайн>`; `Что нового / Ключевые возможности / Улучшения / В работе / Безопасность / Итоги`. User value, telegraph density. Written in infostyle (basis: `_shared/infostyle-core.md`).
+
+**H1-заголовки версонируются обязательно** — они становятся пунктами сайдбара на сайте (three identical «Изменения» = мусор в навигации). Jira-ссылки в dev-файле — только в формате `[MON-X](https://jira.astralinux.ru/browse/MON-X)`, не голым URL в скобках (не кликабельно).
 
 Gotcha — **user-facing naming.** Write **«Сервис авторизации»**, not «DEX». **amctl is a CLI** (not «управление по API») that an AI agent can drive (`-f json`, separate amctl skill exists). Adjust other internal tech names to product names likewise.
 
@@ -92,10 +95,12 @@ Dispatch a fresh `infostyle-critic` subagent on the marketing file. Apply its fi
 
 ```
 git -C <analytics-hub> pull --ff-only origin dev
-git -C <analytics-hub> add internal_docs/docs/release-notes/YYYY-MM-DD-*.md   # only your files
+git -C <analytics-hub> add internal_docs/docs/release-notes/<версия>/  # only your files
 git -C <analytics-hub> commit -m "Add release notes vX.Y.Z (changelog, dev, marketing)" -m "Co-Authored-By: AI"
 git -C <analytics-hub> push origin dev
 ```
+
+Then add the release row to the section index `internal_docs/docs/release-notes/README.md` (таблица: версия · дата · три ссылки) — it is the entry point of the section on the site.
 
 Push **only to analytics-hub `dev`**. The public `docs/source/changelog.md` (separate `docs` repo) is updated by hand — copy the `## X.Y.Z` section across if the user asks.
 

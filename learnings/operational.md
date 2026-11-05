@@ -96,17 +96,17 @@ scope: skill:am-update
 ---
 type: operational
 key: am-seeding-two-docsets
-insight: AM сидирование — два параллельных док-сета (AMP-013/seeding.md = AS-IS, improvements = TO-BE design), при аудите читать оба; код-истина = admin-backend/cmd/seed.go + internal/seed/*.
+insight: AM сидирование — два параллельных док-сета (AMP-013/seeding.md = AS-IS, improvements = TO-BE design), при аудите читать оба; код-истина = amctl/cmd/seed.go + internal/seed/*.
 confidence: 9
 source: observed
-files: [analytics-hub/amps/docs/AMP-013/seeding.md, analytics-hub/improvements/docs/Установка и обновление/Сидирование/, admin-backend/cmd/seed.go]
+files: [analytics-hub/amps/docs/AMP-013/seeding.md, analytics-hub/improvements/docs/Установка и обновление/Сидирование/, amctl/cmd/seed.go]
 ts: 2026-08-03
 scope: skill:am-docs-audit
 ---
 По сидированию AM есть два док-сета, которые надо различать при аудите (пути после AMP-реструктуризации 2026-10):
 - `analytics-hub/amps/docs/AMP-013/seeding.md` = **AS-IS**, описывает текущий код (`admin-backend/internal/seed/`, `cmd/seed.go`). Trust для текущего механизма, но отстаёт на релиз (на 2026-08-03 не хватает snmp/vector_configs, неверный exit code).
 - `analytics-hub/improvements/docs/Установка и обновление/Сидирование/` = **TO-BE design-спека** (README + Seeding_Specification + 01–06_task), описывает целевой единый механизм (`--profile`, `SourceProvider`, `ApplyRecords`) — НЕ реализован в runner.go, но не помечен как TO-BE.
-При любом вопросе по сиду читать оба; код-истина = `admin-backend/cmd/seed.go` (флаги/регистрация) + `internal/seed/*` (поведение по-сидерно). changeable/remove_absent есть только в ns/*, не в обобщённом Runner.
+При любом вопросе по сиду читать оба; код-истина = `amctl/cmd/seed.go` (флаги/регистрация) + `internal/seed/*` (поведение по-сидерно). changeable/remove_absent есть только в ns/*, не в обобщённом Runner.
 
 ---
 type: operational
@@ -256,3 +256,39 @@ files: []
 ts: 2026-10-08
 scope: harness
 ---
+
+---
+type: operational
+key: workflow-verdicts-match-by-index
+insight: В workflow-пайплайнах maker→checker сопоставляйте вердикты чекеров по индексу элемента, не по slug/item-названию — LLM-чекеры переформулируют названия, и slug-матчинг молча теряет вердикты («checker missing»), убивая одобренные правки.
+confidence: 10
+source: observed (am-update 2026-11-01: 8 из 9 правок реестра отклонены из-за mismatch, полный перегон чекеров)
+ts: 2026-11-01
+scope: harness
+---
+
+Схема чекера: массив verdicts с полем i (0-based индекс) + инструкция «в том же порядке, что и вход». Сопоставление строго по позиции. Slug-названия годятся только для логов/лейблов.
+
+---
+type: operational
+key: workflow-bulk-data-via-tmp-files
+insight: Массовые данные для агентов workflow (списки правок, JSON-выжимки) кладите в /tmp-файл и давайте агентам путь — «прочитай элемент i из файла», а не прокачивайте через args/workflow-скрипт: меньше транскрипционных ошибок и дешёвый resume.
+confidence: 9
+source: observed (am-update 2026-11-01: args без полей уронил запуск за 24 мс; /tmp-вариант отработал чисто)
+ts: 2026-11-01
+scope: harness
+---
+
+Годится для промптов вида «возьми элемент i массива из file.json». Скрипт workflow не имеет доступа к ФС — но агенты имеют.
+
+---
+type: operational
+key: am-registry-validator-root-internal-docs
+insight: capability_registry_check.py для Astra запускать с корнем analytics-hub/internal_docs — доки переехали туда из master_docs в 2026-10; против master_docs валидатор даёт 9 ложных broken_link (промпты capability-registry-*.md пока говорят master_docs).
+confidence: 10
+source: observed (am-update 2026-11-01, Stage 4)
+ts: 2026-11-01
+scope: project
+---
+
+Команда: `python3 meta/scripts/capability_registry_check.py PM/strategy/functional-registry.md analytics-hub/internal_docs`.

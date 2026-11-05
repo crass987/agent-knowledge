@@ -29,9 +29,10 @@ If the item fits two destinations, pick the narrower one and say so in the repor
 Grep stores for the item's subject (synonyms, both languages). Then:
 
 - **No overlap** → append a new entry.
-- **Overlap, no contradiction** → *enrich the existing entry in place*: merge the new
-  detail into its `insight`/body, bump `ts`, keep `key`. Do NOT append a
-  "clarification" entry next to it — that is a duplicate with extra steps.
+- **Overlap, no contradiction** → *enrich the existing entry in place*: re-read the
+  source artifact first (never rewrite from memory of the memory — retellings lose
+  facts), merge the new detail into its `insight`/body, bump `ts`, keep `key`.
+  Do NOT append a "clarification" entry next to it — that is a duplicate with extra steps.
 - **Contradiction** → new entry, latest-wins, mark the old one `superseded_by: <new-key>`
   (or `status: superseded` where the format has it). Never rewrite the old insight's
   meaning in place.
@@ -43,6 +44,9 @@ Grep stores for the item's subject (synonyms, both languages). Then:
 - Never `git commit` / push — leave the change uncommitted unless asked.
 - Never write outside the routed destination. Skills, code, other repos are read-only here.
 - Don't invent `files:` paths the user didn't give; don't log obvious or transient things.
+- Time-bound facts written to memory ("лицензия до 13.10", "токен ≈24ч") carry
+  `stale_after: YYYY-MM-DD` and `refs:` paths to source artifacts — `store_check.py`
+  warns when they expire or rot (WARN, never blocks).
 - After writing: if `scripts/store_check.py` exists, run it with `--quick` on the touched
   store; report failures instead of hand-fixing.
 

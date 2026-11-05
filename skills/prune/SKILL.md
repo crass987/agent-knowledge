@@ -37,7 +37,8 @@ python3 scripts/store_check.py --root <repo> [--memory <auto-memory-path>]
 ```
 
 Owns: stale `files:` refs, duplicate keys, broken `[[links]]` (LINK-ROT), dangling
-`superseded_by` (ORPHAN), index↔file sync, budgets (WARN), no-frontmatter.
+`superseded_by` (ORPHAN), index↔file sync, budgets (WARN), no-frontmatter, and memory
+freshness fields — expired/ill-formed `stale_after`, broken `refs:` paths (WARN).
 Age is INFO there — never a trigger by itself; change is (same rule as `am-research-index`).
 
 **Semantic** — your judgment, on the flagged set plus a full-store read:
@@ -51,6 +52,8 @@ Age is INFO there — never a trigger by itself; change is (same rule as `am-res
 ## `check` mode
 
 Run the script, do the semantic read, print a report grouped ERROR/WARN/semantic.
+In the WARN group, report freshness (`stale-after`) as its own sub-list with days
+overdue — that's the fix-next column.
 No files changed.
 
 ## `prune` mode

@@ -8,6 +8,8 @@ Checks:
   entry:  missing/invalid frontmatter, duplicate keys, stale `files:` paths,
           broken [[wikilinks]] (LINK-ROT), superseded_by pointing nowhere (ORPHAN),
           entry age (INFO only — age never fails)
+  memory: optional `stale_after` (expired or bad format) and `refs:` (broken paths)
+          fields — WARN-level freshness pointers, never block
   store:  MEMORY.md <-> memory/ index sync, memory files missing from index,
           size budgets (WARN — never blocks)
 
@@ -165,7 +167,8 @@ def check(root: Path, memory: Path = None, quick: bool = False, budgets: dict = 
         if key:
             register(key, e.file, e.line_start)
 
-    memory_names = {p.stem for p in sorted(memory_dir.glob("*.md"))} if memory_dir else set()
+    memory_names = {p.stem for p in sorted(memory_dir.glob("*.md")) if p.name != "MEMORY.md"} \
+        if memory_dir else set()
     known_keys |= memory_names
 
     today = date.today()
@@ -205,6 +208,27 @@ def check(root: Path, memory: Path = None, quick: bool = False, budgets: dict = 
             if target not in known_keys:
                 add("ERROR", "orphan-supersede", e.file, e.line_start,
                     f"superseded_by '{target}' resolves to nothing")
+
+    # memory entry freshness — optional fields, WARN-level only (age never blocks)
+    if memory_dir:
+        for mpath in sorted(memory_dir.glob("*.md")):
+            if mpath.name == "MEMORY.md":
+                continue
+            for fm_lines, _body, line_start in parse_blocks(mpath.read_text(encoding="utf-8")):
+                fm = parse_fm(fm_lines)
+                sa = fm.get("stale_after", "")
+                if sa:
+                    try:
+                        expired = (today - datetime.strptime(sa, "%Y-%m-%d").date()).days
+                        if expired > 0:
+                            add("WARN", "stale-after", mpath, line_start,
+                                f"stale_after {sa} expired {expired}d ago")
+                    except ValueError:
+                        add("WARN", "bad-stale-after", mpath, line_start,
+                            f"stale_after '{sa}' not YYYY-MM-DD")
+                for ref in parse_file_list(fm.get("refs", "")):
+                    if not files_ref_exists(ref, root, resolve_roots):
+                        add("WARN", "stale-refs", mpath, line_start, f"refs: '{ref}' not found")
 
     link_targets = set()  # [[wikilink]] targets across all stores — backlinks count as indexing
 
@@ -254,7 +278,7 @@ def exit_code(findings) -> int:
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--root", default=str(Path(__file__).resolve().parent.parent))
-    ap.add_argument("--memory", default=None, help="path to auto-memory dir (index sync check)")
+    ap.add_argument("--memory", default=None, help="path to auto-memory dir (index sync + freshness checks)")
     ap.add_argument("--quick", action="store_true", help="entry-level checks only")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     args = ap.parse_args(argv)

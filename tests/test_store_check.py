@@ -202,6 +202,55 @@ class StoreCheckTest(unittest.TestCase):
         findings = self.run_check(quick=True)
         self.assertNotIn("index-missing", [f.code for f in findings])
 
+    # --- memory entry freshness (optional fields, WARN-level) ---
+
+    def mem_file(self, name="note", extra="", body="body"):
+        lines = ["---", f"name: {name}", "description: d"]
+        if extra:
+            lines.append(extra.rstrip("\n"))
+        lines.append("---")
+        if body:
+            lines.append(body)
+        return "\n".join(lines) + "\n"
+
+    def test_expired_stale_after_warns_not_errors(self):
+        write(self.root, "memory/lic.md", self.mem_file(extra="stale_after: 2026-01-01"))
+        findings = self.run_check()
+        self.assertIn(("WARN", "stale-after"), self.levels(findings))
+        self.assertFalse(any(f.level == "ERROR" for f in findings))
+
+    def test_future_stale_after_silent(self):
+        write(self.root, "memory/lic.md", self.mem_file(extra="stale_after: 2999-01-01"))
+        self.assertNotIn("stale-after", [f.code for f in self.run_check()])
+
+    def test_bad_stale_after_format_warns(self):
+        write(self.root, "memory/lic.md", self.mem_file(extra="stale_after: soon"))
+        self.assertIn(("WARN", "bad-stale-after"), self.levels(self.run_check()))
+
+    def test_stale_after_fires_in_quick_mode(self):
+        write(self.root, "memory/lic.md", self.mem_file(extra="stale_after: 2026-01-01"))
+        findings = self.run_check(quick=True)
+        self.assertIn(("WARN", "stale-after"), self.levels(findings))
+
+    def test_broken_memory_refs_warns(self):
+        write(self.root, "memory/n.md",
+              self.mem_file(extra="refs: [PM/sessions/__no_such__/gone.md]"))
+        self.assertIn(("WARN", "stale-refs"), self.levels(self.run_check()))
+
+    def test_memory_refs_resolved_in_workspace(self):
+        ws = Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(ws, ignore_errors=True))
+        write(ws, "PM/sessions/x/research.md", "x\n")
+        write(self.root, "memory/n.md", self.mem_file(extra="refs: [PM/sessions/x/research.md]"))
+        self.assertNotIn("stale-refs", [f.code for f in self.run_check(resolve_roots=(ws,))])
+
+    def test_index_file_itself_not_an_orphan(self):
+        write(self.root, "MEMORY.md", "# Memory Index\n\n- [T](real.md) — hook\n")
+        write(self.root, "memory/real.md", "---\nname: real\ndescription: d\n---\nbody\n")
+        # MEMORY.md внутри memory-каталога не должен считаться файлом-памяткой без индекса
+        write(self.root, "memory/MEMORY.md", "# Memory Index\n\n- [T](real.md) — hook\n")
+        self.assertNotIn("index-missing", [f.code for f in self.run_check()])
+
     def test_exit_code_zero_without_errors(self):
         write(self.root, "learnings/operational.md", entry())
         self.assertEqual(sc.exit_code(self.run_check()), 0)

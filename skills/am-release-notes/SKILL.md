@@ -34,7 +34,7 @@ Leading words: **release notes**, **три файла** (dev / changelog / marke
 
 ### 1. Identify the version
 
-`mcp__jira__list_project_versions(project_key="MON")` → pick `v.X.Y.0`. Confirm with the user which version, and the **release date** (for the filename); if unknown, use a placeholder date and flag it.
+Jira capability (tool registry: `mcp__jira__*`): list project versions for project `MON` → pick `v.X.Y.0`. Confirm with the user which version, and the **release date** (for the filename); if unknown, use a placeholder date and flag it.
 
 Gotcha — **version duplicates.** MON carries errant twin versions without the `v.` prefix (e.g. `1.5.0` alongside `v.1.5.0`). Use the **`v.`-prefixed** one.
 
@@ -43,10 +43,10 @@ Gotcha — **version duplicates.** MON carries errant twin versions without the 
 ### 2. Pull completed issues to a file
 
 ```
-mcp__jira__search_issues(
-  jql='fixVersion = "v.X.Y.0" AND statusCategory = Done ORDER BY updated DESC',
-  max_results=200,
-  fields=["summary","status","issuetype","labels","components","customfield_10300"])
+Jira search (capability `jira`):
+  jql = 'fixVersion = "v.X.Y.0" AND statusCategory = Done ORDER BY updated DESC'
+  max_results = 200
+  fields = [summary, status, issuetype, labels, components, customfield_10300]
 ```
 
 Gotcha — **the result is huge** (~1.5 KB/issue; 150 issues ≈ 250 KB). The tool auto-saves it to a file when it overflows. **Reduce it with jq before any of it enters your context** — never read the raw file whole. Work from the saved path with the jq recipes in `reference.md`.
@@ -57,7 +57,7 @@ Gotcha — **Cancelled lives inside `statusCategory = Done`** in this Jira. Drop
 
 ### 3. Aggregate, resolve epics, group, pick flagships
 
-From the saved file (jq recipes in `reference.md`): count by status / issuetype / epic, then resolve epic names with `mcp__jira__batch_get_issues` on the unique epic keys. Group issues by epic + summary.
+From the saved file (jq recipes in `reference.md`): count by status / issuetype / epic, then resolve epic names with the Jira batch-get capability on the unique epic keys. Group issues by epic + summary.
 
 Identify the **flagships** (the marketing «Ключевые возможности»): the epics with the most issues + product judgment (a new section, a platform-wide capability, a brand-new tool). Cross-check flagship candidates against `Astra/PM.md`.
 

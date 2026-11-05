@@ -44,9 +44,9 @@ Follow `am-research` process to understand the feature fully. You must know:
 
 Check analytics-hub conventions:
 
-- **Requirements**: `analytics-hub/docs/requirements/REQ-mon-XXXX-<title>.md`
-- **Specifications**: `analytics-hub/docs/specifications/SPEC-XXXX-<title>/`
-- **Architecture decisions**: `analytics-hub/docs/architecture/ADR-XXX-<title>.md`
+- **Requirements**: `analytics-hub/amps/docs/AMP-0XX/REQ-mon-XXXX-<title>.md`
+- **Specifications**: `analytics-hub/amps/docs/AMP-0XX/SPEC-mon-XXXX-<title>.md`
+- **Architecture decisions**: `analytics-hub/amps/docs/AMP-0XX/` (ADR-подкаталоги, напр. `AMP-001/02-amctl-adr`)
 
 Read 1-2 existing files in the target format for structure reference.
 

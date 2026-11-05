@@ -1,5 +1,6 @@
 #!/bin/sh
-# pre-commit: битая запись не приземляется. Блокируют только ERROR-проверки store_check
-# (WARN/INFO — сигналы для prune, коммиту не мешают).
+# pre-commit: (1) битая запись не приземляется — ERROR store_check блокирует;
+# (2) портабельность — mcp__* хардкоды в SKILL.md запрещены (tool registry — их дом).
 root="$(git rev-parse --show-toplevel)"
-exec python3 "$root/scripts/store_check.py" --root "$root" --quick
+python3 "$root/scripts/store_check.py" --root "$root" --quick || exit 1
+exec python3 "$root/scripts/lint-portability.py" "$root/skills"

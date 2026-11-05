@@ -25,9 +25,9 @@ agent-knowledge/
 
 **Skills are grouped by track** (the Discovery–Delivery split):
 
-- **Discovery** — what to build (research / evaluate / spec): `am-research`, `am-research-index`, `am-grill-feature`, `am-grill-docs`, `am-pain-mining`, `am-write-specs`, `jtbd`, `grill-plan`, `book/video-knowledge-extraction`.
-- **Delivery** — how to build (code): `tdd`, `debugging`, `code-review`.
-- **Knowledge-Meta** — the harness knowledge layer: `improve-skill`, `decisions`, `prune`.
+- **Discovery** — what to build (research / evaluate / spec / docs): `am-research`, `am-research-index`, `am-grill-feature`, `am-grill-docs`, `am-pain-mining`, `am-write-specs`, `am-release-notes`, `am-docs-add`, `am-esp-check`, `am-md-to-confluence`, `am-md-to-pdf`, `jtbd`, `grill-plan`, `book/video-knowledge-extraction`, `infostyle`.
+- **Delivery** — code / process: `excalidraw-deck`, `am-update`, `vid-rabot`. Кодовые скиллы (`tdd`, `debugging`, `code-review`) живут вне репо — плагин superpowers / `~/.claude/skills`.
+- **Knowledge-Meta** — the harness knowledge layer: `improve-skill`, `decisions`, `prune`, `am-docs-audit`, `capability-audit`, `ingest`, `traverse`.
 
 Full router with triggers: `AGENTS.md` and `skills/_INDEX.md`.
 
@@ -104,7 +104,7 @@ The harness learns across sessions. Three local-only stores + a footer + a linte
 - `AGENTS.md` tool-registry — capability → concrete tool. Skills reference capabilities, never hardcoded tool-names.
 - `scripts/lint-portability.py` — CI gate. Rejects hardcoded `mcp__*` inside `SKILL.md`. Run: `python3 scripts/lint-portability.py skills`.
 
-Rollout: footer is on 11 operational skills (all am-*, debugging, book/video-knowledge-extraction). Skipped — no recurring operational facts: code-review, tdd, jtbd, improve-skill. (Removed as generic overhead 2026-07-21: competitive-analysis, spec-writing, deploy-checklist, incident-response.) **P1 shipped:** `decisions/` store + `decisions` skill (log/search/supersede) + OIAE mapping in `improve-skill`. **P2 shipped:** `prune` (stale+contradiction cleanup), selective `scripts/auto-retrieve.py` (≤3, never wholesale), `scripts/rotate-skill-runs.sh`; regression evals via `improve-skill`'s per-skill `evals.json`. See `docs/superpowers/specs/2026-06-18-harness-improvement-prd.md` and `USAGE.md`.
+Rollout: the «Operational learning» tail is inline on 15 skills; the shared footer file remains only in `am-docs-audit`. Removed as generic overhead 2026-07-21: `competitive-analysis`, `spec-writing`, `deploy-checklist`, `incident-response`; `tdd`/`debugging`/`code-review` live outside the repo. (Removed as generic overhead 2026-07-21: competitive-analysis, spec-writing, deploy-checklist, incident-response.) **P1 shipped:** `decisions/` store + `decisions` skill (log/search/supersede) + OIAE mapping in `improve-skill`. **P2 shipped:** `prune` (stale+contradiction cleanup), selective `scripts/auto-retrieve.py` (≤3, never wholesale), `scripts/rotate-skill-runs.sh`; regression evals via `improve-skill`'s per-skill `evals.json`. See `docs/superpowers/specs/2026-06-18-harness-improvement-prd.md` and `USAGE.md`.
 
 ## License
 

@@ -7,7 +7,7 @@
 Навыки разбиты по трекам — как в `AGENTS.md` и `skills/_INDEX.md`:
 
 - **Discovery** (что строить — research/оценка/спеки): `am-research`, `am-research-index`, `am-grill-feature`, `am-grill-docs`, `am-pain-mining`, `am-write-specs`, `jtbd`, `grill-plan`, `book/video-knowledge-extraction`.
-- **Delivery** (как строить — код): `tdd`, `debugging`, `code-review`.
+- **Delivery** (код/процесс): `excalidraw-deck`, `am-update`, `vid-rabot`; кодовые скиллы (`tdd`, `debugging`, `code-review`) — вне репо (superpowers / `~/.claude/skills`).
 - **Knowledge-Meta** (слой знаний харнесса): `improve-skill`, `decisions`, `prune`.
 
 Репо устроено так: `skills/` (навыки), `standards/` (конвенции по языкам), `learnings/` + `decisions/` + `state/` (сторы знаний), `scripts/` (инструменты харнесса), `docs/` (спеки/планы). Полная карта структуры — в `README.md`.
@@ -88,7 +88,7 @@ OIAE: Observe → Inspect → Amend → Evaluate → rollback   [авто вну
 
 Коротко: **захват, хранение и саму петлю харнесс делает сам. Человек решает, что улучшать, задаёт критерии и разбирает результат.**
 
-Футер стоит на **11 операционных навыках** (все am-*, debugging, book/video-knowledge-extraction). Без футера: code-review, tdd, jtbd, improve-skill — нет рекуррентных операционных фактов. (Удалены как generic-оверхед 2026-07-21: competitive-analysis, spec-writing, deploy-checklist, incident-response.)
+Хвост «Operational learning» инлайн на **15 навыках**; файл футера (`_shared/learning-footer.md`) остался только у am-docs-audit. Удалены 2026-07-21: competitive-analysis, spec-writing, deploy-checklist, incident-response; tdd/debugging/code-review — вне репо. (Удалены как generic-оверхед 2026-07-21: competitive-analysis, spec-writing, deploy-checklist, incident-response.)
 
 ## Улучшить навык (improve-skill)
 

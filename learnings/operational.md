@@ -152,6 +152,8 @@ source: observed
 files: []
 ts: 2026-08-11
 scope: project
+status: superseded
+superseded_by: feedback-push-token
 ---
 
 ---
@@ -209,6 +211,8 @@ source: observed
 files: ["meta/scripts/collect-repo-facts.sh"]
 ts: 2026-09-04
 scope: project
+status: superseded
+superseded_by: ref-collect-repo-facts-quirks
 ---
 admin-console: facts показал 16 коммитов с 2026-09-03, фактическое окно после аудита 08-11 — ~230. Отдельный дефект: секция Dirs go-lib в facts обрезана на 30 записях (поднять лимит листинга в collect-repo-facts.sh).
 
@@ -293,6 +297,8 @@ confidence: 10
 source: observed (am-update 2026-11-01, Stage 4)
 ts: 2026-11-01
 scope: project
+status: superseded
+superseded_by: project-capability-registry
 ---
 
 Команда: `python3 meta/scripts/capability_registry_check.py PM/strategy/functional-registry.md analytics-hub/internal_docs`.

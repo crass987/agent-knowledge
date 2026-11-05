@@ -48,6 +48,8 @@ source: observed
 files: ["identity-provider/dex/server/oauth2.go", "identity-provider/internal/config/entity.go", "go-lib/amecho/utils.go", "PM/sessions/dex-token-slo/token-lifetime-research.md"]
 ts: 2026-09-22
 scope: project
+status: superseded
+superseded_by: project-dex-token-slo-acp
 ---
 Любой вопрос про SSO/SLO/жизнь сессии в АМ начинать с этой цепочки: браузер (oidc-react silent renew) → identity-provider (Dex 2.38, upstream refresh к IAM) → admin-backend (claims без проверки). Pull-сценарий заказчика работает без доработок, задержка = expiry.id_tokens.
 

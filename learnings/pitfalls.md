@@ -144,6 +144,8 @@ source: observed
 files: ["PM/initiatives/monitoring-1c/history/HANDOFF-tj-traces.md"]
 ts: 2026-09-08
 scope: project
+status: superseded
+superseded_by: project-am-backend-local-config
 ---
 HANDOFF-tj-traces 08.09: команда подъёма бэка из хэндофа падала «open /tmp/am-local.yaml: no such file»; живая копия нашлась в ~/am-backend-local. Стенде-чек-лист: CH docker start, бэк с конфигом из ~/am-backend-local.
 
@@ -174,7 +176,6 @@ scope: skill:video-knowledge-extraction
 Также regex-поиск таймкодов по большому SRT — только линейным поиском по блокам (split по пустым строкам); finditer с вложенными квантификаторами по 100k+ файлу уходит в катастрофический бэктрекинг.
 ---
 type: pitfall
-См. также: [[project-am-release-jira-filters]], [[release-notes-infra-by-code]]
 key: mon-sprint-vs-fixversion
 insight: В MON активный спринт (=имени релиза, напр. «1.7.0») шире fixVersion: 122 открытых задачи спринта 3641 не имели fixVersion — релизный хвост считать только JQL по fixVersion, иначе скоуп раздувается втрое
 confidence: 9
@@ -182,6 +183,8 @@ source: observed
 files: []
 ts: 2026-09-10
 scope: project
+status: superseded
+superseded_by: project-am-release-jira-filters
 ---
 Ревизия v.1.7.0 (10-09): fixVersion-срез 21 открытая, спринт-срез 143. Дополнительно: эпики с «(релиз 1.7.0)» в названии могут не состоять в fixVersion (MON-4663/4664) — заголовок не источник скоупа.
 
@@ -257,6 +260,8 @@ source: observed
 files: ["~/.amctl-dev-live.yaml"]
 ts: 2026-09-25
 scope: project
+status: superseded
+superseded_by: project-ai-sre-stand-token-cadence
 ---
 JWT am-dev живёт ~24 часа (exp = iat + 86400). Протухание молчаливое: amctl отдаёт 403/401, сервисы-обёртки (полигон ai-agent) — «инструмент не работает», стек прототипа остаётся без рук. Свежий токен — в `~/.amctl-dev-live.yaml` (обновляется перелогином владельца); конфиг полигона на ВМ — `astra@10.205.142.219:/home/astra/.amctl.yaml` (ro-mount, заменять файл на хосте, контейнер перезапускать не надо). Дата-чек: `python3 -c` base64-decode payload.
 
@@ -295,6 +300,8 @@ source: observed
 files: [Astra/meta/scripts/collect-repo-facts.sh]
 ts: 2026-10-01
 scope: project
+status: superseded
+superseded_by: ref-collect-repo-facts-quirks
 ---
 am-update 2026-10-01: сканер не показал `swagger/doc` в agent (цель существует, Makefile:129) и feeder; профиль agent чуть не починили «по фактам». Вторая ловушка того же запуска: счёт top-level каталогов go-lib — аудит дал 34, двойной пересчёт 35 (8 удалённых подкаталогов под ОДНИМ top-level). Счётчики пересчитывать двумя способами перед правкой C2.
 

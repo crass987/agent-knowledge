@@ -140,6 +140,7 @@ source: observed
 files: []
 ts: 2026-08-11
 scope: harness
+См. также: [[confluence-update-content-placeholder]]
 ---
 
 ---
@@ -220,6 +221,7 @@ source: observed
 files: ["~/.claude/skills/video-knowledge-extraction/scripts/srt-clean.py"]
 ts: 2026-09-14
 scope: harness
+См. также: [[srt-clean-fails-on-sequential-subs]], [[srt-anchor-timestamps]]
 ---
 SRT парсится одним python-скриптом: split по \n\n, блок с '-->' в строке 1, timestamp из start, текст после тегов. Оригинал SRT сохраняйте в source/ до очистки.
 ---
@@ -229,6 +231,7 @@ insight: Инфровые изменения релиза AM не видны п�
 confidence: 9
 source: observed
 files: [monitoring-astra-icl/scripts/build_airgap.sh, infra-releases/release.yaml]
+См. также: [[mon-sprint-vs-fixversion]], [[project-am-release-jira-filters]]
 ts: 2026-09-21
 scope: harness
 ---
@@ -255,6 +258,7 @@ source: observed
 files: []
 ts: 2026-10-08
 scope: harness
+См. также: [[asr-transcript-literal-grep-fails]]
 ---
 
 ---

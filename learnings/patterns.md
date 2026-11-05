@@ -60,6 +60,7 @@ source: observed
 ts: 2026-11-01
 scope: harness
 tags: [video-knowledge-extraction, transcript, srt]
+См. также: [[srt-anchor-timestamps]]
 ---
 
 srt-clean.py выбрасывает таймкоды вместе с rolling-шумом. Если документу знаний нужны временные метки идей, вытаскивай их grep'ом/скриптом по subs.ru.srt до очистки (или параллельно): искать фразу в очищенном transcript.txt бесполезно — координат там нет. Мини-скрипт: парс SRT → (start_sec, text) → find(phrase) по ключевым фразам списка.
@@ -75,6 +76,7 @@ confidence: 7
 source: observed
 ts: 2026-11-04
 scope: harness
+См. также: [[srt-timestamps-before-clean]]
 skill: video-knowledge-extraction
 ---
 

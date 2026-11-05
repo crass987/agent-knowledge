@@ -2,5 +2,6 @@
 # pre-commit: (1) битая запись не приземляется — ERROR store_check блокирует;
 # (2) портабельность — mcp__* хардкоды в SKILL.md запрещены (tool registry — их дом).
 root="$(git rev-parse --show-toplevel)"
-python3 "$root/scripts/store_check.py" --root "$root" --quick || exit 1
+python3 "$root/scripts/store_check.py" --root "$root" --quick \
+  --memory "$HOME/.claude/projects/-Users-CraSS-Documents-Code-projects-Astra/memory" || exit 1
 exec python3 "$root/scripts/lint-portability.py" "$root/skills"

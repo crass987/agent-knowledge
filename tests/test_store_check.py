@@ -251,6 +251,15 @@ class StoreCheckTest(unittest.TestCase):
         write(self.root, "memory/MEMORY.md", "# Memory Index\n\n- [T](real.md) — hook\n")
         self.assertNotIn("index-missing", [f.code for f in self.run_check()])
 
+    def test_inline_index_reference_counts_as_indexing(self):
+        # файл упомянут инлайн в чужой строке индекса — не сирота
+        write(self.root, "MEMORY.md",
+              "# Memory Index\n\n- [Hub](hub.md) — hub ([inline](inline-note.md))\n")
+        write(self.root, "memory/hub.md", "---\nname: hub\ndescription: d\n---\nb\n")
+        write(self.root, "memory/inline-note.md",
+              "---\nname: inline-note\ndescription: d\n---\nb\n")
+        self.assertNotIn("index-missing", [f.code for f in self.run_check()])
+
     def test_exit_code_zero_without_errors(self):
         write(self.root, "learnings/operational.md", entry())
         self.assertEqual(sc.exit_code(self.run_check()), 0)

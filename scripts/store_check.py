@@ -244,9 +244,9 @@ def check(root: Path, memory: Path = None, quick: bool = False, budgets: dict = 
             n_lines = 0
             for line in index_file.read_text(encoding="utf-8").splitlines():
                 n_lines += 1
-                m = INDEX_LINE.match(line)
-                if m:
-                    target = m.group(1)
+                # любая (file.md)-ссылка в строке индексирует файл — и своя строка,
+                # и инлайн-упоминание в чужой строке; [^()] — не съедать вложенные скобки
+                for target in re.findall(r"\(([^()]+\.md)\)", line):
                     indexed.add(Path(target).stem)
                     if not (expected_dir / target).exists():
                         add("ERROR", "index-broken", index_file, n_lines,

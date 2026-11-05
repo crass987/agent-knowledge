@@ -25,6 +25,7 @@ source: observed
 files: []
 ts: 2026-07-13
 scope: harness
+См. также: [[jira-mcp-401-substring-issuekey]], [[jira-bulk-async-server-side-completes-after-mcp-abort]], [[jira-search-truncates-at-maxresults]], [[ref-mcp-jira-relations-got]]
 ---
 A zero-result narrow search (e.g. `issuetype=Bug AND summary~"документац"`) is itself signal — it means there is no feedback channel for that defect class, not that the area is clean.
 
@@ -36,6 +37,7 @@ confidence: 9
 source: observed
 files: []
 ts: 2026-07-21
+См. также: [[asr-mangles-org-product-names]], [[speech-to-text-doc-summary-vs-transcript]], [[dion-vc-transcript-extraction]]
 scope: harness
 ---
 Гринатом pain-report QC: my grep for «zabbix|пульт» returned 0, yet the subagent (reading context) was right on all three. Reinforces read-don't-grep for names under ASR noise.
@@ -47,6 +49,7 @@ insight: A subagent drafting Russian prose can inject stray Chinese glyphs (可�
 confidence: 8
 source: observed
 files: []
+См. также: [[subagent-briefs-require-russian-explicitly]]
 ts: 2026-07-21
 scope: harness
 ---
@@ -71,6 +74,7 @@ insight: The skill's `srt-clean.py` assumes classic YouTube progressive-reveal a
 confidence: 9
 source: observed
 files: [~/.claude/skills/video-knowledge-extraction/scripts/srt-clean.py]
+См. также: [[yt-vtt-to-srt-before-clean]], [[srt-clean-strips-timestamps]], [[srt-anchor-timestamps]], [[srt-timestamps-before-clean]]
 ts: 2026-08-06
 scope: harness
 ---
@@ -84,6 +88,7 @@ confidence: 10
 source: observed
 files: [/Users/CraSS/Documents/Code_projects/jira-mcp/mcp_server.py]
 ts: 2026-08-13
+См. также: [[jira-mcp-broad-text-jql-oversize]], [[jira-bulk-async-server-side-completes-after-mcp-abort]], [[jira-search-truncates-at-maxresults]]
 scope: harness
 ---
 Real status/message lives in ~/.cache/jira-mcp/logs/mcp-<date>.jsonl (per-call "error" entries) or in the Jira response body via a direct probe; the server itself discards e.response.text. Fix candidate: match "401 Client Error"/"Unauthorized for url" instead of bare "401" in mcp_server.py format_error_message (~line 328, also the resource-read mapper ~line 902).
@@ -149,6 +154,7 @@ insight: MCP-клиент может убить bulk-вызов по idle-timeou
 confidence: 9
 source: observed
 files: ["~/.claude/skills/vid-rabot/SKILL.md"]
+См. также: [[jira-mcp-broad-text-jql-oversize]], [[jira-mcp-401-substring-issuekey]], [[jira-search-truncates-at-maxresults]]
 ts: 2026-09-08
 scope: harness
 ---
@@ -158,6 +164,7 @@ vid-rabot прогон, bulk_update_issues 265 ключей (MON спринт 36
 type: pitfall
 key: yt-vtt-to-srt-before-clean
 insight: srt-clean.py парсит только SRT с запятыми в мс; YouTube VTT от yt-dlp (точки в мс) надо сначала конвертировать `ffmpeg -i x.vtt x.srt`, иначе скрипт молча вернёт 0 символов.
+См. также: [[srt-clean-fails-on-sequential-subs]]
 confidence: 9
 source: observed
 files: [~/.claude/skills/video-knowledge-extraction/scripts/srt-clean.py]
@@ -167,6 +174,7 @@ scope: skill:video-knowledge-extraction
 Также regex-поиск таймкодов по большому SRT — только линейным поиском по блокам (split по пустым строкам); finditer с вложенными квантификаторами по 100k+ файлу уходит в катастрофический бэктрекинг.
 ---
 type: pitfall
+См. также: [[project-am-release-jira-filters]], [[release-notes-infra-by-code]]
 key: mon-sprint-vs-fixversion
 insight: В MON активный спринт (=имени релиза, напр. «1.7.0») шире fixVersion: 122 открытых задачи спринта 3641 не имели fixVersion — релизный хвост считать только JQL по fixVersion, иначе скоуп раздувается втрое
 confidence: 9
@@ -192,6 +200,7 @@ scope: harness
 ---
 type: pitfall
 key: confluence-update-content-placeholder
+См. также: [[confluence-content-file-sandbox]]
 insight: mcp confluence_update_page публикует ЛЮБОЙ переданный content немедленно — accidental placeholder уходит на живую страницу; для больших тел использовать content_file, но путь обязан быть внутри workspace (path traversal guard режет /tmp)
 confidence: 10
 source: observed
@@ -210,6 +219,7 @@ source: observed
 files: []
 ts: 2026-09-17
 scope: harness
+См. также: [[asr-transcript-literal-grep-fails]], [[asr-mangles-org-product-names]]
 ---
 textutil -convert txt работает; признак саммари: структура «Заголовок: НАИМЕНОВАНИЕ… Содержимое: <таймкоды-оглавление> Концепции: SWOT».
 
@@ -230,12 +240,14 @@ key: jira-search-truncates-at-maxresults
 insight: search_issues молча режет issues до max_results — при total>limit агрегаты и списки врут; сверять .total с .issues|length
 confidence: 9
 source: observed
+См. также: [[jira-mcp-broad-text-jql-oversize]], [[jira-mcp-401-substring-issuekey]], [[jira-bulk-async-server-side-completes-after-mcp-abort]]
 files: []
 ts: 2026-09-21
 scope: harness
 ---
 mcp__jira__search_issues при total > max_results сохраняет в файл только первую страницу (224 total → 200 issues, isLast:false), без предупреждения в тексте результата. Прогон am-release-notes v.1.7.0 (2026-09-21): скилл-рецепт с max_results=200 потерял 24 задачи — поймано по расхождению `.total` vs `jq '.issues|length'`. Потерянные задачи = дыры в dev-файле релиз-нотсов; coverage-проверка ловит их не всегда — expected-набор может быть собран из той же обрезанной выдачи (оба неполны, проверка зелёная при дыре). Лечение: после выдачи всегда `jq '{total, have: (.issues|length), isLast}' $F`; если have < total — дотягивать страницами start_at, слить `jq -s '{total: .[0].total, issues: (.[0].issues + .[1].issues)}'`.
 
+См. также: [[project-ai-sre-stand-token-cadence]]
 ---
 type: pitfall
 key: am-dev-jwt-24h-and-split-dns
@@ -250,6 +262,7 @@ JWT am-dev живёт ~24 часа (exp = iat + 86400). Протухание м�
 
 Split-DNS VPN: туннель поднят (ВМ по IP отвечает), но системный DNS macOS не получает записи `*.dev.astra-monitoring.astralinux.ru` — curl/amctl/vite-прокси падают NXDOMAIN, а браузер владельца работает (браузерный DoH). Диагностика: `host <имя>` против `curl http://<ВМ-IP>:порт/health`; если ВМ жива, а имя нет — просить IP или перезапуск туннеля, не гадать про «сеть мертва».
 
+См. также: [[subagent-cjk-glyph-leak]]
 ---
 type: pitfall
 key: subagent-briefs-require-russian-explicitly
@@ -302,6 +315,7 @@ scope: harness
 type: pitfall
 key: asr-mangles-org-product-names
 insight: ASR-транскрипты звонков (SRT) коверкают имена организаций, продуктов и должностей — не переносить их в артефакты, сверять с владельцем до записи
+См. также: [[asr-transcript-literal-grep-fails]]
 confidence: 8
 source: observed
 files: [PM/customers/ВСМПО-АВИСМА/pain-report-2026-10-15.md]
@@ -345,3 +359,14 @@ ts: 2026-10-22
 scope: product
 ---
 Кейс v.1.8.0 (план 03.11.2026): юзер попросил драфт по MUST-скоупу (интеграции + RBAC по данным). Паттерн: в dev-файле ключи не-Done тикетов включаются как плановый скоуп, в шапке — статусная оговорка и ссылка на живую релизную страницу Confluence; номера тикетов НЕ упоминать вне буллетов, иначе key-coverage check (exact-once) ложно краснеет. Коммит только после апрува владельца.
+---
+type: pitfall
+key: complaint-vs-requirement-ticket-reading
+insight: Фразы «может только X» / «Y недоступны» в жалобных тикетах заказчика — это констатация текущего как проблемы, не требование ограничить; прежде чем резать скоуп, определи прочтение у владельца явно.
+confidence: 8
+source: observed
+files: []
+ts: 2026-11-03
+scope: harness
+---
+Кейс KIM-538: «Администратор может исправить только ИНН… ОКПО/КПП/р/сч недоступны» — сначала прочитали как требование отобрать у админа поля (полгода лишней работы по ограничению), по факту это была жалоба «недостаёт поверхностей» + часть объяснялась карточкой физлица, где КПП/ОГРН/ОКПО не существуют по замыслу. Маркер: в тикете рядом есть явное «должно быть доступно только для…» — жалоба-абзац зеркалит его структуру. Сверяй оба прочтения с кодом до скоупа: код часто снимает одну из версий сразу.

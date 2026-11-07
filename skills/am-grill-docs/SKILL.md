@@ -27,7 +27,7 @@ Cross-reference documentation against actual source code to find inaccuracies, o
 
 Determine what documentation to audit:
 - **Service profiles**: `meta/repos/<service>.md`
-- **Architecture docs**: `analytics-hub/master_docs/Архитектура/`, `analytics-hub/docs/architecture/`
+- **Architecture docs**: `analytics-hub/internal_docs/docs/Архитектура/`, `analytics-hub/docs/architecture/`
 - **Requirements**: `analytics-hub/docs/requirements/`
 - **Specifications**: `analytics-hub/docs/specifications/`
 - **Per-repo AGENTS.md**: in each service directory

@@ -82,7 +82,7 @@ python3 build/check-rd037.py --md out/<NAME>.md --docx out/<NAME>.docx
 - Правится исходник `sections/*.md` (НЕ собранный DOCX), затем пересборка и повторный
   прогон до 0 error.
 - Настройки оформления (шрифты/поля/интервалы) живут в
-  `build/make-reference-docx.py` → `templates/reference.docx`; пост-обработка
+  `PM/initiatives/cert-agent/build/make-reference-docx.py` → `PM/initiatives/cert-agent/templates/reference.docx`; пост-обработка
   (титульник, колонтитул, NBSP, перечни) — в `build/title-page-docx.py`.
 - Новое правило добавлять в `build/check-rd037.py` с ID (MD-xxx — текст, DX-xxx —
   оформление) и пунктом РД; если правило глазное — в чек-лист.

@@ -53,7 +53,7 @@ Read 1-2 existing files in the target format for structure reference.
 ### 3. Check architecture constraints
 
 Read relevant architecture docs:
-- `analytics-hub/master_docs/Архитектура/C2-контейнеры.md` — system boundaries
+- `analytics-hub/internal_docs/docs/Архитектура/C2-контейнеры.md` — system boundaries
 - `analytics-hub/docs/architecture/ADR-*.md` — existing decisions
 - `meta/repos/<service>.md` — service capabilities and limits
 

@@ -260,6 +260,36 @@ class StoreCheckTest(unittest.TestCase):
               "---\nname: inline-note\ndescription: d\n---\nb\n")
         self.assertNotIn("index-missing", [f.code for f in self.run_check()])
 
+    def test_dead_path_fires_for_missing_repo_file(self):
+        write(self.root, "learnings/operational.md", entry())
+        write(self.root, "meta/.keep", "")  # якорь: meta — топ-уровень
+        write(self.root, "skills/foo/SKILL.md",
+              "# Foo\n\nRead `meta/reports/gone-forever.md` first.\n")
+        findings = self.run_check()
+        self.assertIn(("WARN", "dead-path"), self.levels(findings))
+
+    def test_dead_path_silent_for_unanchored_fragments(self):
+        # фрагменты без якоря (references/, lib/) и шаблоны (YYYY) — не проверяются
+        write(self.root, "learnings/operational.md", entry())
+        write(self.root, "skills/foo/SKILL.md",
+              "# Foo\nSee `references/nowhere.md`, `lib/nowhere.py`, "
+              "`meta/reports/c2-drift-YYYY-MM-DD.md`.\n")
+        self.assertNotIn("dead-path", [f.code for f in self.run_check()])
+
+    def test_dead_path_silent_for_relative_and_workspace_refs(self):
+        write(self.root, "learnings/operational.md", entry())
+        # relative to the skill's own dir
+        write(self.root, "skills/foo/references/real.md", "x\n")
+        # relative to skills/ (parent of the skill dir)
+        write(self.root, "skills/_shared/core.md", "x\n")
+        # workspace-resolved
+        write(self.root, "skills/foo/SKILL.md",
+              "# Foo\nSee `references/real.md`, `_shared/core.md`, and `PM/notes/x.md`.\n")
+        ws = Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(ws, ignore_errors=True))
+        write(ws, "PM/notes/x.md", "x\n")
+        self.assertNotIn("dead-path", [f.code for f in self.run_check(resolve_roots=(ws,))])
+
     def test_exit_code_zero_without_errors(self):
         write(self.root, "learnings/operational.md", entry())
         self.assertEqual(sc.exit_code(self.run_check()), 0)

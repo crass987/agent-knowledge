@@ -128,6 +128,8 @@ def files_ref_exists(path: str, root: Path, extra_roots: tuple = WORKSPACE_ROOTS
 
 
 WIKILINK = re.compile(r"\[\[([^\]]+)\]\]")
+# repo-path mentions in skill/prompt files: `repo/dir/file.md` in backticks or after "→ "
+SKILL_PATH = re.compile(r"`([A-Za-z0-9_.-]+/[\w./\-]+?\.[A-Za-z]{1,5})`")
 INDEX_LINE = re.compile(r"^- \[.*?\]\((.+?)\)")
 
 
@@ -233,6 +235,38 @@ def check(root: Path, memory: Path = None, quick: bool = False, budgets: dict = 
     link_targets = set()  # [[wikilink]] targets across all stores — backlinks count as indexing
 
     if not quick:
+        # paths referenced from skills must resolve — catches doc-trees that moved
+        # (класс «C2 переехал из master_docs в internal_docs, скиллы молча указывают
+        # в старое место»). Только «якорные» ссылки: первый сегмент — реальный
+        # топ-уровень каталога одного из корней (путь притворяется корневым).
+        # Фрагменты (references/…, lib/…, ../…) — проза-относительные, пропускаем.
+        # WARN-уровень: виден в prune/traverse, коммиты не блокирует (чужие репо
+        # двигаются без нас — гейт не должен падать от чужого переезда).
+        anchors = set()
+        for r in [root, *resolve_roots, HOME_PROJECTS]:
+            if r.is_dir():
+                anchors |= {p.name for p in r.iterdir() if p.is_dir()}
+        PLACEHOLDER = re.compile(r"YYYY|NN|XXX|\.\w+/\.\w+")  # doc examples, never real files
+        # только SKILL.md: вложенные дизайн-доки (issues/, references/) описывают
+        # будущие/контекстные файлы — проза, не операционные ссылки
+        harness_files = [p for p in (root / "skills").rglob("SKILL.md")] if (root / "skills").is_dir() else []
+        for hf in harness_files:
+            for line in hf.read_text(encoding="utf-8").splitlines():
+                # «create lazily»-пути: файл создаётся самим скиллом при первом
+                # использовании — отложенный, не мёртвый
+                if "create lazily" in line or "создаёт*ся при первом" in line:
+                    continue
+                for ref in SKILL_PATH.findall(line):
+                    if ref.startswith(("http", "mcp__")) or PLACEHOLDER.search(ref):
+                        continue
+                    if ref.split("/")[0] not in anchors:
+                        continue
+                    candidates = [Path(ref).expanduser(), root / ref, hf.parent / ref,
+                                  hf.parent.parent / ref]
+                    candidates += [ws / ref for ws in resolve_roots + (HOME_PROJECTS,)]
+                    if not any(c.exists() for c in candidates):
+                        add("WARN", "dead-path", hf, 1,
+                            f"referenced path '{ref}' not found (repo moved?)")
         # MEMORY.md lives inside the memory dir (auto-memory layout); tests use root/
         if memory_dir and (memory_dir / "MEMORY.md").exists():
             index_file = memory_dir / "MEMORY.md"

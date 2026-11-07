@@ -130,7 +130,7 @@ key: workflow-overlapping-edits-apply-order
 insight: Пакетное применение одобренных workflow-правок падает, если old_text'ы перекрываются — перед replace задать явный порядок (большая правка первой) и проверять count==1 на каждую.
 confidence: 9
 source: observed
-files: ["meta/prompts/c2-fix.md"]
+files: ["skills/am-update/prompts/c2-fix.md"]
 ts: 2026-09-04
 scope: harness
 ---

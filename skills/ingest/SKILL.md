@@ -16,7 +16,7 @@ itself is unclear.
 
 | Input | Destination |
 |---|---|
-| Operational fact / pattern / pitfall / preference | `learnings/<category>.md` (format: `learnings/README.md`) |
+| Operational fact / pattern / pitfall | `learnings/<category>.md` (format: `learnings/README.md`) |
 | Settled decision with rationale | `decisions/` (via `decisions` skill if available) |
 | Reflexive knowledge (who the user is, standing feedback) | user's memory store — never `learnings/` |
 | Document/artifact for the product workspace | per repo boundary rules (PM/ artifacts, meta/ infra) — never this repo |

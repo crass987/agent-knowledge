@@ -290,6 +290,14 @@ class StoreCheckTest(unittest.TestCase):
         write(ws, "PM/notes/x.md", "x\n")
         self.assertNotIn("dead-path", [f.code for f in self.run_check(resolve_roots=(ws,))])
 
+    def test_dead_path_in_skill_prompts_dir(self):
+        write(self.root, "learnings/operational.md", entry())
+        write(self.root, "meta/.keep", "")  # якорь
+        write(self.root, "skills/foo/prompts/check.md",
+              "Apply to `meta/reports/gone-report.md`.\n")
+        findings = self.run_check()
+        self.assertIn(("WARN", "dead-path"), self.levels(findings))
+
     def test_exit_code_zero_without_errors(self):
         write(self.root, "learnings/operational.md", entry())
         self.assertEqual(sc.exit_code(self.run_check()), 0)

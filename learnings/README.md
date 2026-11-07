@@ -8,7 +8,7 @@ Each entry is a YAML frontmatter block followed by an optional one-line body. Ap
 
 ```yaml
 ---
-type: operational          # pattern | pitfall | preference | operational
+type: operational          # pattern | pitfall | operational
 key: short-kebab-key       # 2-5 words
 insight: one sentence, fact not opinion
 confidence: 1-10
@@ -23,7 +23,6 @@ scope: harness             # harness | project
 ## Categories
 - `patterns.md` — repeatable ways that work
 - `pitfalls.md` — things that bite
-- `preferences.md` — settled taste calls
 - `operational.md` — commands, tool quirks, environment facts
 
 ## Scope

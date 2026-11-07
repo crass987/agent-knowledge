@@ -246,10 +246,13 @@ def check(root: Path, memory: Path = None, quick: bool = False, budgets: dict = 
         for r in [root, *resolve_roots, HOME_PROJECTS]:
             if r.is_dir():
                 anchors |= {p.name for p in r.iterdir() if p.is_dir()}
-        PLACEHOLDER = re.compile(r"YYYY|NN|XXX|\.\w+/\.\w+")  # doc examples, never real files
+        PLACEHOLDER = re.compile(r"YYYY|NN|XXX|<[^>]*>|\.\w+/\.\w+")  # примеры и <шаблоны>
         # только SKILL.md: вложенные дизайн-доки (issues/, references/) описывают
         # будущие/контекстные файлы — проза, не операционные ссылки
         harness_files = [p for p in (root / "skills").rglob("SKILL.md")] if (root / "skills").is_dir() else []
+        # операционные промпты скиллов (skills/*/prompts/*.md) — они же брифы
+        # сабагентов: живые пути, под той же проверкой
+        harness_files += [p for p in (root / "skills").glob("*/prompts/*.md")]
         for hf in harness_files:
             for line in hf.read_text(encoding="utf-8").splitlines():
                 # «create lazily»-пути: файл создаётся самим скиллом при первом

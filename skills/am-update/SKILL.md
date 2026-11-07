@@ -9,7 +9,7 @@ description: Use in the Astra Monitoring meta-repo to run the full artifact refr
 
 Single typed entry point for the periodic full refresh of Astra Monitoring artifacts: repo profiles (`meta/repos/*.md`), the C2 architecture doc, and reports. Chains existing scripts/prompts as fixed stages and emits one status line per stage into the summary.
 
-Replaces hand-following `meta/prompts/update-all.md`. The engine is unchanged — this skill only packages it into predictable stages and closes two gaps the old flow left open: C2 drift was report-only (now auto-fixed for code-wins), and the human-review tail never closed (now tracked in a persistent review queue).
+Replaces hand-following `meta/archive/prompts-legacy/update-all.md`. The engine is unchanged — this skill only packages it into predictable stages and closes two gaps the old flow left open: C2 drift was report-only (now auto-fixed for code-wins), and the human-review tail never closed (now tracked in a persistent review queue).
 
 ## When to Use
 
@@ -29,16 +29,16 @@ Read each prompt file at the point it is needed — do not read all upfront.
 **Stage 0 — prep.** `./sync-repos.sh --force` then `./meta/scripts/collect-repo-facts.sh` → `meta/reports/facts-YYYY-MM-DD.md` (includes Profile Connections + per-repo drift status).
 *Status:* `Stage 0 — prep: facts at meta/reports/facts-<date>.md`.
 
-**Stage 1 — refresh profiles.** Follow `meta/prompts/refresh-agents.md` from Step 2 onward. Drift-aware: skip repos with `"none"` drift after a quick check; full review for `"N commits since..."`. Update `meta/repos/*.md`. Commit.
+**Stage 1 — refresh profiles.** Follow `skills/am-update/prompts/refresh-agents.md` from Step 2 onward. Drift-aware: skip repos with `"none"` drift after a quick check; full review for `"N commits since..."`. Update `meta/repos/*.md`. Commit.
 *Status:* `Stage 1 — profiles refreshed: N updated, M unchanged`.
 
-**Stage 2 — C2 audit.** Follow `meta/prompts/c2-audit.md` in full, using fresh profiles as evidence. Per-service subagents (≤5 parallel, clean context). Produces `meta/reports/c2-drift-YYYY-MM-DD.md` (report-only).
+**Stage 2 — C2 audit.** Follow `skills/am-update/prompts/c2-audit.md` in full, using fresh profiles as evidence. Per-service subagents (≤5 parallel, clean context). Produces `meta/reports/c2-drift-YYYY-MM-DD.md` (report-only).
 *Status:* `Stage 2 — c2-audit: ✅N ⚠️N ❓N 👻N (HIGH: N)`.
 
-**Stage 3 — C2 fix.** Follow `meta/prompts/c2-fix.md`. Classify each confirmed drift: code-wins → maker proposes C2 edit, separate checker verifies against code, commit on APPROVE; product-decision → append to review queue. Produces `meta/reports/c2-fix-summary-YYYY-MM-DD.md` and edits `analytics-hub/internal_docs/docs/Архитектура/C2-контейнеры.md`.
+**Stage 3 — C2 fix.** Follow `skills/am-update/prompts/c2-fix.md`. Classify each confirmed drift: code-wins → maker proposes C2 edit, separate checker verifies against code, commit on APPROVE; product-decision → append to review queue. Produces `meta/reports/c2-fix-summary-YYYY-MM-DD.md` and edits `analytics-hub/internal_docs/docs/Архитектура/C2-контейнеры.md`.
 *Status:* `Stage 3 — c2-fix: N auto-fixed, M queued, K rejected-by-checker`.
 
-**Stage 4 — capability-registry audit/fix.** Follow `meta/prompts/capability-registry-audit.md` then `capability-registry-fix.md`. Run `meta/scripts/capability_registry_check.py PM/strategy/functional-registry.md analytics-hub/internal_docs` → drift (broken proofs, bad statuses); detect graduations (роадмап/Частично features now shipped → upgrade candidate). Fix code-wins (broken link, graduated feature) via maker/checker → edit `PM/strategy/functional-registry.md`; judgment (verdict changes) → review queue. Regenerate views (gated): `registry_to_xlsx.py` + `registry_to_md.py` → артефакты в `PM/strategy/registry-views/AM-<версия>-<дата>.{md,xlsx}`. Confluence — модель «страница на релиз» (с 2026-10-01): родитель «Реестр функциональности AM» `728802299`, новый релиз = новый ребёнок (актуальный: 1.7.0 = `728802300`), старые страницы не редактируются; обновить у родителя строку «Актуальный релиз». `content_file` только внутри Astra-воркспейса (MCP режет /tmp). xlsx attach is manual (MCP `upload_attachment` currently broken). The registry source lives in the **PM** sibling repo (NOT synced by Stage 0 — maintained directly).
+**Stage 4 — capability-registry audit/fix.** Follow `skills/am-update/prompts/capability-registry-audit.md` then `capability-registry-fix.md`. Run `meta/scripts/capability_registry_check.py PM/strategy/functional-registry.md analytics-hub/internal_docs` → drift (broken proofs, bad statuses); detect graduations (роадмап/Частично features now shipped → upgrade candidate). Fix code-wins (broken link, graduated feature) via maker/checker → edit `PM/strategy/functional-registry.md`; judgment (verdict changes) → review queue. Regenerate views (gated): `registry_to_xlsx.py` + `registry_to_md.py` → артефакты в `PM/strategy/registry-views/AM-<версия>-<дата>.{md,xlsx}`. Confluence — модель «страница на релиз» (с 2026-10-01): родитель «Реестр функциональности AM» `728802299`, новый релиз = новый ребёнок (актуальный: 1.7.0 = `728802300`), старые страницы не редактируются; обновить у родителя строку «Актуальный релиз». `content_file` только внутри Astra-воркспейса (MCP режет /tmp). xlsx attach is manual (MCP `upload_attachment` currently broken). The registry source lives in the **PM** sibling repo (NOT synced by Stage 0 — maintained directly).
 *Status:* `Stage 4 — capability-registry: N drift, M auto-fixed, K queued; views regenerated, Confluence updated`.
 
 **Stage 5 — review-queue reconcile.** Read `meta/reports/review-queue.md` by grepping `- [open` (never wholesale). Collect new `[REVIEW]` items from Stage 1, plus judgment items from Stage 4. New → append `[open]`; items resolved this run → mark `[resolved]`/`[superseded]` with date; remaining `[open]` → re-surface in the summary.

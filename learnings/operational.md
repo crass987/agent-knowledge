@@ -302,3 +302,27 @@ superseded_by: project-capability-registry
 ---
 
 Команда: `python3 meta/scripts/capability_registry_check.py PM/strategy/functional-registry.md analytics-hub/internal_docs`.
+
+---
+type: operational
+key: monitor-state-exported-to-vm
+insight: event-processing пишет состояние мониторов в VictoriaMetrics тремя рядами — rule_state{monitor_id,rule_id,metric_id,<метка группы>} (ruleexecutor.go:164-176), state{monitor_id,metric_id,group_by} (monitor/refresh.go:294-318), monitor_values{monitor_id,metric_id,<лейблы группы>} (repository/metric/series.go:22-37); шкала OK=0, NEW=-1, NO_DATA=2, WARNING=3, CRITICAL=4.
+confidence: 9
+source: observed
+files: ["event-processing/internal/ruleexecutor/ruleexecutor.go", "event-processing/internal/monitor/refresh.go", "event-processing/internal/repository/metric/series.go", "PM/initiatives/monitoring-1c/product/data-contracts.md"]
+ts: 2026-11-23
+scope: project
+---
+Агрегат «худшее по монитору/хосту» строится запросом `max by (monitor_id|hostname) (rule_state{...})` — так работает светофор зон раздела «1С» (ветка mon-5179 admin-console: pages/onec/model/zones.ts). Запись по Федерации ЦРЦТ от 07.2026 (D10 «экспорт состояния метрикой — нет») и grill sla-monitoring от 24.08 устарели.
+
+---
+type: operational
+key: slo-platform-constraints
+insight: Для расчётов за длинные окна платформа ограничена — VictoriaMetrics single хранит 30 дней по умолчанию (umbrella values.yaml retentionPeriod: 30d), в compose и devbox флагов нет; vmalert, alertmanager, Mimir/Thanos ruler и recording rules не деплоятся; у монитора нет удержания «for» (problem_open_delay / problem_close_delay есть в модели и UI, но event-processing их не читает); PDF-, Excel-библиотек и планировщика нет ни в одном Go-репо, CSV-экспорт таблиц в admin-console готов, но выключен (CoreTable exportable=false).
+confidence: 9
+source: observed
+files: ["monitoring-astra-icl/helm-charts/astra-monitoring-umbrella/values.yaml", "go-lib/entity/ep/monitor/monitor.go", "admin-console/src/shared/ui/CoreTable/CoreTable.tsx"]
+ts: 2026-11-23
+scope: project
+---
+Следствие для SLO/отчётов: месяц длиннее хранения метрик → нужна суточная свёртка или расчёт по истории проблем в PostgreSQL (ep_problems без очистки; ep_problem_logs в ClickHouse — TTL 60 дней). История проблем в PG переживает любой период, но удаляется каскадом вместе с монитором.

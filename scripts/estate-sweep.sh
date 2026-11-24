@@ -28,5 +28,5 @@ echo
 echo "== кандидаты 30 дней (только список, решает владелец) =="
 find "$ASTRA" -maxdepth 1 -name "*.tgz" -mtime +30 2>/dev/null | sed 's/^/бандл: /'
 find "$ASTRA"/.claude -maxdepth 1 \( -name "HANDOFF-*" -o -name "PILOT-*" \) -mtime +30 2>/dev/null | sed 's/^/handoff: /'
-find "$ASTRA" -maxdepth 1 -name "*.yml" ! -name "repos.yml" ! -name "1c-infra-dom.yml" -mtime +30 2>/dev/null | sed 's/^/корень yml: /'
+find "$ASTRA" -maxdepth 1 -name "*.yml" ! -name "repos.yml" -mtime +30 2>/dev/null | sed 's/^/корень yml: /'
 echo "== конец сверки =="

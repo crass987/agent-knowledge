@@ -9,7 +9,7 @@ Follow these steps in order.
 ./meta/scripts/collect-repo-facts.sh
 ```
 
-`sync-repos.sh --force` brings all repos to server state (correct branch, latest commits).
+`sync-repos.sh --force` brings all repos to server state (correct branch, latest commits); repos with uncommitted changes are skipped with `[DIRTY]` — commit or stash them first (preview: `--dry-run` after a fetch).
 After completion, a facts report will be at `meta/reports/facts-YYYY-MM-DD.md` (today's date).
 
 ## Step 2: Read the report and fix profiles

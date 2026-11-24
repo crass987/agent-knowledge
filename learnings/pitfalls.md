@@ -32,7 +32,7 @@ A zero-result narrow search (e.g. `issuetype=Bug AND summary~"документа
 ---
 type: pitfall
 key: asr-transcript-literal-grep-fails
-insight: On ASR-mangled transcripts, literal grep for product/competitor names fails (Zabbix→«запикса»/«забикс», Grafana→«графиня», Пульт missed by a pattern) — read in context to QC a subagent's transcript-based output; do not grep-literal. Applies to QC of subagent drafts, not just prose.
+insight: On ASR-mangled transcripts, literal grep for product/competitor names fails (Zabbix→«запикса»/«забикс», Grafana→«графиня», Пульт missed by a pattern) — read in context to QC a subagent's transcript-based output; do not grep-literal. Applies to QC of subagent drafts, not just prose; коверкалки из ASR не переносить в артефакты — имена организаций/продуктов сверять с владельцем до записи (влито из asr-mangles-org-product-names, prune 2026-11-24).
 confidence: 9
 source: observed
 files: []
@@ -50,6 +50,8 @@ confidence: 8
 source: observed
 files: []
 См. также: [[subagent-briefs-require-russian-explicitly]]
+status: superseded
+superseded_by: subagent-briefs-require-russian-explicitly
 ts: 2026-07-21
 scope: harness
 ---
@@ -58,14 +60,15 @@ scope: harness
 ---
 type: pitfall
 key: zsh-glob-unquoted-url
-insight: In zsh, an unquoted URL containing `?` and `=` (YouTube `?v=ID`, any query string) is parsed as a filename glob → `(eval):1: no matches found` and yt-dlp/curl exits with no output; single-quote the URL (`URL='https://...'`) before passing it to any command. The video-knowledge-extraction skill's transcript-acquisition.md shows unquoted `URL` placeholders — always quote on substitution.
+insight: In zsh, an unquoted URL containing `?` and `=` (YouTube `?v=ID`, any query string) is parsed as a filename glob → `(eval):1: no matches found` and yt-dlp/curl exits with no output; single-quote the URL (`URL='https://...'`) before passing it to any command. The video-knowledge-extraction skill's transcript-acquisition.md shows unquoted `URL` placeholders — always quote on substitution. Same trap for grep globs: `--include=*.go` must be `--include='*.go'`, otherwise zsh aborts the command. On macOS BSD grep, `grep -r ... .` prints paths without the `./` prefix (`meta/reports/...`), so exclusion filters must match `^(meta|PM)/`, not `^\./`.
 confidence: 9
 source: observed
 files: [~/.claude/skills/video-knowledge-extraction/references/transcript-acquisition.md]
-ts: 2026-07-23
+ts: 2026-11-23
 scope: harness
 ---
 Matt Pocock video run: `yt-dlp --list-subs https://www.youtube.com/watch?v=n0VhIVtviC0` → `(eval):1: no matches found: https://...`; assigning to `URL='...'` fixed it instantly.
+Astra grill run 23.11: `grep -rl ... --include=*.go` → `(eval):1: no matches found` (three wasted calls); then `grep -v '^\./meta/'` excluded nothing because BSD grep printed `meta/...` without `./`.
 
 ---
 type: pitfall
@@ -83,6 +86,7 @@ Also: YouTube can misdetect the base caption language (reported `en-en` "English
 ---
 type: pitfall
 key: jira-mcp-401-substring-issuekey
+status: superseded
 insight: jira-mcp's format_error_message matches HTTP statuses by substring, so any issue key containing "401"/"403"/"404" (e.g. MON-4013) masks the real response — a 400 Bad Request on such keys is reported as «Ошибка аутентификации: проверьте JIRA_EMAIL/JIRA_API_TOKEN», sending you chasing creds that are fine.
 confidence: 10
 source: observed
@@ -93,6 +97,7 @@ scope: harness
 ---
 Real status/message lives in ~/.cache/jira-mcp/logs/mcp-<date>.jsonl (per-call "error" entries) or in the Jira response body via a direct probe; the server itself discards e.response.text. Fix candidate: match "401 Client Error"/"Unauthorized for url" instead of bare "401" in mcp_server.py format_error_message (~line 328, also the resource-read mapper ~line 902).
 
+Superseded 2026-11-24 (prune): факт впитан в skills/vid-rabot/SKILL.md — ловушка 401-подстроки (MON-4013)
 ---
 type: pitfall
 key: jira-worklogdate-retro-backfill-delta
@@ -112,8 +117,11 @@ source: observed
 files: [monitoring-astra-icl/docker-compose/docker-compose.yml, monitoring-astra-icl/helm/templates/admin-ui-deployment.yaml, admin-backend/internal/entities/settings/handler.go]
 ts: 2026-08-19
 scope: project
+status: superseded
 
 ---
+Superseded 2026-11-24 (traverse): gogatekeeper вышел из поставки AM — 10s-дефолты не актуальны для текущих стендов.
+
 type: pitfall
 key: amctl-fake-ip-dns-epERM
 insight: amctl (и любой Go-бинарь) на маке с прокси-клиентами (V2Box/sing-box) может получить от DNS fake-IP 198.18.x–198.19.x → connect падает с «operation not permitted» (туннель выключен), при этом curl работает (системный scoped-резолвер даёт верный IP). Диагноз: `dscacheutil -q host -a name <host>`; лечение: `sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder` или перезапуск VPN-клиента. Может пройти само по истечении кэша (наблюдалось 2026-08-20: сбой в 16:14, чисто в 17:51 без изменений).
@@ -152,6 +160,7 @@ HANDOFF-tj-traces 08.09: команда подъёма бэка из хэндо�
 ---
 type: pitfall
 key: jira-bulk-async-server-side-completes-after-mcp-abort
+status: superseded
 insight: MCP-клиент может убить bulk-вызов по idle-timeout (1800s), но Jira Server продолжает выполнять операцию у себя и доводит её до конца — не дублировать bulk, а поллить прогресс прямым PAT-readback.
 confidence: 9
 source: observed
@@ -162,6 +171,7 @@ scope: harness
 ---
 vid-rabot прогон, bulk_update_issues 265 ключей (MON спринт 3641): MCP-клиент убил bulk-вызов после 1800s idle-timeout («sent no response or progress»), но 265 updates доехали за ~45 мин (темп 2→7/мин, ускоряется). Симптом-проверка: прямой readback через PAT (`key in (...) AND "Вид работ" is EMPTY`) показывает прогресс; перезапускать bulk НЕ нужно — поллить каждые 5-7 мин, пока счётчик пустых не дойдёт до 0. Параллельные мелкие bulk-группы (2-33 ключа) в это же время тоже висят >120s в фоне — MCP-сервер насыщен одним длинным bulk'ом; одиночный update_issue проходит мгновенно. Правило: большие bulk-записи (>50 ключей) = запуск в фон и полл прямым PAT-подключением; записи — только через MCP, read-only прямые вызовы в ходе прогона — норм.
 
+Superseded 2026-11-24 (prune): факт впитан в skills/vid-rabot/SKILL.md — bulk 50+/1800s, Jira доводит сама
 ---
 type: pitfall
 key: yt-vtt-to-srt-before-clean
@@ -170,10 +180,10 @@ insight: srt-clean.py парсит только SRT с запятыми в мс;
 confidence: 9
 source: observed
 files: [~/.claude/skills/video-knowledge-extraction/scripts/srt-clean.py]
-ts: 2026-09-08
+ts: 2026-11-24
 scope: skill:video-knowledge-extraction
 ---
-Также regex-поиск таймкодов по большому SRT — только линейным поиском по блокам (split по пустым строкам); finditer с вложенными квантификаторами по 100k+ файлу уходит в катастрофический бэктрекинг.
+Хвост про regex-бэктрекинг влит в [[srt-anchor-timestamps]] (prune 2026-11-24).
 ---
 type: pitfall
 key: mon-sprint-vs-fixversion
@@ -278,7 +288,7 @@ files: []
 ts: 2026-09-25
 scope: harness
 ---
-Наблюдение 25.09 (верификатор демо-сцен AI-SRE). В каждый бриф — строка «работай и пиши ТОЛЬКО на русском, без китайских иероглифов», плюс при приёмке — проверка внесённых правок на иероглифы (grep по файлу правок).
+Наблюдение 25.09 (верификатор демо-сцен AI-SRE). В каждый бриф — строка «работай и пиши ТОЛЬКО на русском, без китайских иероглифов», плюс при приёмке — проверка внесённых правок на иероглифы (grep по файлу правок, CJK-диапазоны U+3400–U+9FFF; глифы протекают и в русский текст — [[subagent-cjk-glyph-leak]]). Дополнение из memory (workflow-args, 27.07): после генерации md/text — обязательный CJK-скан `grep -P '[\x{3400}-\x{9fff}\x{f900}-\x{faff}]'` с целевыми заменами; артефакты вероятны в любой длинной генерации на GLM (роутер → z.ai).
 ---
 type: pitfall
 key: sandbox-tcc-documents-ephemeral
@@ -327,6 +337,8 @@ confidence: 8
 source: observed
 files: [PM/customers/ВСМПО-АВИСМА/pain-report-2026-10-15.md]
 ts: 2026-10-15
+status: superseded
+superseded_by: asr-transcript-literal-grep-fails
 scope: harness
 ---
 Примеры с одного файла: «клинический директор» ← «клиентский», «Sub-Danter под 1С» ← нераспознанный продукт, «решение инфробейс»/«стрем-мониторинг» — не восстановлены. Название клиента при этом отсутствовало в транскрипте вовсе. Порядок: до записи заголовка/папки артефакта спросить владельца (AskUserQuestion) — имя и манглы он называет сразу; в артефакте манглы фиксировать как «X [искажение распознавания]», не как факт. Спикеров без имён различать по перекрёстным упоминаниям в репликах (кто кого назвал), не по порядку.
@@ -377,7 +389,50 @@ ts: 2026-11-03
 scope: harness
 ---
 Кейс KIM-538: «Администратор может исправить только ИНН… ОКПО/КПП/р/сч недоступны» — сначала прочитали как требование отобрать у админа поля (полгода лишней работы по ограничению), по факту это была жалоба «недостаёт поверхностей» + часть объяснялась карточкой физлица, где КПП/ОГРН/ОКПО не существуют по замыслу. Маркер: в тикете рядом есть явное «должно быть доступно только для…» — жалоба-абзац зеркалит его структуру. Сверяй оба прочтения с кодом до скоупа: код часто снимает одну из версий сразу.
-
+---
+type: pitfall
+key: mon-jira-done-filter-and-transition-dates
+insight: в Jira MON statusCategory=Done врёт (возвращает подмножество), resolutiondate пуст у «To Release»/«Finished», а updated переклеивается массово при спринт-мерже — границы релизов резать по status = <числовой ID> + status CHANGED TO <ID> AFTER/BEFORE <дата тега>.
+confidence: 9
+source: observed
+files: []
+ts: 2026-11-23
+scope: harness
+---
+Кейс 1.7.2: statusCategory=Done дал 200 тикетов вместо 505 реальных «To Release»; по именам статусов («To Release») JQL отклоняется — только числовые ID (список через list_statuses). updated 173 тикетов был одинаковым днём (11-13, спринт-мерж). Рабочий паттерн: fixVersion = "v.X" AND status = 11402 AND status CHANGED TO 11402 AFTER "<дата тега предыдущего релиза>" → чистый когорт релиза (389 до / 116 после, пересечений ноль). Cross-references в summaries чужих тикетов («Настройки таблиц (MON-5684): …») дают ложные дубли в key-coverage — чекать только буллет-строки `- [MON-X](https://...)`.
+---
+type: pitfall
+key: amctl-login-fresh-config-needs-insecure
+insight: amctl login в новый конфиг на am-dev падает «сервер не доступен … x509: certificate is not trusted» — в конфиге заранее должно быть insecure: true, как в рабочих конфигах
+confidence: 9
+source: observed
+files: ["~/.amctl-dev-live.yaml"]
+ts: 2026-11-23
+scope: project
+---
+Кейс 23.11 (восстановление контекста AI-SRE): `amctl login --login … --server … -c /tmp/new.yaml` без `insecure: true` в файле даёт ERR «сервер не доступен», хотя стенд жив; файл после этого не создаётся, и следующий `amctl … -c` паникует в MustLoad. Рабочий порядок: создать конфиг с `insecure: true` и заготовкой сервера (права 600), затем login; токен читать из конфига в переменную, не печатая; временный конфиг удалить. В --help у login есть ещё флаг --insecure — этот путь не проверялся.
+---
+type: pitfall
+key: stale-clones-grep-origin-dev
+insight: grep по рабочему дереву клонов в метарепо молчит для свежесмерженного кода — локальный dev отстаёт от origin/dev; вывод «не реализовано» делать только после `git log --all -i --grep` и `git grep <шаблон> origin/dev`.
+confidence: 9
+source: observed
+files: ["sync-repos.sh"]
+ts: 2026-11-23
+scope: harness
+---
+Кейс 23.11 (am-research по Apdex, MON-4950): в admin-backend, admin-console, db-migration-service, monitoring-astra-icl локальный dev стоял на 05.11, а ветка mon-4950 смержена в origin/dev 20.11 — grep по дереву дал 0 файлов при готовой реализации. Читать код без правки дерева: `git show origin/dev:<путь>`, `git diff <merge>^1 <merge> --stat`. Отставание лечится sync-repos.sh, но проверка по origin-ссылкам — постоянное правило.
+---
+type: pitfall
+key: release-notes-scope-vs-merged-dev
+insight: am-release-notes — отбор «fixVersion = vX AND statusCategory = Done» пропускает фичи, смерженные в dev после тега прошлого релиза, но без fixVersion или ещё не в Done; перед сдачей сверять скоуп с мержами в origin/dev
+confidence: 9
+source: observed
+files: ["analytics-hub/internal_docs/docs/release-notes/"]
+ts: 2026-11-23
+scope: project
+---
+Кейс 23.11 (нотсы 1.7.2): Apdex по BTM (MON-4950) — один тикет на фичу, без fixVersion, «На тестировании», код в origin/dev четырёх репо 18–20.11; в нотсах фичи не было, заметил владелец. Тот же класс: MON-5720 (platformctl update), MON-5968 (AI-ассистент: Kubernetes), MON-5871 (ушёл в To Release уже после выгрузки), MON-5822. Тег релиза в monitoring-astra-icl стоит на main и НЕ является предком dev, поэтому `<тег>..origin/dev` выдаёт тысячи старых коммитов; рабочий фильтр — по дате тега: `git log origin/dev --first-parent --since=<дата тега> -i -E --grep='mon-[0-9]+'`, ключи сверить с dev.md, кандидатов проверить в Jira (statusCategory, fixVersion).
 ---
 type: pitfall
 key: check-learnings-before-no-docs-claim
@@ -389,3 +444,31 @@ ts: 2026-11-23
 scope: harness
 ---
 Кейс 23.11 (am-grill-feature по фичам Q1 2027): два веб-агента не нашли документацию GMONIT, в документ попало «публичной документации нет», хотя в patterns.md с утра лежал урок «Доки GMONIT = docsify, сырой md по прямому пути» (curl https://docs.gmonit.ru/<path>.md, оглавление _sidebar.md). Владелец спросил «как это реализовано в GMONIT» — модуль SLO нашёлся одним curl; ложное утверждение снято из документа, индекса и памяти.
+
+---
+type: pitfall
+key: github-api-limit-shared-with-subagents
+insight: An invalid `GITHUB_TOKEN` is exported from `~/.zshrc` (line 1) and overrides the valid `gh` keyring login (`crass987`), so plain `gh api` fails with 401 «Bad credentials» and everyone falls back to the unauthenticated limit (60 requests/h per IP, shared by the main session and all subagents); the token itself is fine — call GitHub as `env -u GITHUB_TOKEN -u GH_TOKEN gh api ...` (5000 requests/h) and put this exact line into the brief of every web-research subagent. Without it, agents read tagged sources via `raw.githubusercontent.com`, issue/PR state via GitHub HTML pages and Wayback — workable, but slower and no fresher than the page.
+confidence: 9
+source: observed
+files: ["meta/research/vector-otlp-logs-pipeline.md"]
+ts: 2026-11-23
+scope: harness
+status: superseded
+superseded_by: ref-github-api-gh-token
+---
+Superseded 2026-11-24 (traverse): GitHub-часть канонизована в memory ref-github-api-gh-token; не-GitHub факты вынесены в webreader-github-pages-500-fallback.
+
+Vector OTLP research run 23.11: the subagent reported «GitHub API исчерпал лимит (60/ч без токена, gh-токен невалиден)» mid-run and burned an hour on HTML scraping; the main session hit the same 401 and repeated the mistake. The owner corrected it («у нас есть токен на gh»); `gh auth status` showed both facts at once (GITHUB_TOKEN invalid + keyring login valid). The fix was already in memory ([[ref-knowledge-base]], line about `unset GITHUB_TOKEN`) but hidden under an unrelated index hook — not found because the brief for the agent was written without grepping memory for the tool name. `mcp__web_reader__webReader` intermittently returned 500 «Network error» on github.com pages — `curl` + a short `python3 -I` extraction worked; plain `grep -oE '.{0,160}(a|b).{0,200}'` over a 280 KB page fails in ugrep with «exceeds complexity limits».
+
+---
+type: pitfall
+key: webreader-github-pages-500-fallback
+insight: mcp web_reader на страницах github.com периодически отдаёт 500 «Network error» — сырой контент вытягивать curl'ом + коротким python3 -I, по репозиториям — zread; обычный grep по HTML тоже работает
+confidence: 8
+source: observed
+files: []
+ts: 2026-11-24
+scope: harness
+---
+Vector OTLP research run 23.11: the subagent reported «GitHub API исчерпал лимит (60/ч без токена, gh-токен невалиден)» mid-run and burned an hour on HTML scraping; the main session hit the same 401 and repeated the mistake. The owner corrected it («у нас есть токен на gh»); `gh auth status` showed both facts at once (GITHUB_TOKEN invalid + keyring login valid). The fix was already in memory ([[ref-knowledge-base]], line about `unset GITHUB_TOKEN`) but hidden under an unrelated index hook — not found because the brief for the agent was written without grepping memory for the tool name. `mcp__web_reader__webReader` intermittently returned 500 «Network error» on github.com pages — `curl` + a short `python3 -I` extraction worked; plain `grep -oE '.{0,160}(a|b).{0,200}'` over a 280 KB page fails in ugrep with «exceeds complexity limits».

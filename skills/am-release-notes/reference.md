@@ -95,7 +95,7 @@ Issues with no epic (`NO-EPIC`) — classify by summary + components + labels. R
 
 ## Three file templates
 
-Filename date = release date. Replace `X.Y.Z`, the date, and content.
+Dev-file header date = release date; filenames carry only the version. Replace `X.Y.Z`, the date, and content.
 
 ### dev — `YYYY-MM-DD-release-notes-dev.md`
 

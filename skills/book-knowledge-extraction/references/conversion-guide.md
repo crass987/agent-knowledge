@@ -203,4 +203,6 @@ brew install libreoffice pandoc
 brew install antiword
 brew install tesseract tesseract-lang
 brew install calibre
+brew install qpdf mutool                   # bookmarks/outline — раздел «Восстановление структуры глав»
+pip3 install pypdf                          # bookmarks через python (тот же раздел)
 ```

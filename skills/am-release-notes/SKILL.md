@@ -34,24 +34,28 @@ Leading words: **release notes**, **три файла** (dev / changelog / marke
 
 ### 1. Identify the version
 
-Jira capability (tool registry: `mcp__jira__*`): list project versions for project `MON` → pick `v.X.Y.0`. Confirm with the user which version, and the **release date** (for the filename); if unknown, use a placeholder date and flag it.
+Jira capability (tool registry: `mcp__jira__*`): list project versions for project `MON` → pick `v.X.Y.0`. Confirm with the user which version, and the **release date** (for the dev-file header); if unknown, use a placeholder date and flag it.
 
 Gotcha — **version duplicates.** MON carries errant twin versions without the `v.` prefix (e.g. `1.5.0` alongside `v.1.5.0`). Use the **`v.`-prefixed** one.
 
-**Done when:** version id known; it is the `v.`-prefixed `v.X.Y.0` for the release actually shipping; filename date agreed (or placeholder + flag).
+**Done when:** version id known; it is the `v.`-prefixed `v.X.Y.0` for the release actually shipping; release date agreed (or placeholder + flag; filenames carry no date).
 
 ### 2. Pull completed issues to a file
 
 ```
 Jira search (capability `jira`):
-  jql = 'fixVersion = "v.X.Y.0" AND statusCategory = Done ORDER BY updated DESC'
+  jql = 'fixVersion = "v.X.Y.0" ORDER BY updated DESC'
   max_results = 200
   fields = [summary, status, issuetype, labels, components, customfield_10300]
 ```
 
 Gotcha — **the result is huge** (~1.5 KB/issue; 150 issues ≈ 250 KB). The tool auto-saves it to a file when it overflows. **Reduce it with jq before any of it enters your context** — never read the raw file whole. Work from the saved path with the jq recipes in `reference.md`.
 
-Gotcha — **Cancelled lives inside `statusCategory = Done`** in this Jira. Drop every issue with `status.name == "Cancelled"`. They did not ship.
+Gotcha — **не фильтруй по `statusCategory = Done`**: в MON он возвращает подмножество (learning `mon-jira-done-filter-and-transition-dates`). Статус проверяй по `status.name`; Cancelled (`status.name == "Cancelled"`) выбрасывай — они не шиппились.
+
+Gotcha — **сверяй скоуп с мержами в origin/dev**: отбор по fixVersion пропускает фичи, смерженные после тега прошлого релиза ([[release-notes-scope-vs-merged-dev]]; кейс 23.11 — Apdex BTM/MON-4950).
+
+Gotcha — **`search_issues` молча режет до `max_results`**: сверяй `total` с числом полученных (на прошлом прогоне так потерялись 24 задачи).
 
 **Done when:** Done issues are on disk; Cancelled excluded; you know the shipping count (`total` minus cancelled).
 

@@ -129,7 +129,13 @@ scope: harness
 
 
 ---
-id: tz-answers-check-registry
-date: 2026-11-24
-context: Пресейл-ответы на пункты ТЗ заказчика (прошу уточнить…)
-pattern: Прежде чем давать ответ на пункт ТЗ, сверить его с строками PM/strategy/functional-registry.md (fn-os-exotic, fn-device-presets-10k и т.п.) — там уже вердикты 🟢/🟡/🔴 с evidence из репо. Черновики от продаж могут противоречить реестру (случай 2026-11-24: «Аврора/Стрелец подтверждаем» vs 🔴 не подтверждено).
+type: pattern
+key: tz-answers-check-registry
+insight: Прежде чем отвечать на пункт ТЗ заказчика, сверить его со строками реестра функциональности — там уже вердикты 🟢/🟡/🔴 с evidence из репо
+confidence: 8
+source: observed
+files: [PM/strategy/functional-registry.md]
+ts: 2026-11-24
+scope: project
+---
+Пресейл-ответы на пункты ТЗ заказчика (контекст «Сервис как объект», 2026-11-24): сверять каждый пункт со строками PM/strategy/functional-registry.md (fn-os-exotic, fn-device-presets-10k и т.п.) — там уже вердикты 🟢/🟡/🔴 с evidence из репо. Черновики от продаж могут противоречить реестру (случай 2026-11-24: «Аврора/Стрелец подтверждаем» vs 🔴 не подтверждено).

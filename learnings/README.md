@@ -27,6 +27,8 @@ status: superseded         # optional; с superseded_by: <key> или причи
 - `patterns.md` — repeatable ways that work
 - `pitfalls.md` — things that bite
 - `operational.md` — commands, tool quirks, environment facts
+- Кластеры: Релизный конвейер AM — см. ключи release-notes-infra-by-code, release-notes-file-naming, draft-release-notes-future-release, release-notes-scope-vs-merged-dev, mon-jira-done-filter-and-transition-dates, mon-sprint-vs-fixversion
+- Кластеры: Workflow-оркестрация — см. ключи workflow-verdicts-match-by-index, workflow-bulk-data-via-tmp-files, workflow-overlapping-edits-apply-order, chunk-slicing-drops-keys, cold-subagent-spec-grill
 
 ## Scope
 - `scope: harness` → lives here (about the harness itself).

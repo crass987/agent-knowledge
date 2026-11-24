@@ -25,16 +25,18 @@ source: observed
 files: ["link.sh", "README.md"]
 ts: 2026-06-18
 scope: harness
+status: superseded
+superseded_by: ref-agent-knowledge-skills-repo
 ---
 
 ---
 type: operational
 key: link-sh-not-executable
-insight: link.sh не имеет +x — `./link.sh` падает с "permission denied". Запускать `bash link.sh` (или `chmod +x link.sh` один раз). Уточняет запись new-skill-needs-link-sh.
+insight: link.sh сейчас +x (с 2026-07-16); исторически (на 19.06) был без +x и `./link.sh` падал с "permission denied" — тогда запускали `bash link.sh`. Канон деплоя скиллов — memory [[ref-agent-knowledge-skills-repo]] (симлинки skills/*, repo-root-скрипты, publish).
 confidence: 9
 source: observed
 files: ["link.sh"]
-ts: 2026-06-19
+ts: 2026-11-24
 scope: harness
 ---
 
@@ -78,8 +80,11 @@ insight: `sync-repos.sh --force` НЕ делает `git reset --hard` для р�
 confidence: 8
 source: observed
 files: [sync-repos.sh]
-ts: 2026-07-01
+ts: 2026-11-24
 scope: skill:am-update
+status: superseded
+superseded_by: ref-collect-repo-facts-quirks
+См. также: [[ref-collect-repo-facts-quirks]], [[stale-clones-grep-origin-dev]]
 ---
 
 ---
@@ -89,8 +94,9 @@ insight: C2-audit «who writes table X» даёт ложный negative, есл�
 confidence: 9
 source: observed
 files: []
-ts: 2026-07-21
+ts: 2026-11-24
 scope: skill:am-update
+См. также: [[c2-canonical-copy]], [[cross-repo-context-header-canonical]]
 ---
 
 ---
@@ -102,6 +108,8 @@ source: observed
 files: [analytics-hub/amps/docs/AMP-013/seeding.md, analytics-hub/improvements/docs/Установка и обновление/Сидирование/, amctl/cmd/seed.go]
 ts: 2026-08-03
 scope: skill:am-docs-audit
+status: superseded
+superseded_by: am-seeding-docset-and-driver
 ---
 По сидированию AM есть два док-сета, которые надо различать при аудите (пути после AMP-реструктуризации 2026-10):
 - `analytics-hub/amps/docs/AMP-013/seeding.md` = **AS-IS**, описывает текущий код (`admin-backend/internal/seed/`, `cmd/seed.go`). Trust для текущего механизма, но отстаёт на релиз (на 2026-08-03 не хватает snmp/vector_configs, неверный exit code).
@@ -110,15 +118,29 @@ scope: skill:am-docs-audit
 
 ---
 type: operational
+key: am-seeding-docset-and-driver
+insight: Док-сет по сидированию один — amps/docs/AMP-013/seeding.md (AS-IS); improvements-TO-BE заархивирован; драйвер — taskqueue через admin-backend /seeding/:kind (MON-5755); код-истина admin-backend/internal/seed/*
+confidence: 8
+source: observed
+files: [analytics-hub/amps/docs/AMP-013/seeding.md]
+ts: 2026-11-24
+scope: skill:am-docs-audit
+---
+Traverse 2026-11-23: TO-BE-спека (improvements/docs/Установка и обновление/Сидирование/) заархивирована, «читать оба» больше не работает (seeding-model.md:32). Драйвер сидирования с MON-5755 — taskqueue (прогоняет seed-каталоги через /seeding/:kind под сервисным токеном); C2-строка taskqueue обновлена тем же прогоном Stage 3.
+
+---
+type: operational
 key: c2-canonical-copy
 insight: Канонический C2-контейнеры.md живёт в analytics-hub/internal_docs/docs/Архитектура/ (переехал из master_docs при AMP-реструктуризации 2026-10); rag-agent/Notes — устаревшее зеркало. Править только analytics-hub.
 confidence: 9
 source: observed
 files: [analytics-hub/internal_docs/docs/Архитектура/C2-контейнеры.md]
-ts: 2026-08-04
+ts: 2026-11-24
 scope: skill:am-update
 ---
 Канон C1/C2/C3 = `analytics-hub/internal_docs/docs/Архитектура/` (до AMP-реструктуризации октября 2026 — `master_docs/docs/Архитектура/`). Править ТОЛЬКО analytics-hub; rag-agent/Notes — зеркало для RAG, не канон. (замечено при snmp-traps research 2026-08-04; путь обновлён 2026-10-08)
+
+См. также: [[c2-audit-go-lib-storage-indirection]], [[cross-repo-context-header-canonical]].
 
 ---
 type: operational
@@ -127,8 +149,9 @@ insight: collect-repo-facts.sh:488 парсит Profile Connections по заг�
 confidence: 9
 source: observed
 files: [meta/scripts/collect-repo-facts.sh, meta/repos/TEMPLATE.md]
-ts: 2026-08-11
+ts: 2026-11-24
 scope: skill:am-update
+См. также: [[c2-audit-go-lib-storage-indirection]], [[c2-canonical-copy]], [[ref-collect-repo-facts-quirks]]
 ---
 
 ---
@@ -141,6 +164,8 @@ files: []
 ts: 2026-08-11
 scope: harness
 См. также: [[confluence-update-content-placeholder]]
+status: superseded
+superseded_by: confluence-update-content-placeholder
 ---
 
 ---
@@ -186,10 +211,10 @@ insight: REQ/SPEC в analytics-hub переехали в фичевые папк
 confidence: 9
 source: observed
 files: [analytics-hub/amps/docs, PM.md]
-ts: 2026-10-08
+ts: 2026-11-24
 scope: skill:am-write-specs
 ---
-Скилл am-write-specs и PM.md ещё указывают старые расположения. Референс искать `find analytics-hub -name "REQ-*" -o -name "SPEC-*"` (сейчас десятки в amps/docs/AMP-003/006/009/011/016…). PM.md в метарепе показывает мёртвый analytics-hub/docs/requirements/ — править вне скоупа prune.
+Скилл am-write-specs и PM.md давно указывают amps/docs/AMP-* (проверено 2026-11-24; на 08.10 ещё расходились). Референс: `find analytics-hub -name "REQ-*" -o -name "SPEC-*"` — десятки в amps/docs/AMP-003/006/009/011/016….
 
 ---
 type: operational
@@ -226,6 +251,8 @@ files: ["~/.claude/skills/video-knowledge-extraction/scripts/srt-clean.py"]
 ts: 2026-09-14
 scope: harness
 См. также: [[srt-clean-fails-on-sequential-subs]], [[srt-anchor-timestamps]]
+status: superseded
+superseded_by: srt-anchor-timestamps
 ---
 SRT парсится одним python-скриптом: split по \n\n, блок с '-->' в строке 1, timestamp из start, текст после тегов. Оригинал SRT сохраняйте в source/ до очистки.
 ---
@@ -248,10 +275,12 @@ insight: Версию Vector в поставке АМ проверять по б
 confidence: 9
 source: observed
 files: ["PM/sessions/vector-log-sources/vector-log-sources.md"]
-ts: 2026-10-06
+ts: 2026-11-24
 scope: harness
 ---
 `latest` в Artifactory перезаливали 2026-09-28, но внутри всё ещё 0.41.1 (build_info: 2024-09-11); версия апстрим-репака = имя папки + строки в бинарнике. Бонус: /releases/latest у vectordotdev/vector отдаёт vdev-* тег — реальные релизы фильтровать из списка /releases по префиксу v0.
+
+См. также: [[project-vector-log-sources]], [[project-logs-otlp-pipeline-unification]].
 
 ---
 type: operational
@@ -260,9 +289,9 @@ insight: Записи dion.vc не скачиваются без логина и
 confidence: 9
 source: observed
 files: []
-ts: 2026-10-08
+ts: 2026-11-24
 scope: harness
-См. также: [[asr-transcript-literal-grep-fails]]
+См. также: [[asr-transcript-literal-grep-fails]], [[playwright-mcp-profile-lock]], [[ref-dion-vc-personal-rooms]]
 ---
 
 ---
@@ -271,11 +300,13 @@ key: workflow-verdicts-match-by-index
 insight: В workflow-пайплайнах maker→checker сопоставляйте вердикты чекеров по индексу элемента, не по slug/item-названию — LLM-чекеры переформулируют названия, и slug-матчинг молча теряет вердикты («checker missing»), убивая одобренные правки.
 confidence: 10
 source: observed (am-update 2026-11-01: 8 из 9 правок реестра отклонены из-за mismatch, полный перегон чекеров)
-ts: 2026-11-01
+ts: 2026-11-24
 scope: harness
 ---
 
 Схема чекера: массив verdicts с полем i (0-based индекс) + инструкция «в том же порядке, что и вход». Сопоставление строго по позиции. Slug-названия годятся только для логов/лейблов.
+
+См. также: [[workflow-bulk-data-via-tmp-files]], [[workflow-overlapping-edits-apply-order]], [[chunk-slicing-drops-keys]].
 
 ---
 type: operational
@@ -283,11 +314,13 @@ key: workflow-bulk-data-via-tmp-files
 insight: Массовые данные для агентов workflow (списки правок, JSON-выжимки) кладите в /tmp-файл и давайте агентам путь — «прочитай элемент i из файла», а не прокачивайте через args/workflow-скрипт: меньше транскрипционных ошибок и дешёвый resume.
 confidence: 9
 source: observed (am-update 2026-11-01: args без полей уронил запуск за 24 мс; /tmp-вариант отработал чисто)
-ts: 2026-11-01
+ts: 2026-11-24
 scope: harness
 ---
 
 Годится для промптов вида «возьми элемент i массива из file.json». Скрипт workflow не имеет доступа к ФС — но агенты имеют.
+
+См. также: [[workflow-verdicts-match-by-index]], [[workflow-overlapping-edits-apply-order]], [[chunk-slicing-drops-keys]].
 
 ---
 type: operational
@@ -302,6 +335,33 @@ superseded_by: project-capability-registry
 ---
 
 Команда: `python3 meta/scripts/capability_registry_check.py PM/strategy/functional-registry.md analytics-hub/internal_docs`.
+---
+type: operational
+key: licensing-count-code-location
+insight: Правила лицензионного подсчёта Astra Monitoring живут в go-lib/entity/ls/license.go (CountAgentHosts/CountAgentExtTargets); проверяются живой пробой — go run мини-программы с replace на ../go-lib
+confidence: 9
+source: observed
+files: ["go-lib/entity/ls/license.go", "config-api/internal/license/license.go", "license-service/internal/app/service.go"]
+ts: 2026-11-05
+scope: project
+---
+Хост-слот = «хотя бы одно из: экспортеры/локальный таргет, SNMPTraps.Enabled, Logs, Beyla» + по слоту на уникальный нелокальный Metrics.CustomTargets-адрес; SNMP/IPMI-таргеты = отдельная ext-квота; desktop всегда ровно 1 (license-service service.go:367). Usage считает license-service по активным агентам (starting/running, не disabled).
+
+---
+type: operational
+key: dion-vc-event-slug-personal-room
+insight: dion.vc/event/<slug> — именные личные комнаты DION, slug = username владельца (nenaev = Наиль Енаев), а не разовые события; страницы — SPA за логином DION Passport, контент не читается ни одним веб-каналом (WebFetch/webReader/searxng/curl/Wayback — проверено 8 каналами 2026-11-11).
+confidence: 9
+source: observed
+files: ["PM/initiatives/observability/2026-11-11-architecture-presale-tiers-pipelines-storage.md"]
+ts: 2026-11-24
+scope: project
+status: superseded
+superseded_by: ref-dion-vc-personal-rooms
+---
+Идентификация комнаты: календарь/почта через LMCP (list_calendar_events, read_email) — ссылки dion.vc/event/<username> лежат в полях событий календаря; полное отсутствие в календаре = встреча не запланирована или позже окна. Сразу идти в LMCP, не тратить вызовы на веб-каналы.
+
+См. также: [[ref-dion-vc-personal-rooms]], [[ref-lmcp-mcp-mail-calendar]].
 
 ---
 type: operational
@@ -310,10 +370,12 @@ insight: event-processing пишет состояние мониторов в Vi
 confidence: 9
 source: observed
 files: ["event-processing/internal/ruleexecutor/ruleexecutor.go", "event-processing/internal/monitor/refresh.go", "event-processing/internal/repository/metric/series.go", "PM/initiatives/monitoring-1c/product/data-contracts.md"]
-ts: 2026-11-23
+ts: 2026-11-24
 scope: project
 ---
 Агрегат «худшее по монитору/хосту» строится запросом `max by (monitor_id|hostname) (rule_state{...})` — так работает светофор зон раздела «1С» (ветка mon-5179 admin-console: pages/onec/model/zones.ts). Запись по Федерации ЦРЦТ от 07.2026 (D10 «экспорт состояния метрикой — нет») и grill sla-monitoring от 24.08 устарели.
+
+См. также: [[project-service-object-q1-deep-dive]], [[slo-platform-constraints]].
 
 ---
 type: operational
@@ -322,7 +384,46 @@ insight: Для расчётов за длинные окна платформа
 confidence: 9
 source: observed
 files: ["monitoring-astra-icl/helm-charts/astra-monitoring-umbrella/values.yaml", "go-lib/entity/ep/monitor/monitor.go", "admin-console/src/shared/ui/CoreTable/CoreTable.tsx"]
-ts: 2026-11-23
+ts: 2026-11-24
 scope: project
 ---
 Следствие для SLO/отчётов: месяц длиннее хранения метрик → нужна суточная свёртка или расчёт по истории проблем в PostgreSQL (ep_problems без очистки; ep_problem_logs в ClickHouse — TTL 60 дней). История проблем в PG переживает любой период, но удаляется каскадом вместе с монитором.
+
+См. также: [[project-service-object-q1-deep-dive]], [[monitor-state-exported-to-vm]].
+
+
+---
+type: operational
+key: am-update-drift-window-own-profile-date
+insight: Дрейф «N commits since» в facts-отчёте считается от даты «Last AGENTS.md refresh» самого репо — для Stage 1 бесполезен; окно профиля считать от отметки Last refreshed в шапке meta/repos/<name>.md
+confidence: 10
+source: observed
+files: ["meta/scripts/collect-repo-facts.sh"]
+ts: 2026-11-24
+scope: harness
+---
+Проверено по коду collect-repo-facts.sh:101-125 и живыми цифрами 23.11 (e2e: 1953 в отчёте против 286 настоящих; analytics-hub 325 против 361; agent 2 против 8). Заменяет [[facts-drift-counter-profile-date]].
+
+---
+type: operational
+key: sync-repos-dryrun-no-fetch-stale-lock
+insight: sync-repos.sh --dry-run не делает fetch (цифры по старым ссылкам); --force молча пропускает грязные репо; мёртвый .git/index.lock роняет sync
+confidence: 9
+source: observed
+files: ["sync-repos.sh"]
+ts: 2026-11-24
+scope: harness
+---
+Прегейт перед --force: свой fetch + ahead/dirty/stash по каждому репо. Лок удалять только при возрасте > суток и отсутствии git-процессов (23.11 в monitoring-astra-icl лежал лок с 17.11). См. [[am-update-force-sync-protects-dirty]].
+
+---
+type: operational
+key: workflow-subagent-ops-constraints
+insight: Workflow: scriptPath только внутри рабочего каталога (/tmp отклоняется); TaskStop теряет незавершённых агентов (в journal кэш только по завершившимся); StructuredOutput >32K выходных токенов обрывается; GLM через astra-хаб может зациклиться в эхо
+confidence: 8
+source: observed
+files: []
+ts: 2026-11-24
+scope: harness
+---
+Практика 23-24.11: (1) классификацию 120 предметов разбивать на группы ≤30 с записью файла до ответа; (2) приостановленный воркфлоу возобновлять resumeFromRunId; (3) признак эхо-цикла — транскрипт агента >100 МБ при норме 1–4 МБ: останавливать воркфлоу, батч переделывать редо-прогоном; (4) тяжёлые прогоны не запускать при 5h-окне квоты >90%.

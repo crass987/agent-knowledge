@@ -105,8 +105,9 @@ insight: JQL `worklogDate` is a snapshot of the Jira worklog INDEX at query time
 confidence: 8
 source: observed
 files: [~/.claude/skills/vid-rabot/SKILL.md]
-ts: 2026-08-14
+ts: 2026-11-24
 scope: harness
+См. также: [[jql-worklogdate-date-only]], [[jira-bulk-async-server-side-completes-after-mcp-abort]]
 
 ---
 type: pitfall
@@ -128,8 +129,9 @@ insight: amctl (и любой Go-бинарь) на маке с прокси-к�
 confidence: 7
 source: observed
 files: [~/.amctl.yaml, /etc/resolv.conf]
-ts: 2026-08-20
+ts: 2026-11-24
 scope: harness
+См. также: [[amctl-login-fresh-config-needs-insecure]], [[am-dev-jwt-24h-and-split-dns]]
 ---
 
 ---
@@ -139,10 +141,12 @@ insight: Пакетное применение одобренных workflow-п�
 confidence: 9
 source: observed
 files: ["skills/am-update/prompts/c2-fix.md"]
-ts: 2026-09-04
+ts: 2026-11-24
 scope: harness
 ---
 am-update 2026-09-04: cha-1 содержал old_text вложенной c2-idp-readyz-1; порядок cha-1→idp сработал, обратный сломал бы вторую правку. Правило: при ≥2 APPROVE-правках в одну область C2 строить граф вложенности old_text.
+
+См. также: [[workflow-verdicts-match-by-index]], [[workflow-bulk-data-via-tmp-files]], [[chunk-slicing-drops-keys]].
 ---
 type: pitfall
 key: am-local-config-not-in-tmp
@@ -165,8 +169,8 @@ insight: MCP-клиент может убить bulk-вызов по idle-timeou
 confidence: 9
 source: observed
 files: ["~/.claude/skills/vid-rabot/SKILL.md"]
-См. также: [[jira-mcp-broad-text-jql-oversize]], [[jira-mcp-401-substring-issuekey]], [[jira-search-truncates-at-maxresults]]
-ts: 2026-09-08
+См. также: [[jira-mcp-broad-text-jql-oversize]], [[jira-mcp-401-substring-issuekey]], [[jira-search-truncates-at-maxresults]], [[jira-worklogdate-retro-backfill-delta]], [[jql-worklogdate-date-only]]
+ts: 2026-11-24
 scope: harness
 ---
 vid-rabot прогон, bulk_update_issues 265 ключей (MON спринт 3641): MCP-клиент убил bulk-вызов после 1800s idle-timeout («sent no response or progress»), но 265 updates доехали за ~45 мин (темп 2→7/мин, ускоряется). Симптом-проверка: прямой readback через PAT (`key in (...) AND "Вид работ" is EMPTY`) показывает прогресс; перезапускать bulk НЕ нужно — поллить каждые 5-7 мин, пока счётчик пустых не дойдёт до 0. Параллельные мелкие bulk-группы (2-33 ключа) в это же время тоже висят >120s в фоне — MCP-сервер насыщен одним длинным bulk'ом; одиночный update_issue проходит мгновенно. Правило: большие bulk-записи (>50 ключей) = запуск в фон и полл прямым PAT-подключением; записи — только через MCP, read-only прямые вызовы в ходе прогона — норм.
@@ -243,10 +247,12 @@ insight: worklogDate в JQL MON не принимает время — толь�
 confidence: 9
 source: observed
 files: []
-ts: 2026-09-21
+ts: 2026-11-24
 scope: harness
 ---
 Jira Server MON отклоняет `worklogDate >= "2026-09-08 15:50"` (400 «Date value is invalid»; валидные форматы YYYY/MM/DD, YYYY-MM-DD, периоды вроде -5d). Для vid-rabot в режиме since-last: ISO-время из last-run.txt обрезать до даты (прогон 2026-09-21 потерял вызов на этой ошибке до первого результата). Перепокрытие (работлоги с 00:00 дня прошлого прогона) безвредно — фильтр `"Вид работ" is EMPTY` отсекает уже размеченное.
+
+См. также: [[jira-worklogdate-retro-backfill-delta]], [[jira-bulk-async-server-side-completes-after-mcp-abort]].
 ---
 type: pitfall
 key: jira-search-truncates-at-maxresults
@@ -268,7 +274,7 @@ insight: Токены am-dev живут 24ч и протухают молча (a
 confidence: 9
 source: observed
 files: ["~/.amctl-dev-live.yaml"]
-ts: 2026-09-25
+ts: 2026-11-24
 scope: project
 status: superseded
 superseded_by: project-ai-sre-stand-token-cadence
@@ -277,7 +283,7 @@ JWT am-dev живёт ~24 часа (exp = iat + 86400). Протухание м�
 
 Split-DNS VPN: туннель поднят (ВМ по IP отвечает), но системный DNS macOS не получает записи `*.dev.astra-monitoring.astralinux.ru` — curl/amctl/vite-прокси падают NXDOMAIN, а браузер владельца работает (браузерный DoH). Диагностика: `host <имя>` против `curl http://<ВМ-IP>:порт/health`; если ВМ жива, а имя нет — просить IP или перезапуск туннеля, не гадать про «сеть мертва».
 
-См. также: [[subagent-cjk-glyph-leak]]
+См. также: [[subagent-cjk-glyph-leak]], [[amctl-login-fresh-config-needs-insecure]], [[amctl-fake-ip-dns-epERM]], [[ref-am-dev-stand-live-introspection]]
 ---
 type: pitfall
 key: subagent-briefs-require-russian-explicitly
@@ -350,10 +356,12 @@ insight: при ручной нарезке длинного списка клю
 confidence: 8
 source: observed
 files: []
-ts: 2026-10-16
+ts: 2026-11-24
 scope: harness
 ---
 vid-rabot 2026-10-16: 99 ключей Jira разрезал вручную на 4 чанка «на глаз» — выронил MON-5526 (сосед 5525/5560); субагенты честно отработали свои 98, расхождение нашлось только сверкой (коммутатор чанков 98 vs total 99 → comm -23 по спискам). Правило: ключи из jq писать в файл, чанки резать awk/sed, перед диспэтчем `comm` объединения с исходником; после сбора результатов — обратная comm-сверка. Пропущенный ключ доводится одним solo-вызовом, без перезапуска чанка.
+
+См. также: [[workflow-verdicts-match-by-index]], [[workflow-bulk-data-via-tmp-files]], [[workflow-overlapping-edits-apply-order]].
 
 ---
 type: pitfall
@@ -362,10 +370,12 @@ insight: am-release-notes — релиз живёт папкой release-notes/<
 confidence: 9
 source: observed
 files: [analytics-hub/internal_docs/docs/release-notes/]
-ts: 2026-10-22
+ts: 2026-11-24
 scope: harness
 ---
 SKILL.md am-release-notes требует `YYYY-MM-DD-*`, README папки — `vX.Y.Z-release-notes.md`, фактика папки — `1.7.0-release-notes-dev.md` / `1.7.0-changelog.md` / `1.7.0-release-notes-marketing.md` (три файла, префикс = версия без «v»). Название по версии устойчивее к переносу даты релиза. Перед следующей генерацией: ls -t папки решает.
+
+См. также: [[release-notes-infra-by-code]], [[release-notes-scope-vs-merged-dev]].
 
 ---
 type: pitfall
@@ -374,10 +384,12 @@ insight: релиз-ноуты будущего (невыпущенного) р�
 confidence: 8
 source: observed
 files: [analytics-hub/internal_docs/docs/release-notes/1.8.0/dev.md]
-ts: 2026-10-22
+ts: 2026-11-24
 scope: product
 ---
 Кейс v.1.8.0 (план 03.11.2026): юзер попросил драфт по MUST-скоупу (интеграции + RBAC по данным). Паттерн: в dev-файле ключи не-Done тикетов включаются как плановый скоуп, в шапке — статусная оговорка и ссылка на живую релизную страницу Confluence; номера тикетов НЕ упоминать вне буллетов, иначе key-coverage check (exact-once) ложно краснеет. Коммит только после апрува владельца.
+
+См. также: [[release-notes-infra-by-code]], [[release-notes-scope-vs-merged-dev]].
 ---
 type: pitfall
 key: complaint-vs-requirement-ticket-reading
@@ -396,10 +408,12 @@ insight: в Jira MON statusCategory=Done врёт (возвращает подм
 confidence: 9
 source: observed
 files: []
-ts: 2026-11-23
+ts: 2026-11-24
 scope: harness
 ---
 Кейс 1.7.2: statusCategory=Done дал 200 тикетов вместо 505 реальных «To Release»; по именам статусов («To Release») JQL отклоняется — только числовые ID (список через list_statuses). updated 173 тикетов был одинаковым днём (11-13, спринт-мерж). Рабочий паттерн: fixVersion = "v.X" AND status = 11402 AND status CHANGED TO 11402 AFTER "<дата тега предыдущего релиза>" → чистый когорт релиза (389 до / 116 после, пересечений ноль). Cross-references в summaries чужих тикетов («Настройки таблиц (MON-5684): …») дают ложные дубли в key-coverage — чекать только буллет-строки `- [MON-X](https://...)`.
+
+См. также: [[mon-sprint-vs-fixversion]], [[project-jira-sprint-close-cancelled]].
 ---
 type: pitfall
 key: amctl-login-fresh-config-needs-insecure
@@ -407,10 +421,12 @@ insight: amctl login в новый конфиг на am-dev падает «се�
 confidence: 9
 source: observed
 files: ["~/.amctl-dev-live.yaml"]
-ts: 2026-11-23
+ts: 2026-11-24
 scope: project
 ---
 Кейс 23.11 (восстановление контекста AI-SRE): `amctl login --login … --server … -c /tmp/new.yaml` без `insecure: true` в файле даёт ERR «сервер не доступен», хотя стенд жив; файл после этого не создаётся, и следующий `amctl … -c` паникует в MustLoad. Рабочий порядок: создать конфиг с `insecure: true` и заготовкой сервера (права 600), затем login; токен читать из конфига в переменную, не печатая; временный конфиг удалить. В --help у login есть ещё флаг --insecure — этот путь не проверялся.
+
+См. также: [[am-dev-jwt-24h-and-split-dns]], [[amctl-fake-ip-dns-epERM]].
 ---
 type: pitfall
 key: stale-clones-grep-origin-dev
@@ -429,10 +445,12 @@ insight: am-release-notes — отбор «fixVersion = vX AND statusCategory = 
 confidence: 9
 source: observed
 files: ["analytics-hub/internal_docs/docs/release-notes/"]
-ts: 2026-11-23
+ts: 2026-11-24
 scope: project
 ---
 Кейс 23.11 (нотсы 1.7.2): Apdex по BTM (MON-4950) — один тикет на фичу, без fixVersion, «На тестировании», код в origin/dev четырёх репо 18–20.11; в нотсах фичи не было, заметил владелец. Тот же класс: MON-5720 (platformctl update), MON-5968 (AI-ассистент: Kubernetes), MON-5871 (ушёл в To Release уже после выгрузки), MON-5822. Тег релиза в monitoring-astra-icl стоит на main и НЕ является предком dev, поэтому `<тег>..origin/dev` выдаёт тысячи старых коммитов; рабочий фильтр — по дате тега: `git log origin/dev --first-parent --since=<дата тега> -i -E --grep='mon-[0-9]+'`, ключи сверить с dev.md, кандидатов проверить в Jira (statusCategory, fixVersion).
+
+См. также: [[mon-jira-done-filter-and-transition-dates]], [[stale-clones-grep-origin-dev]], [[project-release-172-scope-split]].
 ---
 type: pitfall
 key: check-learnings-before-no-docs-claim
@@ -440,10 +458,12 @@ insight: Перед утверждением «публичной докумен
 confidence: 9
 source: observed
 files: ["PM/initiatives/sla-monitoring/deep-dive-q1-2027.md"]
-ts: 2026-11-23
+ts: 2026-11-24
 scope: harness
 ---
 Кейс 23.11 (am-grill-feature по фичам Q1 2027): два веб-агента не нашли документацию GMONIT, в документ попало «публичной документации нет», хотя в patterns.md с утра лежал урок «Доки GMONIT = docsify, сырой md по прямому пути» (curl https://docs.gmonit.ru/<path>.md, оглавление _sidebar.md). Владелец спросил «как это реализовано в GMONIT» — модуль SLO нашёлся одним curl; ложное утверждение снято из документа, индекса и памяти.
+
+См. также: [[project-service-object-q1-deep-dive]].
 
 ---
 type: pitfall
@@ -452,10 +472,11 @@ insight: An invalid `GITHUB_TOKEN` is exported from `~/.zshrc` (line 1) and over
 confidence: 9
 source: observed
 files: ["meta/research/vector-otlp-logs-pipeline.md"]
-ts: 2026-11-23
+ts: 2026-11-24
 scope: harness
 status: superseded
 superseded_by: ref-github-api-gh-token
+См. также: [[ref-github-api-gh-token]], [[searxng-russian-queries-degraded]], [[ref-reddit-anonymous-access]]
 ---
 Superseded 2026-11-24 (traverse): GitHub-часть канонизована в memory ref-github-api-gh-token; не-GitHub факты вынесены в webreader-github-pages-500-fallback.
 

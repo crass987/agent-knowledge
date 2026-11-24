@@ -52,8 +52,9 @@ Three parts:
 правки (сломанные ссылки на одной переименованной странице, CSS-твик) группируйте в
 одну строку со ссылками inline, а не в N строк «ссылка monitor_setup_gui → …».
 
-Dev-stand URL via `memory:ref-docs-dev-site.md` (host `docs-docs-dev.…sslip.io`, double
-`docs-`, path `/dev/<page-path>.html`). Build the link for the page from step 1.
+Dev-stand URL via `memory:ref-docs-dev-site.md` (canonical host lives there — do NOT
+hardcode it here, the host churns; double `docs-`, versioned path `/dev/<page-path>.html`).
+Build the link for the page from step 1.
 
 ## Sprint + status + verify-after-mutate
 

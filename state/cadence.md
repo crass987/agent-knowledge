@@ -6,8 +6,8 @@
 Проверка: `scripts/cadence-check.sh` — печатает только просроченное active, молчит иначе.
 prune и am-update исполняются совместно с еженедельной estate-сверкой (решение владельца 2026-11-05).
 
-traverse | 14 | 2026-11-05 | active
+traverse | 14 | 2026-11-24 | active
 prune | 30 | 2026-11-05 | active
 budgets | 30 | never | planned
-estate | 7 | 2026-11-05 | active
-am-update | 7 | 2026-11-01 | active
+estate | 7 | 2026-11-24 | active
+am-update | 7 | 2026-11-24 | active

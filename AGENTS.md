@@ -42,12 +42,16 @@ Grouped by track: **Discovery** (what to build), **Delivery** (how to build — 
 | add to docs, добавь в доку, обнови публичку, public docs, sphinx | `skills/am-docs-add/SKILL.md` |
 | ЕСПД, нормоконтроль, РД СМК, сертификационный комплект, проверь док по РД | `skills/am-esp-check/SKILL.md` |
 | confluence, опубликуй в confluence, md → confluence, живые задачи на странице | `skills/am-md-to-confluence/SKILL.md` |
-| вид работ, CAPEX OPEX, разметка тикетов, Tempo, mark work type | `skills/vid-rabot/SKILL.md` |
-| excalidraw deck, колода, слайды excalidraw, презентация excalidraw | `skills/excalidraw-deck/SKILL.md` |
 
-### Delivery — code / engineering
+### Delivery — how to build (код / инженерия)
 
-Delivery-скиллы живут вне этого репо: `tdd`, `debugging`, `code-review` — плагин superpowers / `~/.claude/skills`; `debugging` — локальный каталог `~/.claude/skills/debugging`. Процессные скиллы этого репо: `excalidraw-deck`, `am-update`, `vid-rabot` (см. Product-таблицу выше и `skills/_INDEX.md`). Удалены как generic-оверхед 2026-07-21: `spec-writing`, `competitive-analysis`, `deploy-checklist`, `incident-response` (история: `README.md`, Rollout).
+| Task involves... | Read |
+|---|---|
+| excalidraw deck, колода, слайды excalidraw, презентация excalidraw, переложи доклад в деку, вылезание текста | `skills/excalidraw-deck/SKILL.md` |
+| update artifacts, refresh profiles, C2 audit/fix, sync repos and docs, обнови артефакты, am-update | `skills/am-update/SKILL.md` |
+| вид работ, разметка тикетов, CAPEX OPEX, Tempo, mark work type, классификация задач по видам работ | `skills/vid-rabot/SKILL.md` |
+
+Delivery-скиллы вне этого репо: `tdd`, `debugging`, `code-review` — плагин superpowers / `~/.claude/skills`; `debugging` — локальный каталог `~/.claude/skills/debugging`. Удалены как generic-оверхед 2026-07-21: `spec-writing`, `competitive-analysis`, `deploy-checklist`, `incident-response` (история: `README.md`, Rollout).
 
 ### Knowledge-Meta — harness knowledge layer
 
@@ -60,7 +64,6 @@ Delivery-скиллы живут вне этого репо: `tdd`, `debugging`,
 | запиши, сохрани, занеси в базу, remember this, куда это положить | `skills/ingest/SKILL.md` |
 | audit skill necessity, is X overhead, keep or retire, прожарь скилл на необходимость | `skills/capability-audit/SKILL.md` |
 | почисти харнесс, дубли в CLAUDE/AGENTS, stale docs, context hygiene, аудита док-слоя | `skills/am-docs-audit/SKILL.md` |
-| обнови артефакты, refresh profiles, C2 audit/fix, sync repos | `skills/am-update/SKILL.md` |
 
 ## Tool registry (capability → tool)
 
